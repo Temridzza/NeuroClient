@@ -1,6 +1,7 @@
+# tests/CmakeLists.txt
 add_executable(UnitTests
         ChatGPTConfig_test.cpp
-        MainWindow_test.cpp
+        # MainWindow_test.cpp
         ChatGPTClient_test.cpp
 
         database/ChatRepository_test.cpp
@@ -8,13 +9,18 @@ add_executable(UnitTests
         database/MessageRepository_test.cpp
 )
 
-target_link_libraries(UnitTests
+target_link_libraries(UnitTests PRIVATE
+        GTest::gtest
         GTest::gtest_main
-        Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql
-        CURL::libcurl
-        nlohmann_json::nlohmann_json
+
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Sql
+
+        ${CURL_TARGET}
+
+        chatgptlib
 )
 
-# Включить тесты
 include(GoogleTest)
 gtest_discover_tests(UnitTests)

@@ -13,6 +13,9 @@ pkgs.mkShell {
     ninja
     clang
     gdb
+    curl
+    nlohmann_json
+    gtest
   ];
 
   shellHook = ''
