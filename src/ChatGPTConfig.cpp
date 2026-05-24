@@ -1,104 +1,92 @@
 #include "ChatGPTConfig.h"
 
-#include <filesystem>
-#include <iostream>
-
-#include <QFile>
-#include <QTextStream>
 #include <QDir>
-#include <QJsonObject>
-#include <QJsonArray>
+#include <QFile>
 #include <QFileInfo>
+#include <QTextStream>
 
+/* ============================================================
+ * SINGLETON
+ * ============================================================ */
 
-// Singleton instance
 ChatGPTConfig& ChatGPTConfig::instance() {
     static ChatGPTConfig instance;
     return instance;
 }
 
-ChatGPTConfig::ChatGPTConfig() {
-    this->loadConfig();
+/* ============================================================
+ * CONSTRUCTOR
+ * ============================================================ */
+
+ChatGPTConfig::ChatGPTConfig()
+    : settings("NeuroClient", "NeuroClient")
+{
+    initDefaults();
 }
 
 /* ============================================================
- * UNIVERSAL CONFIG FIELD GETTER
+ * DEFAULT VALUES
  * ============================================================ */
 
-Result ChatGPTConfig::getConfigField(const QString &key) const {
-    if (this->Config.isNull() || !this->Config.isObject())
-        return {false, {}, "Конфигурация не инициализирована"};
-
-    QJsonObject obj = this->Config.object();
-
-    if (!obj.contains(key))
-        return {false, {}, "Поле \"" + key + "\" не найдено"};
-
-    QJsonValue val = obj[key];
-
-    // Автоматически определяем тип
-    if (val.isString())
-        return {true, val.toString(), ""};
-
-    if (val.isBool())
-        return {true, val.toBool(), ""};
-
-    if (val.isDouble())
-        return {true, val.toDouble(), ""};
-
-    if (val.isArray())
-        return {true, val.toArray(), ""};
-
-    if (val.isObject())
-        return {true, val.toObject(), ""};
-
-    return {false, {}, "Неизвестный тип поля: " + key};
-}
-
-/* ============================================================
- * UNIVERSAL CONFIG FIELD SETTER
- * ============================================================ */
-
-Result ChatGPTConfig::setConfigField(const QString &key, const QVariant &value) {
-    if (this->Config.isNull() || !this->Config.isObject())
-        return {false, {}, "Конфигурация не инициализирована"};
-
-    QJsonObject obj = this->Config.object();
-
-    if (!obj.contains(key))
-        return {false, {}, "Поле \"" + key + "\" не найдено"};
-
-    // Конвертация QVariant → QJsonValue
-    QJsonValue newValue;
-
-    switch (value.typeId()) {
-        case QMetaType::QString:
-            newValue = QJsonValue(value.toString());
-            break;
-        case QMetaType::Bool:
-            newValue = QJsonValue(value.toBool());
-            break;
-        case QMetaType::Double:
-        case QMetaType::Int:
-            newValue = QJsonValue(value.toDouble());
-            break;
-        case QMetaType::QJsonArray:
-            newValue = value.toJsonArray();
-            break;
-        case QMetaType::QStringList:
-            newValue = value.toJsonArray();
-            break;
-        case QMetaType::QVariantList:
-            newValue = value.toJsonArray();
-            break;
-        default:
-            return {false, {}, "Неподдерживаемый тип QVariant для записи"};
+void ChatGPTConfig::initDefaults() {
+    if (!settings.contains("apiKeyPath")) {
+        settings.setValue(
+            "apiKeyPath",
+            "~/.config/chatgpt/api.key"
+            );
     }
 
-    obj[key] = newValue;
-    this->Config.setObject(obj);
+    if (!settings.contains("currentModel")) {
+        settings.setValue("currentModel", "");
+    }
 
-    saveConfig();
+    if (!settings.contains("selectedModels")) {
+        settings.setValue(
+            "selectedModels",
+            QStringList{}
+            );
+    }
+
+    if (!settings.contains("torEnabled")) {
+        settings.setValue("torEnabled", false);
+    }
+
+    settings.sync();
+}
+
+/* ============================================================
+ * UNIVERSAL GETTER
+ * ============================================================ */
+
+Result ChatGPTConfig::getConfigField(
+    const QString &key
+    ) const {
+    if (!settings.contains(key)) {
+        return {
+            false,
+            {},
+            "Поле \"" + key + "\" не найдено"
+        };
+    }
+
+    return {
+        true,
+        settings.value(key),
+        ""
+    };
+}
+
+/* ============================================================
+ * UNIVERSAL SETTER
+ * ============================================================ */
+
+Result ChatGPTConfig::setConfigField(
+    const QString &key,
+    const QVariant &value
+    ) {
+    settings.setValue(key, value);
+    settings.sync();
+
     return {true, {}, ""};
 }
 
@@ -107,69 +95,107 @@ Result ChatGPTConfig::setConfigField(const QString &key, const QVariant &value) 
  * ============================================================ */
 
 Result ChatGPTConfig::getApiKey() {
-    auto pathField = getConfigField("apiKeyPath");
-    if (!pathField.success)
-        return pathField;
+    auto result = getApiKeyPath();
 
-    QString path = pathField.data.toString();
+    if (!result.success) {
+        return result;
+    }
 
-    // "~" → /home/user
-    if (path.startsWith("~"))
+    QString path = result.data.toString();
+
+    if (path.startsWith("~")) {
         path.replace(0, 1, QDir::homePath());
+    }
 
     QFile file(path);
-    if (!file.exists())
-        return {false, {}, "Файл API ключа не найден: " + path};
 
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        return {false, {}, "Не удалось открыть файл: " + path};
+    if (!file.exists()) {
+        return {
+            false,
+            {},
+            "Файл API ключа не найден: " + path
+        };
+    }
 
-    QString key = QString::fromUtf8(file.readAll()).trimmed();
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return {
+            false,
+            {},
+            "Не удалось открыть файл: " + path
+        };
+    }
+
+    QString key =
+        QString::fromUtf8(file.readAll()).trimmed();
+
     file.close();
 
-    if (key.isEmpty())
-        return {false, {}, "Файл существует, но ключ пуст"};
+    if (key.isEmpty()) {
+        return {
+            false,
+            {},
+            "API ключ пуст"
+        };
+    }
 
     return {true, key, ""};
 }
 
-Result ChatGPTConfig::setApiKey(const QString &apiKey) {
-    auto pathField = getConfigField("apiKeyPath");
-    if (!pathField.success)
-        return pathField;
+Result ChatGPTConfig::setApiKey(
+    const QString &apiKey
+    ) {
+    auto result = getApiKeyPath();
 
-    QString path = pathField.data.toString();
+    if (!result.success) {
+        return result;
+    }
 
-    if (path.startsWith("~"))
+    QString path = result.data.toString();
+
+    if (path.startsWith("~")) {
         path.replace(0, 1, QDir::homePath());
+    }
 
     QFileInfo info(path);
+
     QDir dir(info.absolutePath());
 
     if (!dir.exists()) {
         if (!dir.mkpath(".")) {
-            return {false, {}, "Не удалось создать директорию: " + info.absolutePath()};
+            return {
+                false,
+                {},
+                "Не удалось создать директорию"
+            };
         }
     }
 
     QFile file(path);
 
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return {false, {}, "Ошибка записи в файл: " + path};
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return {
+            false,
+            {},
+            "Ошибка записи API ключа"
+        };
+    }
 
     QTextStream out(&file);
+
     out << apiKey.trimmed();
+
     file.close();
 
-    return {true, {"API ключ успешно записан в: " + path}, ""};
+    return {true, {}, ""};
 }
 
-Result ChatGPTConfig::setApiKeyPath(const QString &path) {
+Result ChatGPTConfig::setApiKeyPath(
+    const QString &path
+    ) {
     return setConfigField("apiKeyPath", path);
 }
 
 Result ChatGPTConfig::getApiKeyPath() {
-    auto chf = getConfigField("apiKeyPath");
     return getConfigField("apiKeyPath");
 }
 
@@ -182,149 +208,83 @@ Result ChatGPTConfig::getTorEnable() const {
 }
 
 Result ChatGPTConfig::setTorEnable(bool enabled) {
-    return setConfigField("torEnabled", enabled);
+    return setConfigField(
+        "torEnabled",
+        enabled
+        );
 }
 
 /* ============================================================
- * LOAD / SAVE CONFIG
- * ============================================================ */
-
-Result ChatGPTConfig::loadConfig() {
-    const QString configPath = directoryPath + "/Config.json";
-    QFile file(configPath);
-
-    QDir dir(directoryPath);
-    if (!dir.exists())
-        dir.mkpath(".");
-
-    // Создать новый конфиг
-    if (!file.exists()) {
-        QJsonObject defaultConfig{
-            {"apiKeyPath", "~/.config/chatgpt/api.key"},
-            {"currentModel", ""},
-            {"selectedModel", QJsonArray{}},
-            {"torEnabled", false}
-        };
-
-        QJsonDocument doc(defaultConfig);
-        QFile f(configPath);
-        if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
-            return {false, {}, "Не удалось создать Config.json"};
-
-        f.write(doc.toJson(QJsonDocument::Indented));
-        f.close();
-        this->Config = doc;
-        return {true, doc.toJson(), ""};
-    }
-
-    // Чтение существующего
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        return {false, {}, "Не удалось открыть Config.json"};
-
-    QByteArray data = file.readAll();
-    file.close();
-
-    QJsonParseError err;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &err);
-
-    if (err.error != QJsonParseError::NoError)
-        return {false, {}, "Ошибка JSON: " + err.errorString()};
-
-    this->Config = doc;
-    return {true, doc.toJson(), ""};
-}
-
-Result ChatGPTConfig::saveConfig() {
-    QString configPath = directoryPath + "/Config.json";
-    QFile file(configPath);
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return {false, {}, "Не удалось сохранить Config.json"};
-
-    file.write(this->Config.toJson(QJsonDocument::Indented));
-    file.close();
-
-    return {true, {}, ""};
-}
-
-/* ============================================================
- * MODEL
+ * CURRENT MODEL
  * ============================================================ */
 
 Result ChatGPTConfig::getCurrentModel() const {
     return getConfigField("currentModel");
 }
 
-Result ChatGPTConfig::setCurrentModel(const QString &str) {
-    return setConfigField("currentModel", str);
+Result ChatGPTConfig::setCurrentModel(
+    const QString &model
+    ) {
+    return setConfigField(
+        "currentModel",
+        model
+        );
 }
 
 /* ============================================================
- * selected-MODEL
+ * SELECTED MODELS
  * ============================================================ */
-Result ChatGPTConfig::getSelectedModels() {
-    return getConfigField("selectedModel");
+
+Result ChatGPTConfig::getSelectedModels() const {
+    return {
+        true,
+        settings.value("selectedModels").toStringList(),
+        ""
+    };
 }
 
-Result ChatGPTConfig::addSelectedModels(const QString &model) {
-    // Получаем поле selectedModel
-    auto field = getConfigField("selectedModel");
-    if (!field.success) {
-        return field;
+Result ChatGPTConfig::addSelectedModels(
+    const QString &model
+    ) {
+    QStringList models =
+        settings.value("selectedModels")
+            .toStringList();
+
+    if (models.contains(model)) {
+        return {
+            false,
+            {},
+            "Модель уже добавлена"
+        };
     }
 
-    QJsonValue val = field.data.toJsonValue();
+    models.append(model);
 
-    // Проверяем, что это массив
-    if (!val.isArray()) {
-        return { false, {}, "Поле selectedModel имеет неверный формат (ожидается массив)" };
-    }
-
-    QJsonArray arr = val.toArray();
-
-    // Проверяем, нет ли уже модели
-    for (const auto &item : arr) {
-        if (item.toString() == model) {
-            return { false, {}, "Модель уже есть в списке" };
-        }
-    }
-    // Добавляем
-    arr.append(model);
-    // Сохраняем
-    return setConfigField("selectedModel", arr);
+    return setConfigField(
+        "selectedModels",
+        models
+        );
 }
 
-Result ChatGPTConfig::delSelectedModels(const QString &model) {
-    // Получаем поле
-    auto result = getConfigField("selectedModel");
-    if (!result.success) {
-        return { false, {}, "Поле selectedModel не найдено" };
+Result ChatGPTConfig::delSelectedModels(
+    const QString &model
+    ) {
+    QStringList models =
+        settings.value("selectedModels")
+            .toStringList();
+
+    if (!models.contains(model)) {
+        return {
+            false,
+            {},
+            "Модель не найдена"
+        };
     }
 
-    QVariant data = result.data;
+    models.removeAll(model);
 
-    if (data.type() != 47) {
-        return { false, {}, "Поле selectedModel НЕ QVariantList (тип 47)" };
-    }
-
-    QVariantList list = data.toList();
-
-    // Удаление элемента
-    bool removed = false;
-    for (int i = 0; i < list.size(); i++) {
-        if (list[i].toString() == model) {
-            list.removeAt(i);
-            removed = true;
-            break;
-        }
-    }
-
-    if (!removed) {
-        return { false, list, "Модель не найдена в selectedModel" };
-    }
-
-    // Сохраняем массив обратно в конфиг
-    return setConfigField("selectedModel", list);
+    return setConfigField(
+        "selectedModels",
+        models
+        );
 }
-
-

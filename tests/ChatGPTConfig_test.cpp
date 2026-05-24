@@ -2,8 +2,9 @@
 #include <gtest/gtest.h>
 
 #include "ChatGPTConfig.h"
-#include "../src/ChatGPTConfig.cpp"
+#include "ChatGPTConfig.h"
 #include <QString>
+#include <QJsonArray>
 
 static void printResult(const Result &result) {
     std::cout << "success: " << result.success << "\n";
@@ -93,10 +94,4 @@ TEST(ConfigTest, delSelectedModels) {
     QString str = "meta-llama/llama-3.3-70b-instruct:free21";
     CFG.delSelectedModels(str);
     printResult(CFG.getSelectedModels());
-}
-
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

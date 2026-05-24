@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 
 import "components"
+import NeuroClient
 
 ApplicationWindow {
     id: root
@@ -24,6 +25,10 @@ ApplicationWindow {
     property color accentColor: "#7c5cff"
     property color textColor: "#ffffff"
     property color secondaryText: "#8b92a8"
+
+    ModelSelectorViewModel {
+        id: modelVM
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -127,11 +132,13 @@ ApplicationWindow {
 
                                 Layout.preferredWidth: 180
 
-                                model: [
-                                    "GPT-4o",
-                                    "Claude 3",
-                                    "Gemini 2.5"
-                                ]
+                                model: modelVM.models
+
+                                currentIndex: model.indexOf(modelVM.currentModel)
+
+                                onCurrentTextChanged: {
+                                    modelVM.currentModel = currentText
+                                }
                             }
 
                             Item {

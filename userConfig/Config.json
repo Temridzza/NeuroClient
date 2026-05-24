@@ -1,8 +1,0 @@
-{
-    "apiKeyPath": "/home/temridzza/.config/chatgpt/api.key",
-    "currentModel": "meta-llama/llama-3.3-70b-instruct:free",
-    "selectedModel": [
-        "meta-llama/llama-3.3-70b-instruct:free"
-    ],
-    "torEnabled": false
-}

@@ -1,6 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
+#include "QmlModule.h"
+
 #include <QDir>
 #include <QFile>
 #include <QFileSystemWatcher>
@@ -29,6 +31,9 @@ int main(int argc, char *argv[]) {
     }
 
     DatabaseManager::instance().init("chat_database.db");
+
+    // 👇 РЕГИСТРАЦИЯ QML ТИПОВ
+    registerQmlTypes();
 
     QQmlApplicationEngine engine;
 

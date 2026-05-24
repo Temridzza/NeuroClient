@@ -16,6 +16,7 @@ pkgs.mkShell {
     curl
     nlohmann_json
     gtest
+    lldb
   ];
 
   shellHook = ''

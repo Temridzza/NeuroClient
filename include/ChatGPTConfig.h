@@ -2,15 +2,14 @@
 #define CHATGPTCONFIG_H
 
 #include <QString>
+#include <QStringList>
 #include <QVariant>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
+#include <QSettings>
 
 struct Result {
     bool success = false;
-    QVariant data;      // Может быть QString, bool, QStringList, QJsonObject, QJsonArray...
-    QString error;      // Сообщение об ошибке
+    QVariant data;
+    QString error;
 };
 
 class ChatGPTConfig {
@@ -20,6 +19,7 @@ public:
     // API Key
     Result getApiKey();
     Result setApiKey(const QString &apiKey);
+
     Result setApiKeyPath(const QString &path);
     Result getApiKeyPath();
 
@@ -27,12 +27,12 @@ public:
     Result getTorEnable() const;
     Result setTorEnable(bool enabled);
 
-    // Models
-    Result setCurrentModel(const QString &str);
+    // Current model
     Result getCurrentModel() const;
+    Result setCurrentModel(const QString &model);
 
-    // SelectedModel
-    Result getSelectedModels();
+    // Selected models
+    Result getSelectedModels() const;
     Result addSelectedModels(const QString &model);
     Result delSelectedModels(const QString &model);
 
@@ -40,16 +40,12 @@ private:
     ChatGPTConfig();
     ~ChatGPTConfig() = default;
 
-    QString directoryPath = "../userConfig";
-    QJsonDocument Config;
+    QSettings settings;
 
-    // Universal getter/setter
     Result setConfigField(const QString &key, const QVariant &value);
     Result getConfigField(const QString &key) const;
 
-    // Main operations
-    Result loadConfig();
-    Result saveConfig();
+    void initDefaults();
 };
 
 #endif // CHATGPTCONFIG_H
