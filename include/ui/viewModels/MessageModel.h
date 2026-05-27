@@ -2,10 +2,12 @@
 #define MESSAGEMODEL_H
 
 #include <QAbstractListModel>
+#include "Markdown.h"
 
 struct Message {
     QString role;
     QString content;
+    QString html;
 };
 
 class MessageModel : public QAbstractListModel {
@@ -14,7 +16,8 @@ class MessageModel : public QAbstractListModel {
 public:
     enum Roles {
         RoleRole = Qt::UserRole + 1,
-        RoleContent
+        RoleContent,
+        RoleHtml
     };
 
     explicit MessageModel(QObject *parent = nullptr);

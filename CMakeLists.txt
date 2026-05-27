@@ -1,5 +1,5 @@
-# CMakeLists.txt
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.31...3.31)
+cmake_policy(VERSION 3.31)
 
 project(ChatGPT LANGUAGES CXX)
 
@@ -12,22 +12,21 @@ set(CMAKE_AUTOUIC ON)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-set(INCLUDE ${CMAKE_SOURCE_DIR}/include)
+set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 
 # ==========================================
 # Qt
 # ==========================================
 find_package(Qt6 REQUIRED COMPONENTS
-        Core
-        Gui
-        Quick
-        Qml
-        Sql
-        Concurrent
+    Core
+    Gui
+    Quick
+    Qml
+    Sql
+    Concurrent
 )
 
 qt_standard_project_setup()
-#set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 # ==========================================
 # CURL
@@ -37,18 +36,15 @@ include(FetchContent)
 find_package(CURL QUIET)
 
 if (CURL_FOUND)
-
     message(STATUS "Using system CURL")
     set(CURL_TARGET CURL::libcurl)
-
 else()
-
     message(STATUS "System CURL not found, fetching...")
 
     FetchContent_Declare(
-            curl
-            GIT_REPOSITORY https://github.com/curl/curl.git
-            GIT_TAG curl-8_6_0
+        curl
+        GIT_REPOSITORY https://github.com/curl/curl.git
+        GIT_TAG curl-8_6_0
     )
 
     set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
@@ -58,13 +54,13 @@ else()
     FetchContent_MakeAvailable(curl)
 
     set(CURL_TARGET libcurl)
-
 endif()
 
 # ==========================================
-# Includes
+# cmark-gfm
 # ==========================================
-include_directories(${INCLUDE})
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CMARK_GFM REQUIRED libcmark-gfm)
 
 # ==========================================
 # Library
@@ -75,46 +71,56 @@ add_subdirectory(src)
 # Main executable
 # ==========================================
 qt_add_executable(chatgpt_app
-        main.cpp
+    main.cpp
 )
 
-# ==========================================
-# QML
-# ==========================================
 qt_policy(SET QTP0001 NEW)
 qt_policy(SET QTP0004 NEW)
-qt_add_qml_module(chatgpt_app
-        URI ChatGPT
-        VERSION 1.0
 
-        QML_FILES
+qt_add_qml_module(chatgpt_app
+    URI ChatGPT
+    VERSION 1.0
+
+    QML_FILES
         qml/Main.qml
         qml/components/ChatsSideBar.qml
         qml/components/ContextSideBar.qml
-        QML_FILES include/ui/viewModels/ModelSelectorViewModel.h
-        SOURCES include/ui/qml/QmlModule.h
-        SOURCES include/ui/viewModels/MessageModel.h
-        SOURCES include/ui/viewModels/ChatViewModel.h
+
+    SOURCES
+        include/ui/qml/QmlModule.h
+        include/ui/viewModels/MessageModel.h
+        include/ui/viewModels/ChatViewModel.h
+
+    QML_FILES
+        include/ui/viewModels/ModelSelectorViewModel.h
+)
+
+# ==========================================
+# Includes
+# ==========================================
+target_include_directories(chatgpt_app PRIVATE
+    ${INCLUDE_DIR}
+    ${CMARK_GFM_INCLUDE_DIRS}
 )
 
 # ==========================================
 # Linking
 # ==========================================
 target_link_libraries(chatgpt_app PRIVATE
-        Qt6::Core
-        Qt6::Gui
-        Qt6::Quick
-        Qt6::Qml
-        Qt6::Sql
-        Qt6::Concurrent
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Quick
+    Qt6::Qml
+    Qt6::Sql
+    Qt6::Concurrent
 
-        ${CURL_TARGET}
-
-        chatgptlib
+    ${CURL_TARGET}
+    ${CMARK_GFM_LIBRARIES}
+    chatgptlib
 )
 
-target_include_directories(chatgpt_app PRIVATE
-        ${INCLUDE}
+target_compile_options(chatgpt_app PRIVATE
+    ${CMARK_GFM_CFLAGS_OTHER}
 )
 
 # ==========================================
@@ -124,4 +130,3 @@ find_package(GTest REQUIRED)
 
 enable_testing()
 add_subdirectory(tests)
-

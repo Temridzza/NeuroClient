@@ -12,6 +12,8 @@ set(SRC_FILES
         ui/viewModels/ChatViewModel.cpp
         ui/viewModels/MessageModel.cpp
         ui/qml/QmlModule.cpp
+
+        core/Markdown.cpp
 )
 set(INCLUDE
         ../include/ChatGPTClient.h
@@ -25,18 +27,23 @@ set(INCLUDE
         ../include/ui/viewModels/ChatViewModel.h
         ../include/ui/viewModels/MessageModel.h
         ../include/ui/qml/QmlModule.h
+
+        ../include/core/Markdown.h
 )
-add_library(chatgptlib STATIC ${SRC_FILES}
-        ui/qml/QmlModule.cpp
-        ui/viewModels/MessageModel.cpp
-        ui/viewModels/ChatViewModel.cpp)
+add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE}
+)
 target_include_directories(chatgptlib PUBLIC
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/include/database
         ${CMAKE_SOURCE_DIR}/include/ui
         ${CMAKE_SOURCE_DIR}/include/ui/viewModels
         ${CMAKE_SOURCE_DIR}/include/ui/qml
+        ${CMAKE_SOURCE_DIR}/include/core
 )
 target_link_libraries(chatgptlib PUBLIC
-        Qt6::Core Qt6::Gui Qt6::Sql Qt6::Qml ${CURL_TARGET}
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Sql
+        Qt6::Qml
+        ${CURL_TARGET}
 )

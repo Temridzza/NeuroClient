@@ -23,6 +23,9 @@ QVariant MessageModel::data(const QModelIndex &index,
     case RoleContent:
         return message.content;
 
+    case RoleHtml:
+        return message.html;
+
     default:
         return {};
     }
@@ -31,18 +34,17 @@ QVariant MessageModel::data(const QModelIndex &index,
 QHash<int, QByteArray> MessageModel::roleNames() const {
     return {
         {RoleRole, "role"},
-        {RoleContent, "message"}
+        {RoleContent, "message"},
+        {RoleHtml, "html"}
     };
 }
 
 void MessageModel::addMessage(const QString &role,
                               const QString &content) {
-    beginInsertRows(QModelIndex(),
-                    m_messages.size(),
-                    m_messages.size());
+    QString html = markdownToHtml(content);
 
-    m_messages.append({role, content});
-
+    beginInsertRows({}, m_messages.size(), m_messages.size());
+    m_messages.append({role, content, html});
     endInsertRows();
 }
 
@@ -55,3 +57,4 @@ void MessageModel::clear() {
 QList<Message> MessageModel::messages() const {
     return m_messages;
 }
+

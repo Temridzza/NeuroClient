@@ -9,6 +9,7 @@ pkgs.mkShell {
     qt6.qttools
     qt6.qtwayland
 
+
     cmake
     ninja
     clang
@@ -17,6 +18,7 @@ pkgs.mkShell {
     nlohmann_json
     gtest
     lldb
+    cmark-gfm
   ];
 
   shellHook = ''
@@ -24,5 +26,7 @@ pkgs.mkShell {
 
     export QML2_IMPORT_PATH=${pkgs.qt6.qtdeclarative}/lib/qt-6/qml
     export QT_PLUGIN_PATH=${pkgs.qt6.qtbase}/lib/qt-6/plugins
+
+    export PKG_CONFIG_PATH=${pkgs.cmark-gfm}/lib/pkgconfig:$PKG_CONFIG_PATH
   '';
 }
