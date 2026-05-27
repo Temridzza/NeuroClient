@@ -2,6 +2,12 @@
 
 MessageModel::MessageModel(QObject *parent)
     : QAbstractListModel(parent) {
+
+    m_renderTimer.setSingleShot(true);
+    m_renderTimer.setInterval(40); // ~25 FPS max render
+
+    connect(&m_renderTimer, &QTimer::timeout,
+            this, &MessageModel::renderLastMessage);
 }
 
 int MessageModel::rowCount(const QModelIndex &parent) const {
@@ -40,11 +46,21 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
 }
 
 void MessageModel::addMessage(const QString &role,
-                              const QString &content) {
-    QString html = markdownToHtml(content);
+                              const QString &content)
+{
+    Message msg;
 
-    beginInsertRows({}, m_messages.size(), m_messages.size());
-    m_messages.append({role, content, html});
+    msg.role = role;
+    msg.content = content;
+    msg.html = markdownToHtml(content);
+    msg.streaming = false;
+
+    beginInsertRows(QModelIndex(),
+                    m_messages.size(),
+                    m_messages.size());
+
+    m_messages.append(msg);
+
     endInsertRows();
 }
 
@@ -56,5 +72,71 @@ void MessageModel::clear() {
 
 QList<Message> MessageModel::messages() const {
     return m_messages;
+}
+
+void MessageModel::startStreaming(const QString &role)
+{
+    beginInsertRows(QModelIndex(), m_messages.size(), m_messages.size());
+
+    Message msg;
+    msg.role = role;
+    msg.content = "";
+    msg.html = "";
+    msg.streaming = true;
+
+    m_messages.append(msg);
+
+    endInsertRows();
+}
+
+void MessageModel::appendStream(const QString &delta)
+{
+    if (m_messages.isEmpty())
+        return;
+
+    auto &msg = m_messages.last();
+    msg.content += delta;
+
+    // UI обновляем сразу (текст)
+    const QModelIndex idx = index(m_messages.size() - 1);
+
+    emit dataChanged(idx, idx, {RoleContent});
+
+    // markdown НЕ рендерим сразу
+    scheduleRender();
+}
+
+void MessageModel::scheduleRender()
+{
+    m_renderTimer.start();
+}
+
+void MessageModel::renderLastMessage()
+{
+    if (m_messages.isEmpty())
+        return;
+
+    auto &msg = m_messages.last();
+
+    msg.html = markdownToHtml(msg.content);
+
+    const QModelIndex idx = index(m_messages.size() - 1);
+
+    emit dataChanged(idx, idx, {RoleHtml});
+}
+
+void MessageModel::finishStreaming()
+{
+    if (m_messages.isEmpty())
+        return;
+
+    const int row = m_messages.size() - 1;
+    auto &msg = m_messages[row];
+
+    msg.streaming = false;
+    msg.html = markdownToHtml(msg.content);
+
+    const QModelIndex idx = index(row);
+    emit dataChanged(idx, idx, {RoleHtml});
 }
 

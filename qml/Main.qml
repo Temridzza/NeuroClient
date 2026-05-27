@@ -218,9 +218,11 @@ ApplicationWindow {
                                     anchors.fill: parent
                                     anchors.margins: 14
 
-                                    text: html
+                                    text: html.length > 0 ? html : message
 
-                                    textFormat: Text.RichText
+                                    textFormat: html.length > 0
+                                                ? Text.RichText
+                                                : Text.PlainText
 
                                     color: textColor
 

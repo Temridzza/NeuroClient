@@ -11,7 +11,7 @@
 class ChatGPTClient {
 public:
     ChatGPTClient();
-    QString ask(const QList<Message>& messages);
+    void ask(const QList<Message>& messages);
 
 
     bool isValid() const {
@@ -20,6 +20,10 @@ public:
 
     QString lastError() { return errorMessage; }
     Result getModel();
+
+    std::function<void(const QString&)> onStreamChunk;
+    std::function<void()> onFinished;
+    std::function<void(const QString&)> onError;
 private:
     QString apiKey;
     QString model;

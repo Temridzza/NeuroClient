@@ -23,7 +23,8 @@ void ChatViewModel::setLoading(bool value) {
     emit loadingChanged();
 }
 
-void ChatViewModel::sendMessage(const QString &text) {
+void ChatViewModel::sendMessage(const QString &text)
+{
     if (text.trimmed().isEmpty())
         return;
 
@@ -32,23 +33,72 @@ void ChatViewModel::sendMessage(const QString &text) {
 
     m_messages.addMessage("user", text);
 
-    QList<Message> history = m_messages.messages();
+    QList<Message> history =
+        m_messages.messages();
 
     setLoading(true);
 
-    QtConcurrent::run([this, history]() {
+    // 🔥 создаём streaming message
+    m_messages.startStreaming("assistant");
 
-        QString response = m_client.ask(history);
+    // 🔥 callback на chunk
+    m_client.onStreamChunk =
+        [this](const QString& delta)
+    {
+        QMetaObject::invokeMethod(
+            this,
+            [this, delta]() {
 
-        QMetaObject::invokeMethod(this, [this, response]() {
+                m_messages.appendStream(delta);
 
-            m_messages.addMessage(
-                "assistant",
-                response
-                );
+            },
+            Qt::QueuedConnection
+            );
+    };
 
-            setLoading(false);
+    // 🔥 finish callback
+    m_client.onFinished =
+        [this]()
+    {
+        QMetaObject::invokeMethod(
+            this,
+            [this]() {
 
-        }, Qt::QueuedConnection);
-    });
+                m_messages.finishStreaming();
+
+                setLoading(false);
+
+            },
+            Qt::QueuedConnection
+            );
+    };
+
+    // 🔥 error callback
+    m_client.onError =
+        [this](const QString& err)
+    {
+        QMetaObject::invokeMethod(
+            this,
+            [this, err]() {
+
+                m_messages.finishStreaming();
+
+                m_messages.addMessage(
+                    "system",
+                    err
+                    );
+
+                setLoading(false);
+
+            },
+            Qt::QueuedConnection
+            );
+    };
+
+    // 🔥 background thread
+    QtConcurrent::run(
+        [this, history]()
+        {
+            m_client.ask(history);
+        });
 }
