@@ -23,6 +23,7 @@ find_package(Qt6 REQUIRED COMPONENTS
         Quick
         Qml
         Sql
+        Concurrent
 )
 
 qt_standard_project_setup()
@@ -92,6 +93,8 @@ qt_add_qml_module(chatgpt_app
         qml/components/ContextSideBar.qml
         QML_FILES include/ui/viewModels/ModelSelectorViewModel.h
         SOURCES include/ui/qml/QmlModule.h
+        SOURCES include/ui/viewModels/MessageModel.h
+        SOURCES include/ui/viewModels/ChatViewModel.h
 )
 
 # ==========================================
@@ -103,6 +106,7 @@ target_link_libraries(chatgpt_app PRIVATE
         Qt6::Quick
         Qt6::Qml
         Qt6::Sql
+        Qt6::Concurrent
 
         ${CURL_TARGET}
 

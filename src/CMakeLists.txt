@@ -9,6 +9,8 @@ set(SRC_FILES
         database/MessageRepository.cpp
 
         ui/viewModels/ModelSelectorViewModel.cpp
+        ui/viewModels/ChatViewModel.cpp
+        ui/viewModels/MessageModel.cpp
         ui/qml/QmlModule.cpp
 )
 set(INCLUDE
@@ -20,10 +22,14 @@ set(INCLUDE
         ../include/database/MessageRepository.h
 
         ../include/ui/viewModels/ModelSelectorViewModel.h
+        ../include/ui/viewModels/ChatViewModel.h
+        ../include/ui/viewModels/MessageModel.h
         ../include/ui/qml/QmlModule.h
 )
 add_library(chatgptlib STATIC ${SRC_FILES}
-        ui/qml/QmlModule.cpp)
+        ui/qml/QmlModule.cpp
+        ui/viewModels/MessageModel.cpp
+        ui/viewModels/ChatViewModel.cpp)
 target_include_directories(chatgptlib PUBLIC
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/include/database

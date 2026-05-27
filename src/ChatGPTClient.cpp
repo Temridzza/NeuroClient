@@ -40,64 +40,106 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
     return size * nmemb;
 }
 
-QString ChatGPTClient::ask(const QString& userMessage) {
+QString ChatGPTClient::ask(
+    const QList<Message>& messages
+    ) {
     CURL* curl = curl_easy_init();
-    std::string responseStr;
-    std::string apiKey = this->apiKey.toStdString();
 
-    if (curl) {
-        // Формируем JSON
-        json payload = {
-            {"model", model.toStdString()},
-            {"messages", {
-                {{"role", "user"}, {"content", userMessage.toStdString()}}
-            }}
-        };
+    if (!curl) {
+        return "Failed to init curl";
+    }
 
-        std::string jsonData = payload.dump();
+    std::string response;
 
-        // Заголовки
-        struct curl_slist* headers = NULL;
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        headers = curl_slist_append(headers, ("Authorization: Bearer " + apiKey).c_str());
-        headers = curl_slist_append(headers, "HTTP-Referer: https://yourapp.example");
-        headers = curl_slist_append(headers, "X-Title: GPTChatExample");
+    std::string apiKeyStr =
+        apiKey.toStdString();
 
-        // Настройки CURL
-        curl_easy_setopt(curl, CURLOPT_URL, "https://openrouter.ai/api/v1/chat/completions");
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseStr);
+    std::string modelStr =
+        model.toStdString();
 
-        // tor (SOCKS5)
-        //curl_easy_setopt(curl, CURLOPT_PROXY, "socks5h://127.0.0.1:9050");
+    json messagesJson = json::array();
 
-        CURLcode res = curl_easy_perform(curl);
+    for (const auto& msg : messages) {
+        messagesJson.push_back({
+            {"role", msg.role.toStdString()},
+            {"content", msg.content.toStdString()}
+        });
+    }
 
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
+    json payload = {
+        {"model", modelStr},
+        {"messages", messagesJson}
+    };
 
-        if (res != CURLE_OK) {
-            return QString("❌ Ошибка отправки запроса: %1").arg(curl_easy_strerror(res));
-        }
+    std::string jsonData = payload.dump();
+
+    std::string authHeader =
+        "Authorization: Bearer " + apiKeyStr;
+
+    struct curl_slist* headers = nullptr;
+
+    headers = curl_slist_append(
+        headers,
+        "Content-Type: application/json"
+        );
+
+    headers = curl_slist_append(
+        headers,
+        authHeader.c_str()
+        );
+
+    curl_easy_setopt(
+        curl,
+        CURLOPT_URL,
+        "https://openrouter.ai/api/v1/chat/completions"
+        );
+
+    curl_easy_setopt(
+        curl,
+        CURLOPT_HTTPHEADER,
+        headers
+        );
+
+    curl_easy_setopt(
+        curl,
+        CURLOPT_POSTFIELDS,
+        jsonData.c_str()
+        );
+
+    curl_easy_setopt(
+        curl,
+        CURLOPT_WRITEFUNCTION,
+        WriteCallback
+        );
+
+    curl_easy_setopt(
+        curl,
+        CURLOPT_WRITEDATA,
+        &response
+        );
+
+    CURLcode res =
+        curl_easy_perform(curl);
+
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK) {
+        return QString::fromStdString(
+            curl_easy_strerror(res)
+            );
     }
 
     try {
-        auto j = json::parse(responseStr);
+        auto j = json::parse(response);
 
-        if (j.contains("error")) {
-            return QString("❌ Ошибка API: %1").arg(
-                QString::fromStdString(j["error"]["message"].get<std::string>())
+        return QString::fromStdString(
+            j["choices"][0]["message"]["content"]
+                .get<std::string>()
             );
-        }
 
-        QString reply = QString::fromStdString(j["choices"][0]["message"]["content"].get<std::string>());
-        return reply;
-
-    } catch (const std::exception& e) {
-        std::cerr << "Ответ сервера:\n" << responseStr << "\n";
-        return QString("Ошибка при разборе JSON: %1").arg(e.what());
+    } catch (...) {
+        return QString::fromStdString(response);
     }
 }
 

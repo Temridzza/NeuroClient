@@ -3,6 +3,7 @@
 
 #include "QmlModule.h"
 
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileSystemWatcher>
@@ -10,7 +11,64 @@
 
 #include "DatabaseManager.h"
 
+void messageHandler(
+    QtMsgType type,
+    const QMessageLogContext &context,
+    const QString &msg
+    ) {
+    QString level;
+
+    switch (type) {
+    case QtDebugMsg:
+        level = "DEBUG";
+        break;
+
+    case QtInfoMsg:
+        level = "INFO";
+        break;
+
+    case QtWarningMsg:
+        level = "WARNING";
+        break;
+
+    case QtCriticalMsg:
+        level = "CRITICAL";
+        break;
+
+    case QtFatalMsg:
+        level = "FATAL";
+        break;
+    }
+
+    QString output = QString("[%1] [%2] %3")
+                         .arg(
+                             QDateTime::currentDateTime()
+                                 .toString("hh:mm:ss")
+                             )
+                         .arg(level)
+                         .arg(msg);
+
+    if (context.file) {
+        output += QString("\n -> %1:%2")
+        .arg(context.file)
+            .arg(context.line);
+    }
+
+    fprintf(stderr, "%s\n",
+            output.toLocal8Bit().constData());
+
+    fflush(stderr);
+
+    if (type == QtFatalMsg) {
+        abort();
+    }
+}
+
 int main(int argc, char *argv[]) {
+
+    // 👇 УСТАНОВКА ОБРАБОТЧИКА ЛОГОВ
+    qInstallMessageHandler(messageHandler);
+
     QGuiApplication app(argc, argv);
 
     QString lockFilePath =
@@ -30,9 +88,10 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    DatabaseManager::instance().init("chat_database.db");
+    DatabaseManager::instance().init(
+        "chat_database.db"
+        );
 
-    // 👇 РЕГИСТРАЦИЯ QML ТИПОВ
     registerQmlTypes();
 
     QQmlApplicationEngine engine;
@@ -42,14 +101,24 @@ int main(int argc, char *argv[]) {
         &QQmlApplicationEngine::objectCreationFailed,
         &app,
         []() {
+            qCritical()
+            << "QML object creation failed";
+
             QCoreApplication::exit(-1);
         },
         Qt::QueuedConnection
         );
 
-    engine.loadFromModule("ChatGPT", "Main");
+    engine.addImportPath("qrc:/");
+    engine.loadFromModule(
+        "ChatGPT",
+        "Main"
+        );
 
     if (engine.rootObjects().isEmpty()) {
+        qCritical()
+        << "Root objects are empty";
+
         return -1;
     }
 

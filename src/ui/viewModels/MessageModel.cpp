@@ -1,0 +1,57 @@
+#include "MessageModel.h"
+
+MessageModel::MessageModel(QObject *parent)
+    : QAbstractListModel(parent) {
+}
+
+int MessageModel::rowCount(const QModelIndex &parent) const {
+    Q_UNUSED(parent)
+    return m_messages.size();
+}
+
+QVariant MessageModel::data(const QModelIndex &index,
+                            int role) const {
+    if (!index.isValid())
+        return {};
+
+    const auto& message = m_messages[index.row()];
+
+    switch (role) {
+    case RoleRole:
+        return message.role;
+
+    case RoleContent:
+        return message.content;
+
+    default:
+        return {};
+    }
+}
+
+QHash<int, QByteArray> MessageModel::roleNames() const {
+    return {
+        {RoleRole, "role"},
+        {RoleContent, "message"}
+    };
+}
+
+void MessageModel::addMessage(const QString &role,
+                              const QString &content) {
+    beginInsertRows(QModelIndex(),
+                    m_messages.size(),
+                    m_messages.size());
+
+    m_messages.append({role, content});
+
+    endInsertRows();
+}
+
+void MessageModel::clear() {
+    beginResetModel();
+    m_messages.clear();
+    endResetModel();
+}
+
+QList<Message> MessageModel::messages() const {
+    return m_messages;
+}

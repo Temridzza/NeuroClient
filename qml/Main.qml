@@ -30,11 +30,17 @@ ApplicationWindow {
         id: modelVM
     }
 
+    ChatViewModel {
+        id: chatVM
+    }
+
     Rectangle {
         anchors.fill: parent
+
         radius: 24
 
         color: bgColor
+
         border.color: borderColor
         border.width: 1
 
@@ -76,6 +82,7 @@ ApplicationWindow {
                 Layout.fillHeight: true
 
                 radius: 24
+
                 color: "#131720"
 
                 border.color: borderColor
@@ -92,6 +99,7 @@ ApplicationWindow {
                         Layout.preferredHeight: 44
 
                         radius: 14
+
                         color: panelColor
 
                         RowLayout {
@@ -113,6 +121,7 @@ ApplicationWindow {
                             Rectangle {
                                 width: 28
                                 height: 28
+
                                 radius: 14
 
                                 color: accentColor
@@ -121,6 +130,7 @@ ApplicationWindow {
                                     anchors.centerIn: parent
 
                                     text: "N"
+
                                     color: "white"
 
                                     font.bold: true
@@ -134,7 +144,9 @@ ApplicationWindow {
 
                                 model: modelVM.models
 
-                                currentIndex: model.indexOf(modelVM.currentModel)
+                                currentIndex: model.indexOf(
+                                                  modelVM.currentModel
+                                              )
 
                                 onCurrentTextChanged: {
                                     modelVM.currentModel = currentText
@@ -165,20 +177,11 @@ ApplicationWindow {
                         spacing: 12
                         clip: true
 
-                        model: ListModel {
-                            ListElement {
-                                role: "user"
-                                message: "Как работает квантовая запутанность?"
-                            }
-
-                            ListElement {
-                                role: "assistant"
-                                message: "Квантовая запутанность — это явление, при котором частицы оказываются связанными независимо от расстояния."
-                            }
-                        }
+                        model: chatVM.messages
 
                         delegate: Item {
                             width: chatView.width
+
                             height: bubble.height + 8
 
                             Rectangle {
@@ -220,6 +223,7 @@ ApplicationWindow {
                                     color: textColor
 
                                     wrapMode: Text.Wrap
+
                                     font.pixelSize: 15
 
                                     lineHeight: 1.25
@@ -230,6 +234,25 @@ ApplicationWindow {
                         ScrollBar.vertical: ScrollBar {
                             policy: ScrollBar.AsNeeded
                         }
+
+                        Connections {
+                            target: chatVM.messages
+
+                            function onRowsInserted() {
+                                chatView.positionViewAtEnd()
+                            }
+                        }
+                    }
+
+                    // LOADING
+                    Text {
+                        visible: chatVM.loading
+
+                        text: "Assistant is typing..."
+
+                        color: secondaryText
+
+                        font.pixelSize: 13
                     }
 
                     // INPUT PANEL
@@ -240,6 +263,7 @@ ApplicationWindow {
                         radius: 20
 
                         color: panelColor
+
                         border.color: borderColor
 
                         ColumnLayout {
@@ -262,6 +286,13 @@ ApplicationWindow {
 
                                 background: Rectangle {
                                     color: "transparent"
+                                }
+
+                                Keys.onReturnPressed: function(event) {
+                                    if (!(event.modifiers & Qt.ShiftModifier)) {
+                                        event.accepted = true
+                                        sendMessage()
+                                    }
                                 }
                             }
 
@@ -289,17 +320,22 @@ ApplicationWindow {
                                 Rectangle {
                                     width: 42
                                     height: 42
+
                                     radius: 21
 
-                                    color: accentColor
+                                    color: chatVM.loading
+                                           ? "#555555"
+                                           : accentColor
 
                                     MouseArea {
                                         anchors.fill: parent
 
+                                        enabled: !chatVM.loading
+
                                         cursorShape: Qt.PointingHandCursor
 
                                         onClicked: {
-                                            console.log("send")
+                                            sendMessage()
                                         }
                                     }
 
@@ -307,6 +343,7 @@ ApplicationWindow {
                                         anchors.centerIn: parent
 
                                         text: "➤"
+
                                         color: "white"
 
                                         font.pixelSize: 18
@@ -319,5 +356,16 @@ ApplicationWindow {
                 }
             }
         }
+    }
+
+    function sendMessage() {
+        const text = inputField.text.trim()
+
+        if (text.length === 0)
+            return
+
+        chatVM.sendMessage(text)
+
+        inputField.clear()
     }
 }

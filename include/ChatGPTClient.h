@@ -6,11 +6,12 @@
 #include <string>
 
 #include "ChatGPTConfig.h"
+#include "MessageModel.h"
 
 class ChatGPTClient {
 public:
     ChatGPTClient();
-    QString ask(const QString& userMessage);
+    QString ask(const QList<Message>& messages);
 
 
     bool isValid() const {

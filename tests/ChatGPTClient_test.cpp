@@ -6,12 +6,12 @@
 
 #include <QString>
 
-TEST(ClientTest, ask) {
-    ChatGPTClient client;
+// TEST(ClientTest, ask) {
+//     ChatGPTClient client;
 
-    QString str = client.ask("Проверка API! Просто кратко напиши кто ты. Спасибо!");
-    std::cout << str.toStdString();
-}
+//     QString str = client.ask("Проверка API! Просто кратко напиши кто ты. Спасибо!");
+//     // std::cout << str.toStdString();
+// }
 
 // TEST(ClientTest, getModel) {
 //     ChatGPTClient client;
