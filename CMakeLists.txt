@@ -85,9 +85,14 @@ qt_add_qml_module(chatgpt_app
         qml/Main.qml
         qml/components/ChatsSideBar.qml
         qml/components/ContextSideBar.qml
+        qml/theme/qmldir
 
     SOURCES
         include/ui/qml/QmlModule.h
+        QML_FILES qml/pages/SettingsPage.qml
+        QML_FILES qml/components/ChatInput.qml
+        QML_FILES qml/theme/Theme.qml
+        QML_FILES qml/pages/ChatPage.qml
 )
 
 # ==========================================

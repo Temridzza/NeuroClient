@@ -4,6 +4,9 @@ import QtQuick.Layouts
 import QtQuick.Effects
 
 import "components"
+import "theme"
+import "pages"
+import ChatGPT 1.0
 import NeuroClient
 
 ApplicationWindow {
@@ -12,25 +15,17 @@ ApplicationWindow {
     width: 1280
     height: 820
     visible: true
-
     color: "transparent"
-
     title: "NeuroClient"
 
     property bool sidebarOpened: true
+    property string currentPage: "chat"   // chat | settings
 
-    property color bgColor: "#0f1117"
-    property color panelColor: "#171923"
-    property color borderColor: "#2b2f3a"
-    property color accentColor: "#7c5cff"
-    property color textColor: "#ffffff"
-    property color secondaryText: "#8b92a8"
-
-    ModelSelectorViewModel {
+    property var modelVM: ModelSelectorViewModel {
         id: modelVM
     }
 
-    ChatViewModel {
+    property var chatVM: ChatViewModel {
         id: chatVM
     }
 
@@ -38,24 +33,20 @@ ApplicationWindow {
         anchors.fill: parent
 
         radius: 24
-
-        color: bgColor
-
-        border.color: borderColor
+        color: Theme.bgColor
+        border.color: Theme.borderColor
         border.width: 1
 
         layer.enabled: true
-
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowBlur: 0.8
-            shadowOpacity: 0.4
+            shadowOpacity: Theme.shadowOpacity
         }
 
         RowLayout {
             anchors.fill: parent
             anchors.margins: 14
-
             spacing: 14
 
             // SIDEBAR
@@ -64,7 +55,6 @@ ApplicationWindow {
 
                 Layout.fillHeight: true
                 Layout.preferredWidth: sidebarOpened ? 320 : 0
-
                 clip: true
                 visible: width > 0
 
@@ -76,300 +66,51 @@ ApplicationWindow {
                 }
             }
 
-            // MAIN CHAT AREA
-            Rectangle {
+            // MAIN AREA (ROUTER)
+            Loader {
+                id: pageLoader
+
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                radius: 24
-
-                color: "#131720"
-
-                border.color: borderColor
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 14
-
-                    spacing: 12
-
-                    // HEADER
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 44
-
-                        radius: 14
-
-                        color: panelColor
-
-                        RowLayout {
-                            anchors.fill: parent
-
-                            anchors.leftMargin: 14
-                            anchors.rightMargin: 14
-
-                            spacing: 10
-
-                            ToolButton {
-                                text: "☰"
-
-                                onClicked: {
-                                    sidebarOpened = !sidebarOpened
-                                }
-                            }
-
-                            Rectangle {
-                                width: 28
-                                height: 28
-
-                                radius: 14
-
-                                color: accentColor
-
-                                Text {
-                                    anchors.centerIn: parent
-
-                                    text: "N"
-
-                                    color: "white"
-
-                                    font.bold: true
-                                }
-                            }
-
-                            ComboBox {
-                                id: modelBox
-
-                                Layout.preferredWidth: 180
-
-                                model: modelVM.models
-
-                                currentIndex: model.indexOf(
-                                                  modelVM.currentModel
-                                              )
-
-                                onCurrentTextChanged: {
-                                    modelVM.currentModel = currentText
-                                }
-                            }
-
-                            Item {
-                                Layout.fillWidth: true
-                            }
-
-                            ToolButton {
-                                text: "🔍"
-                            }
-
-                            ToolButton {
-                                text: "⚙"
-                            }
-                        }
-                    }
-
-                    // CHAT AREA
-                    ListView {
-                        id: chatView
-
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-
-                        spacing: 12
-                        clip: true
-
-                        model: chatVM.messages
-
-                        delegate: Item {
-                            width: chatView.width
-
-                            height: bubble.height + 8
-
-                            Rectangle {
-                                id: bubble
-
-                                width: Math.min(
-                                           parent.width * 0.82,
-                                           textItem.implicitWidth + 32
-                                       )
-
-                                height: textItem.implicitHeight + 28
-
-                                radius: 18
-
-                                anchors {
-                                    right: role === "user"
-                                           ? parent.right
-                                           : undefined
-
-                                    left: role === "assistant"
-                                          ? parent.left
-                                          : undefined
-                                }
-
-                                color: role === "user"
-                                       ? accentColor
-                                       : panelColor
-
-                                border.color: borderColor
-
-                                Text {
-                                    id: textItem
-
-                                    anchors.fill: parent
-                                    anchors.margins: 14
-
-                                    text: html.length > 0 ? html : message
-
-                                    textFormat: html.length > 0
-                                                ? Text.RichText
-                                                : Text.PlainText
-
-                                    color: textColor
-
-                                    wrapMode: Text.Wrap
-
-                                    font.pixelSize: 15
-
-                                    lineHeight: 1.25
-                                }
-                            }
-                        }
-
-                        ScrollBar.vertical: ScrollBar {
-                            policy: ScrollBar.AsNeeded
-                        }
-
-                        Connections {
-                            target: chatVM.messages
-
-                            function onRowsInserted() {
-                                chatView.positionViewAtEnd()
-                            }
-                        }
-                    }
-
-                    // LOADING
-                    Text {
-                        visible: chatVM.loading
-
-                        text: "Assistant is typing..."
-
-                        color: secondaryText
-
-                        font.pixelSize: 13
-                    }
-
-                    // INPUT PANEL
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 110
-
-                        radius: 20
-
-                        color: panelColor
-
-                        border.color: borderColor
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: 12
-
-                            spacing: 8
-
-                            TextArea {
-                                id: inputField
-
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-
-                                placeholderText: "Напишите сообщение..."
-
-                                color: textColor
-
-                                wrapMode: TextEdit.Wrap
-
-                                background: Rectangle {
-                                    color: "transparent"
-                                }
-
-                                Keys.onReturnPressed: function(event) {
-                                    if (!(event.modifiers & Qt.ShiftModifier)) {
-                                        event.accepted = true
-                                        sendMessage()
-                                    }
-                                }
-                            }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-
-                                spacing: 10
-
-                                ToolButton {
-                                    text: "📎"
-                                }
-
-                                ToolButton {
-                                    text: "🌐"
-                                }
-
-                                ToolButton {
-                                    text: "🧠"
-                                }
-
-                                Item {
-                                    Layout.fillWidth: true
-                                }
-
-                                Rectangle {
-                                    width: 42
-                                    height: 42
-
-                                    radius: 21
-
-                                    color: chatVM.loading
-                                           ? "#555555"
-                                           : accentColor
-
-                                    MouseArea {
-                                        anchors.fill: parent
-
-                                        enabled: !chatVM.loading
-
-                                        cursorShape: Qt.PointingHandCursor
-
-                                        onClicked: {
-                                            sendMessage()
-                                        }
-                                    }
-
-                                    Text {
-                                        anchors.centerIn: parent
-
-                                        text: "➤"
-
-                                        color: "white"
-
-                                        font.pixelSize: 18
-                                        font.bold: true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                sourceComponent: root.currentPage === "settings"
+                    ? settingsPage
+                    : chatPage
             }
         }
     }
 
-    function sendMessage() {
-        const text = inputField.text.trim()
+    // =========================
+    // Chat PAGE
+    // =========================
+    Component {
+        id: chatPage
 
-        if (text.length === 0)
-            return
+        ChatPage {
+            sidebarOpened: root.sidebarOpened
+            modelVM: root.modelVM
+            chatVM: root.chatVM
 
-        chatVM.sendMessage(text)
+            onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
 
-        inputField.clear()
+            onRequestSettings: root.currentPage = "settings"
+        }
+    }
+
+    // =========================
+    // SETTINGS PAGE
+    // =========================
+    Component {
+        id: settingsPage
+
+        SettingsPage {
+            anchors.fill: parent
+
+            onSectionSelected: function(section) {
+                console.log("settings section:", section)
+            }
+
+            onRequestBack: root.currentPage = "chat"
+        }
     }
 }

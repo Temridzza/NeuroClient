@@ -2,12 +2,16 @@ import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts
 
+import "../theme"
+import ChatGPT 1.0
+
 Rectangle {
     id: root
 
     width: 380
-    color: "#0f1117"
+    color: Theme.bgColor
     radius: 18
+    border.color: Theme.borderColor
 
     property string currentProject: "~/Projects/NeuroClient"
 
@@ -22,28 +26,21 @@ Rectangle {
 
             Label {
                 text: "Контекст"
-                color: "white"
+                color: Theme.textColor
                 font.pixelSize: 22
                 font.bold: true
             }
 
-            Item {
-                Layout.fillWidth: true
-            }
+            Item { Layout.fillWidth: true }
 
-            ToolButton {
-                text: "⚙"
-            }
-
-            ToolButton {
-                text: "✕"
-            }
+            ToolButton { text: "⚙" }
+            ToolButton { text: "✕" }
         }
 
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#232633"
+            color: Theme.borderColor
         }
 
         // PROJECT SECTION
@@ -53,7 +50,7 @@ Rectangle {
 
             Label {
                 text: "Текущий проект"
-                color: "#b4b8c5"
+                color: Theme.secondaryText
                 font.pixelSize: 13
             }
 
@@ -61,7 +58,7 @@ Rectangle {
                 Layout.fillWidth: true
                 height: 44
                 radius: 12
-                color: "#171a22"
+                color: Theme.panelColor
 
                 RowLayout {
                     anchors.fill: parent
@@ -69,7 +66,7 @@ Rectangle {
 
                     Label {
                         text: root.currentProject
-                        color: "white"
+                        color: Theme.textColor
                         elide: Text.ElideMiddle
                         Layout.fillWidth: true
                     }
@@ -84,20 +81,15 @@ Rectangle {
             RowLayout {
                 spacing: 8
 
-                Button {
-                    text: "Открыть проект"
-                }
-
-                Button {
-                    text: "Недавние ▼"
-                }
+                Button { text: "Открыть проект" }
+                Button { text: "Недавние ▼" }
             }
         }
 
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#232633"
+            color: Theme.borderColor
         }
 
         // PROJECT TREE
@@ -108,7 +100,7 @@ Rectangle {
 
             Label {
                 text: "Дерево проекта"
-                color: "white"
+                color: Theme.textColor
                 font.pixelSize: 18
                 font.bold: true
             }
@@ -121,6 +113,9 @@ Rectangle {
                     width: parent.width
                     spacing: 6
 
+                    // helper colors
+                    property color fileColor: "#d8dbe7"
+
                     // src
                     Column {
                         spacing: 4
@@ -128,51 +123,34 @@ Rectangle {
                         Row {
                             spacing: 8
 
-                            CheckBox {
-                                checked: true
-                            }
+                            CheckBox { checked: true }
 
                             Label {
                                 text: "▼ src/"
-                                color: "white"
+                                color: Theme.textColor
                             }
                         }
 
                         Column {
-                            anchors.leftMargin: 34
                             x: 34
                             spacing: 4
 
                             Repeater {
                                 model: [
-                                    {
-                                        name: "main.cpp",
-                                        checked: true
-                                    },
-                                    {
-                                        name: "ChatView.qml",
-                                        checked: true
-                                    },
-                                    {
-                                        name: "ContextSideBar.qml",
-                                        checked: true
-                                    },
-                                    {
-                                        name: "ScenarioBuilder.qml",
-                                        checked: false
-                                    }
+                                    { name: "main.cpp", checked: true },
+                                    { name: "ChatView.qml", checked: true },
+                                    { name: "ContextSideBar.qml", checked: true },
+                                    { name: "ScenarioBuilder.qml", checked: false }
                                 ]
 
                                 delegate: Row {
                                     spacing: 8
 
-                                    CheckBox {
-                                        checked: modelData.checked
-                                    }
+                                    CheckBox { checked: modelData.checked }
 
                                     Label {
                                         text: modelData.name
-                                        color: "#d8dbe7"
+                                        color: fileColor
                                     }
                                 }
                             }
@@ -186,47 +164,33 @@ Rectangle {
                         Row {
                             spacing: 8
 
-                            CheckBox {
-                                checked: true
-                            }
+                            CheckBox { checked: true }
 
                             Label {
                                 text: "▼ core/"
-                                color: "white"
+                                color: Theme.textColor
                             }
                         }
 
                         Column {
-                            anchors.leftMargin: 34
                             x: 34
                             spacing: 4
 
                             Repeater {
                                 model: [
-                                    {
-                                        name: "ApiClient.cpp",
-                                        checked: true
-                                    },
-                                    {
-                                        name: "ProviderManager.cpp",
-                                        checked: true
-                                    },
-                                    {
-                                        name: "ContextManager.cpp",
-                                        checked: false
-                                    }
+                                    { name: "ApiClient.cpp", checked: true },
+                                    { name: "ProviderManager.cpp", checked: true },
+                                    { name: "ContextManager.cpp", checked: false }
                                 ]
 
                                 delegate: Row {
                                     spacing: 8
 
-                                    CheckBox {
-                                        checked: modelData.checked
-                                    }
+                                    CheckBox { checked: modelData.checked }
 
                                     Label {
                                         text: modelData.name
-                                        color: "#d8dbe7"
+                                        color: fileColor
                                     }
                                 }
                             }
@@ -235,10 +199,7 @@ Rectangle {
 
                     // collapsed folders
                     Repeater {
-                        model: [
-                            "assets/",
-                            "build/"
-                        ]
+                        model: ["assets/", "build/"]
 
                         delegate: Row {
                             spacing: 8
@@ -247,7 +208,7 @@ Rectangle {
 
                             Label {
                                 text: "▶ " + modelData
-                                color: "white"
+                                color: Theme.textColor
                             }
                         }
                     }
@@ -259,43 +220,32 @@ Rectangle {
                         Row {
                             spacing: 8
 
-                            CheckBox {
-                                checked: true
-                            }
+                            CheckBox { checked: true }
 
                             Label {
                                 text: "▼ include/"
-                                color: "white"
+                                color: Theme.textColor
                             }
                         }
 
                         Column {
-                            anchors.leftMargin: 34
                             x: 34
                             spacing: 4
 
                             Repeater {
                                 model: [
-                                    {
-                                        name: "ApiClient.hpp",
-                                        checked: true
-                                    },
-                                    {
-                                        name: "ContextManager.hpp",
-                                        checked: false
-                                    }
+                                    { name: "ApiClient.hpp", checked: true },
+                                    { name: "ContextManager.hpp", checked: false }
                                 ]
 
                                 delegate: Row {
                                     spacing: 8
 
-                                    CheckBox {
-                                        checked: modelData.checked
-                                    }
+                                    CheckBox { checked: modelData.checked }
 
                                     Label {
                                         text: modelData.name
-                                        color: "#d8dbe7"
+                                        color: fileColor
                                     }
                                 }
                             }
@@ -309,7 +259,7 @@ Rectangle {
 
                         Label {
                             text: "README.md"
-                            color: "white"
+                            color: Theme.textColor
                         }
                     }
                 }
@@ -319,7 +269,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#232633"
+            color: Theme.borderColor
         }
 
         // QUICK ACTIONS
@@ -329,7 +279,7 @@ Rectangle {
 
             Label {
                 text: "Быстрые действия"
-                color: "white"
+                color: Theme.textColor
                 font.pixelSize: 18
                 font.bold: true
             }
@@ -337,13 +287,8 @@ Rectangle {
             RowLayout {
                 spacing: 8
 
-                Button {
-                    text: "+ Добавить файл"
-                }
-
-                Button {
-                    text: "+ Добавить папку"
-                }
+                Button { text: "+ Добавить файл" }
+                Button { text: "+ Добавить папку" }
             }
 
             Button {
@@ -354,7 +299,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#232633"
+            color: Theme.borderColor
         }
 
         // AI CONTEXT
@@ -364,7 +309,7 @@ Rectangle {
 
             Label {
                 text: "AI Контекст"
-                color: "white"
+                color: Theme.textColor
                 font.pixelSize: 18
                 font.bold: true
             }
@@ -374,35 +319,14 @@ Rectangle {
                 columnSpacing: 20
                 rowSpacing: 8
 
-                Label {
-                    text: "Выбрано файлов:"
-                    color: "#9aa1b3"
-                }
+                Label { text: "Выбрано файлов:"; color: Theme.secondaryText }
+                Label { text: "6"; color: Theme.textColor }
 
-                Label {
-                    text: "6"
-                    color: "white"
-                }
+                Label { text: "Примерно токенов:"; color: Theme.secondaryText }
+                Label { text: "~18.4k"; color: Theme.textColor }
 
-                Label {
-                    text: "Примерно токенов:"
-                    color: "#9aa1b3"
-                }
-
-                Label {
-                    text: "~18.4k"
-                    color: "white"
-                }
-
-                Label {
-                    text: "Примерный размер:"
-                    color: "#9aa1b3"
-                }
-
-                Label {
-                    text: "146 KB"
-                    color: "white"
-                }
+                Label { text: "Примерный размер:"; color: Theme.secondaryText }
+                Label { text: "146 KB"; color: Theme.textColor }
             }
 
             ColumnLayout {
@@ -411,7 +335,7 @@ Rectangle {
 
                 Label {
                     text: "Использование контекста"
-                    color: "#9aa1b3"
+                    color: Theme.secondaryText
                 }
 
                 ProgressBar {
@@ -421,20 +345,20 @@ Rectangle {
 
                 Label {
                     text: "58%"
-                    color: "white"
+                    color: Theme.textColor
                 }
             }
 
             Label {
                 text: "Активная модель: GPT-4o"
-                color: "#b4b8c5"
+                color: Theme.secondaryText
             }
         }
 
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#232633"
+            color: Theme.borderColor
         }
 
         // OPTIONS
@@ -459,10 +383,10 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 1
-            color: "#232633"
+            color: Theme.borderColor
         }
 
-        // FOOTER BUTTONS
+        // FOOTER
         RowLayout {
             Layout.fillWidth: true
             spacing: 12

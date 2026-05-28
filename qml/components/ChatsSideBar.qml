@@ -3,59 +3,45 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
+import "../theme"
+import ChatGPT 1.0
+
 Rectangle {
     id: sidebar
 
     width: 320
-    color: "#11131a"
+    color: Theme.bgColor
     radius: 22
-
-    property color panelColor: "#1a1d26"
-    property color hoverColor: "#252938"
-    property color borderColor: "#2b3040"
-    property color accentColor: "#7c5cff"
-    property color textColor: "#ffffff"
-    property color secondaryText: "#9097aa"
 
     layer.enabled: true
 
     layer.effect: MultiEffect {
         shadowEnabled: true
-        shadowOpacity: 0.35
+        shadowOpacity: Theme.shadowOpacity
         shadowBlur: 0.8
     }
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 14
-
         spacing: 12
 
         // HEADER
         RowLayout {
             Layout.fillWidth: true
-
             spacing: 10
 
             Text {
                 text: "Чаты"
-
-                color: textColor
+                color: Theme.textColor
                 font.pixelSize: 22
                 font.bold: true
             }
 
-            Item {
-                Layout.fillWidth: true
-            }
+            Item { Layout.fillWidth: true }
 
-            ToolButton {
-                text: "⚙"
-            }
-
-            ToolButton {
-                text: "✕"
-            }
+            ToolButton { text: "⚙" }
+            ToolButton { text: "✕" }
         }
 
         // NEW CHAT BUTTON
@@ -64,16 +50,14 @@ Rectangle {
             Layout.preferredHeight: 48
 
             radius: 14
-            color: accentColor
+            color: Theme.accentColor
 
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
 
-                onClicked: {
-                    console.log("new chat")
-                }
+                onClicked: console.log("new chat")
             }
 
             Row {
@@ -102,26 +86,26 @@ Rectangle {
             Layout.preferredHeight: 42
 
             radius: 12
-            color: panelColor
-            border.color: borderColor
+            color: Theme.panelColor
+            border.color: Theme.borderColor
 
             RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
-
                 spacing: 10
 
                 Text {
                     text: "🔍"
                     font.pixelSize: 14
+                    color: Theme.secondaryText
                 }
 
                 TextField {
                     Layout.fillWidth: true
 
                     placeholderText: "Поиск в чатах"
-                    color: textColor
+                    color: Theme.textColor
                     selectedTextColor: "white"
 
                     background: Rectangle {
@@ -135,7 +119,6 @@ Rectangle {
         ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
-
             clip: true
 
             Column {
@@ -149,33 +132,25 @@ Rectangle {
 
                     Text {
                         text: "ПРОЕКТЫ"
-
-                        color: secondaryText
+                        color: Theme.secondaryText
                         font.pixelSize: 11
                         font.bold: true
                     }
 
                     Repeater {
-                        model: [
-                            "NeuroClient",
-                            "AI Assistant",
-                            "QML UI"
-                        ]
+                        model: ["NeuroClient", "AI Assistant", "QML UI"]
 
                         delegate: Rectangle {
                             width: parent.width
                             height: 44
-
                             radius: 12
-                            color: mouse.containsMouse
-                                   ? hoverColor
-                                   : "transparent"
 
-                            border.color: "#00000000"
+                            color: mouse.containsMouse
+                                   ? Theme.hoverColor
+                                   : "transparent"
 
                             MouseArea {
                                 id: mouse
-
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
@@ -185,19 +160,18 @@ Rectangle {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left
                                 anchors.leftMargin: 12
-
                                 spacing: 10
 
                                 Rectangle {
                                     width: 10
                                     height: 10
                                     radius: 5
-                                    color: accentColor
+                                    color: Theme.accentColor
                                 }
 
                                 Text {
                                     text: modelData
-                                    color: textColor
+                                    color: Theme.textColor
                                     font.pixelSize: 14
                                 }
                             }
@@ -212,8 +186,7 @@ Rectangle {
 
                     Text {
                         text: "НЕДАВНЕЕ"
-
-                        color: secondaryText
+                        color: Theme.secondaryText
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -231,16 +204,14 @@ Rectangle {
                         delegate: Rectangle {
                             width: parent.width
                             height: 44
-
                             radius: 12
 
                             color: mouse.containsMouse
-                                   ? hoverColor
+                                   ? Theme.hoverColor
                                    : "transparent"
 
                             MouseArea {
                                 id: mouse
-
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
@@ -250,21 +221,18 @@ Rectangle {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left
                                 anchors.leftMargin: 12
-
                                 spacing: 10
 
                                 Text {
                                     text: "○"
-                                    color: secondaryText
+                                    color: Theme.secondaryText
                                     font.pixelSize: 10
                                 }
 
                                 Text {
                                     text: modelData
-
-                                    color: textColor
+                                    color: Theme.textColor
                                     font.pixelSize: 14
-
                                     elide: Text.ElideRight
                                     width: 220
                                 }
