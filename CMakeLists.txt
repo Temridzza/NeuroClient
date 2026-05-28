@@ -88,11 +88,6 @@ qt_add_qml_module(chatgpt_app
 
     SOURCES
         include/ui/qml/QmlModule.h
-        include/ui/viewModels/MessageModel.h
-        include/ui/viewModels/ChatViewModel.h
-
-    QML_FILES
-        include/ui/viewModels/ModelSelectorViewModel.h
 )
 
 # ==========================================

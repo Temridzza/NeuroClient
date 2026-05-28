@@ -1,41 +1,22 @@
+// LLMClient.cpp
+
 #include "LLMClient.h"
-#include "AppSettings.h"
 
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
-
-#include <QString>
-#include <QByteArray>
 
 #include <sstream>
 #include <string>
 
 using json = nlohmann::json;
 
-LLMClient::LLMClient()
+LLMClient::LLMClient(
+    const LLMConfig& config
+    )
+    : m_apiKey(config.apiKey),
+    m_model(config.model),
+    m_baseUrl(config.baseUrl)
 {
-    auto apikey = ChatGPTConfig::instance().getApiKey();
-
-    if (!apikey.success) {
-        valid = false;
-        errorMessage = apikey.error;
-        return;
-    }
-
-    apiKey = apikey.data.toString();
-
-    auto currentModel =
-        ChatGPTConfig::instance().getCurrentModel();
-
-    if (!currentModel.success) {
-        valid = false;
-        errorMessage = currentModel.error;
-        return;
-    }
-
-    model = currentModel.data.toString();
-
-    valid = true;
 }
 
 static size_t WriteCallback(
@@ -44,7 +25,7 @@ static size_t WriteCallback(
     size_t nmemb,
     void* userp
     ) {
-    LLMClient* client =
+    auto* client =
         static_cast<LLMClient*>(userp);
 
     std::string chunk(
@@ -74,12 +55,14 @@ static size_t WriteCallback(
             if (!j.contains("choices"))
                 continue;
 
-            auto& choice = j["choices"][0];
+            auto& choice =
+                j["choices"][0];
 
             if (!choice.contains("delta"))
                 continue;
 
-            auto& deltaObj = choice["delta"];
+            auto& deltaObj =
+                choice["delta"];
 
             if (!deltaObj.contains("content"))
                 continue;
@@ -89,8 +72,11 @@ static size_t WriteCallback(
                     .get<std::string>();
 
             if (client->onStreamChunk) {
+
                 client->onStreamChunk(
-                    QString::fromStdString(delta)
+                    QString::fromStdString(
+                        delta
+                        )
                     );
             }
 
@@ -104,15 +90,25 @@ static size_t WriteCallback(
 void LLMClient::ask(
     const QList<Message>& messages
     ) {
-    if (!valid) {
+
+    if (m_apiKey.trimmed().isEmpty()) {
 
         if (onError)
-            onError(errorMessage);
+            onError("API key is empty");
 
         return;
     }
 
-    CURL* curl = curl_easy_init();
+    if (m_model.trimmed().isEmpty()) {
+
+        if (onError)
+            onError("Model is empty");
+
+        return;
+    }
+
+    CURL* curl =
+        curl_easy_init();
 
     if (!curl) {
 
@@ -122,18 +118,25 @@ void LLMClient::ask(
         return;
     }
 
-    json messagesJson = json::array();
+    json messagesJson =
+        json::array();
 
     for (const auto& msg : messages) {
 
         messagesJson.push_back({
-            {"role", msg.role.toStdString()},
-            {"content", msg.content.toStdString()}
+            {
+                "role",
+                msg.role.toStdString()
+            },
+            {
+                "content",
+                msg.content.toStdString()
+            }
         });
     }
 
     json payload = {
-        {"model", model.toStdString()},
+        {"model", m_model.toStdString()},
         {"messages", messagesJson},
         {"stream", true}
     };
@@ -143,9 +146,10 @@ void LLMClient::ask(
 
     std::string authHeader =
         "Authorization: Bearer "
-        + apiKey.toStdString();
+        + m_apiKey.toStdString();
 
-    struct curl_slist* headers = nullptr;
+    struct curl_slist* headers =
+        nullptr;
 
     headers = curl_slist_append(
         headers,
@@ -160,7 +164,7 @@ void LLMClient::ask(
     curl_easy_setopt(
         curl,
         CURLOPT_URL,
-        "https://openrouter.ai/api/v1/chat/completions"
+        m_baseUrl.toStdString().c_str()
         );
 
     curl_easy_setopt(
@@ -205,6 +209,7 @@ void LLMClient::ask(
     if (res != CURLE_OK) {
 
         if (onError) {
+
             onError(
                 QString::fromStdString(
                     curl_easy_strerror(res)

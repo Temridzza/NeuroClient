@@ -1,37 +1,51 @@
-#ifndef LLMClient_H
-#define LLMClient_H
+// LLMClient.h
+
+#ifndef LLMCLIENT_H
+#define LLMCLIENT_H
 
 #pragma once
 
-#include <string>
+#include <functional>
 
-#include "AppSettings.h"
+#include <QString>
+#include <QList>
+
 #include "MessageModel.h"
+
+struct LLMConfig {
+    QString apiKey;
+    QString model;
+    QString baseUrl =
+        "https://openrouter.ai/api/v1/chat/completions";
+};
 
 class LLMClient {
 public:
-    LLMClient();
-    void ask(const QList<Message>& messages);
+    explicit LLMClient(
+        const LLMConfig& config
+        );
 
+    void ask(
+        const QList<Message>& messages
+        );
 
-    bool isValid() const {
-        return valid;
+    QString model() const {
+        return m_model;
     }
 
-    QString lastError() { return errorMessage; }
-    Result getModel();
+    std::function<void(const QString&)>
+        onStreamChunk;
 
-    std::function<void(const QString&)> onStreamChunk;
-    std::function<void()> onFinished;
-    std::function<void(const QString&)> onError;
-private:
-    QString apiKey;
-    QString model;
+    std::function<void()>
+        onFinished;
 
-    bool valid = false;
-    QString errorMessage;
+    std::function<void(const QString&)>
+        onError;
+
 private:
+    QString m_apiKey;
+    QString m_model;
+    QString m_baseUrl;
 };
 
-
-#endif //LLMClient_H
+#endif // LLMCLIENT_H

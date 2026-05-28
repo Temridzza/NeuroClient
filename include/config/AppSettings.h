@@ -1,10 +1,11 @@
-#ifndef CHATGPTCONFIG_H
-#define CHATGPTCONFIG_H
+#ifndef AppSettings_H
+#define AppSettings_H
 
 #include <QString>
 #include <QStringList>
 #include <QVariant>
 #include <QSettings>
+#include <QObject>
 
 struct Result {
     bool success = false;
@@ -12,9 +13,10 @@ struct Result {
     QString error;
 };
 
-class ChatGPTConfig {
+class AppSettings : public QObject  {
+    Q_OBJECT
 public:
-    static ChatGPTConfig& instance();
+    static AppSettings& instance();
 
     // API Key
     Result getApiKey();
@@ -36,9 +38,22 @@ public:
     Result addSelectedModels(const QString &model);
     Result delSelectedModels(const QString &model);
 
+signals:
+    void currentModelChanged(
+        const QString& model
+        );
+
 private:
-    ChatGPTConfig();
-    ~ChatGPTConfig() = default;
+    explicit AppSettings(
+        QObject* parent = nullptr
+        );
+
+    ~AppSettings() = default;
+
+    AppSettings(const AppSettings&) = delete;
+    AppSettings& operator=(
+        const AppSettings&
+        ) = delete;
 
     QSettings settings;
 
@@ -46,6 +61,7 @@ private:
     Result getConfigField(const QString &key) const;
 
     void initDefaults();
+
 };
 
-#endif // CHATGPTCONFIG_H
+#endif // AppSettings_H

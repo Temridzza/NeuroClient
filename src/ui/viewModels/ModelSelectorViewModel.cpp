@@ -8,7 +8,7 @@ ModelSelectorViewModel::ModelSelectorViewModel(QObject *parent)
 {
     loadModels();
 
-    Result current = ChatGPTConfig::instance().getCurrentModel();
+    Result current = AppSettings::instance().getCurrentModel();
 
     if (current.success) {
         m_currentModel = current.data.toString();
@@ -29,13 +29,13 @@ void ModelSelectorViewModel::setCurrentModel(const QString &model) {
 
     m_currentModel = model;
 
-    ChatGPTConfig::instance().setCurrentModel(model);
+    AppSettings::instance().setCurrentModel(model);
 
     emit currentModelChanged();
 }
 
 void ModelSelectorViewModel::loadModels() {
-    Result result = ChatGPTConfig::instance().getSelectedModels();
+    Result result = AppSettings::instance().getSelectedModels();
 
     if (!result.success)
         return;

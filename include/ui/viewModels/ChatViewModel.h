@@ -3,9 +3,11 @@
 
 #include <QObject>
 #include <QThread>
+#include <memory>
 
 #include "MessageModel.h"
 #include "LLMClient.h"
+#include "AppSettings.h"
 
 class ChatViewModel : public QObject {
     Q_OBJECT
@@ -27,6 +29,8 @@ public:
 
     Q_INVOKABLE void sendMessage(const QString& text);
 
+    void rebuildClient();
+
 signals:
     void loadingChanged();
 
@@ -35,7 +39,7 @@ private:
 
     bool m_loading = false;
 
-    LLMClient m_client;
+    std::unique_ptr<LLMClient> m_client;
 
     void setLoading(bool value);
 };

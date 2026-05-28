@@ -4,6 +4,17 @@
 
 ChatViewModel::ChatViewModel(QObject *parent)
     : QObject(parent) {
+    rebuildClient();
+
+    connect(
+        &AppSettings::instance(),
+        &AppSettings::currentModelChanged,
+        this,
+        [this](const QString&)
+        {
+            rebuildClient();
+        }
+    );
 }
 
 MessageModel *ChatViewModel::messages() {
@@ -42,7 +53,7 @@ void ChatViewModel::sendMessage(const QString &text)
     m_messages.startStreaming("assistant");
 
     // 🔥 callback на chunk
-    m_client.onStreamChunk =
+    m_client->onStreamChunk =
         [this](const QString& delta)
     {
         QMetaObject::invokeMethod(
@@ -57,7 +68,7 @@ void ChatViewModel::sendMessage(const QString &text)
     };
 
     // 🔥 finish callback
-    m_client.onFinished =
+    m_client->onFinished =
         [this]()
     {
         QMetaObject::invokeMethod(
@@ -74,7 +85,7 @@ void ChatViewModel::sendMessage(const QString &text)
     };
 
     // 🔥 error callback
-    m_client.onError =
+    m_client->onError =
         [this](const QString& err)
     {
         QMetaObject::invokeMethod(
@@ -99,6 +110,27 @@ void ChatViewModel::sendMessage(const QString &text)
     QtConcurrent::run(
         [this, history]()
         {
-            m_client.ask(history);
+            m_client->ask(history);
         });
+}
+
+void ChatViewModel::rebuildClient()
+{
+    AppSettings& settings =
+        AppSettings::instance();
+
+    LLMConfig config {
+        .apiKey =
+        settings.getApiKey()
+            .data.toString(),
+
+        .model =
+        settings.getCurrentModel()
+            .data.toString()
+    };
+
+    m_client =
+        std::make_unique<LLMClient>(
+            config
+            );
 }

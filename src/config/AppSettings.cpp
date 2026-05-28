@@ -9,8 +9,8 @@
  * SINGLETON
  * ============================================================ */
 
-ChatGPTConfig& ChatGPTConfig::instance() {
-    static ChatGPTConfig instance;
+AppSettings& AppSettings::instance() {
+    static AppSettings instance;
     return instance;
 }
 
@@ -18,8 +18,9 @@ ChatGPTConfig& ChatGPTConfig::instance() {
  * CONSTRUCTOR
  * ============================================================ */
 
-ChatGPTConfig::ChatGPTConfig()
-    : settings("NeuroClient", "NeuroClient")
+AppSettings::AppSettings(QObject *parent)
+    : QObject(nullptr),
+    settings("NeuroClient", "NeuroClient")
 {
     initDefaults();
 }
@@ -28,7 +29,7 @@ ChatGPTConfig::ChatGPTConfig()
  * DEFAULT VALUES
  * ============================================================ */
 
-void ChatGPTConfig::initDefaults() {
+void AppSettings::initDefaults() {
     if (!settings.contains("apiKeyPath")) {
         settings.setValue(
             "apiKeyPath",
@@ -58,7 +59,7 @@ void ChatGPTConfig::initDefaults() {
  * UNIVERSAL GETTER
  * ============================================================ */
 
-Result ChatGPTConfig::getConfigField(
+Result AppSettings::getConfigField(
     const QString &key
     ) const {
     if (!settings.contains(key)) {
@@ -80,7 +81,7 @@ Result ChatGPTConfig::getConfigField(
  * UNIVERSAL SETTER
  * ============================================================ */
 
-Result ChatGPTConfig::setConfigField(
+Result AppSettings::setConfigField(
     const QString &key,
     const QVariant &value
     ) {
@@ -94,7 +95,7 @@ Result ChatGPTConfig::setConfigField(
  * API KEY
  * ============================================================ */
 
-Result ChatGPTConfig::getApiKey() {
+Result AppSettings::getApiKey() {
     auto result = getApiKeyPath();
 
     if (!result.success) {
@@ -141,7 +142,7 @@ Result ChatGPTConfig::getApiKey() {
     return {true, key, ""};
 }
 
-Result ChatGPTConfig::setApiKey(
+Result AppSettings::setApiKey(
     const QString &apiKey
     ) {
     auto result = getApiKeyPath();
@@ -189,13 +190,13 @@ Result ChatGPTConfig::setApiKey(
     return {true, {}, ""};
 }
 
-Result ChatGPTConfig::setApiKeyPath(
+Result AppSettings::setApiKeyPath(
     const QString &path
     ) {
     return setConfigField("apiKeyPath", path);
 }
 
-Result ChatGPTConfig::getApiKeyPath() {
+Result AppSettings::getApiKeyPath() {
     return getConfigField("apiKeyPath");
 }
 
@@ -203,11 +204,11 @@ Result ChatGPTConfig::getApiKeyPath() {
  * TOR
  * ============================================================ */
 
-Result ChatGPTConfig::getTorEnable() const {
+Result AppSettings::getTorEnable() const {
     return getConfigField("torEnabled");
 }
 
-Result ChatGPTConfig::setTorEnable(bool enabled) {
+Result AppSettings::setTorEnable(bool enabled) {
     return setConfigField(
         "torEnabled",
         enabled
@@ -218,24 +219,32 @@ Result ChatGPTConfig::setTorEnable(bool enabled) {
  * CURRENT MODEL
  * ============================================================ */
 
-Result ChatGPTConfig::getCurrentModel() const {
+Result AppSettings::getCurrentModel() const {
     return getConfigField("currentModel");
 }
 
-Result ChatGPTConfig::setCurrentModel(
+Result AppSettings::setCurrentModel(
     const QString &model
     ) {
-    return setConfigField(
-        "currentModel",
-        model
-        );
+
+    auto result =
+        setConfigField(
+            "currentModel",
+            model
+            );
+
+    if (result.success) {
+        emit currentModelChanged(model);
+    }
+
+    return result;
 }
 
 /* ============================================================
  * SELECTED MODELS
  * ============================================================ */
 
-Result ChatGPTConfig::getSelectedModels() const {
+Result AppSettings::getSelectedModels() const {
     return {
         true,
         settings.value("selectedModels").toStringList(),
@@ -243,7 +252,7 @@ Result ChatGPTConfig::getSelectedModels() const {
     };
 }
 
-Result ChatGPTConfig::addSelectedModels(
+Result AppSettings::addSelectedModels(
     const QString &model
     ) {
     QStringList models =
@@ -266,7 +275,7 @@ Result ChatGPTConfig::addSelectedModels(
         );
 }
 
-Result ChatGPTConfig::delSelectedModels(
+Result AppSettings::delSelectedModels(
     const QString &model
     ) {
     QStringList models =
