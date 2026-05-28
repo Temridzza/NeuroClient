@@ -1,7 +1,5 @@
-// ChatGPTClient.cpp
-
-#include "ChatGPTClient.h"
-#include "ChatGPTConfig.h"
+#include "LLMClient.h"
+#include "AppSettings.h"
 
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
@@ -14,7 +12,7 @@
 
 using json = nlohmann::json;
 
-ChatGPTClient::ChatGPTClient()
+LLMClient::LLMClient()
 {
     auto apikey = ChatGPTConfig::instance().getApiKey();
 
@@ -46,8 +44,8 @@ static size_t WriteCallback(
     size_t nmemb,
     void* userp
     ) {
-    ChatGPTClient* client =
-        static_cast<ChatGPTClient*>(userp);
+    LLMClient* client =
+        static_cast<LLMClient*>(userp);
 
     std::string chunk(
         static_cast<char*>(contents),
@@ -103,7 +101,7 @@ static size_t WriteCallback(
     return size * nmemb;
 }
 
-void ChatGPTClient::ask(
+void LLMClient::ask(
     const QList<Message>& messages
     ) {
     if (!valid) {

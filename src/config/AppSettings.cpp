@@ -1,4 +1,4 @@
-#include "ChatGPTConfig.h"
+#include "AppSettings.h"
 
 #include <QDir>
 #include <QFile>

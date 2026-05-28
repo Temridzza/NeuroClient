@@ -1,16 +1,16 @@
-#ifndef CHATGPTCLIENT_H
-#define CHATGPTCLIENT_H
+#ifndef LLMClient_H
+#define LLMClient_H
 
 #pragma once
 
 #include <string>
 
-#include "ChatGPTConfig.h"
+#include "AppSettings.h"
 #include "MessageModel.h"
 
-class ChatGPTClient {
+class LLMClient {
 public:
-    ChatGPTClient();
+    LLMClient();
     void ask(const QList<Message>& messages);
 
 
@@ -34,4 +34,4 @@ private:
 };
 
 
-#endif //CHATGPTCLIENT_H
+#endif //LLMClient_H

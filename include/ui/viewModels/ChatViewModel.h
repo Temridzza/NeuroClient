@@ -5,7 +5,7 @@
 #include <QThread>
 
 #include "MessageModel.h"
-#include "ChatGPTClient.h"
+#include "LLMClient.h"
 
 class ChatViewModel : public QObject {
     Q_OBJECT
@@ -35,7 +35,7 @@ private:
 
     bool m_loading = false;
 
-    ChatGPTClient m_client;
+    LLMClient m_client;
 
     void setLoading(bool value);
 };

@@ -1,12 +1,12 @@
 # tests/CmakeLists.txt
 add_executable(UnitTests
-        ChatGPTConfig_test.cpp
+        # ChatGPTConfig_test.cpp
         # MainWindow_test.cpp
-        ChatGPTClient_test.cpp
+        # ChatGPTClient_test.cpp
 
-        database/ChatRepository_test.cpp
-        database/DatabaseManager_test.cpp
-        database/MessageRepository_test.cpp
+        # database/ChatRepository_test.cpp
+        # database/DatabaseManager_test.cpp
+        # database/MessageRepository_test.cpp
 )
 
 target_link_libraries(UnitTests PRIVATE

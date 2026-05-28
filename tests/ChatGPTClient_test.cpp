@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "ChatGPTClient.h"
-#include "../src/ChatGPTClient.cpp"
+#include "ChatGPTClient.cpp"
 
 #include <QString>
 

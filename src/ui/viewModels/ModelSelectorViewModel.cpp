@@ -1,5 +1,5 @@
 #include "ModelSelectorViewModel.h"
-#include "ChatGPTConfig.h"
+#include "AppSettings.h"
 #include "QDebug"
 #include "QJsonArray"
 
