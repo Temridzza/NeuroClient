@@ -9,16 +9,17 @@
 class DatabaseManager {
 public:
     static DatabaseManager& instance();
+
     bool init(const QString& path = "chat.db");
 
     QSqlDatabase& db();
 
 private:
     DatabaseManager() = default;
-    void runMigrations();
+
+    bool createSchema();
 
     QSqlDatabase m_db;
 };
 
-
-#endif //CHATGPT_DATABASEMANAGER_H
+#endif // CHATGPT_DATABASEMANAGER_H

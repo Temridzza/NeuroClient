@@ -1,58 +1,125 @@
-#include "database/DatabaseManager.h"
-#include <QtSql/QSqlError>
+#include "DatabaseManager.h"
+
+#include <QSqlError>
+#include <QSqlQuery>
 #include <QDebug>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlQuery>
 
 DatabaseManager& DatabaseManager::instance() {
-    static DatabaseManager inst;
-    return inst;
+    static DatabaseManager instance;
+    return instance;
 }
 
-bool DatabaseManager::init(const QString &path) {
-    if (!QSqlDatabase::contains("chat_connection")) {
-        m_db = QSqlDatabase::addDatabase("QSQLITE", "chat_connection");
-        m_db.setDatabaseName(path);
+bool DatabaseManager::init(const QString& path) {
+    if (QSqlDatabase::contains("main")) {
+        m_db = QSqlDatabase::database("main");
     } else {
-        m_db = QSqlDatabase::database("chat_connection");
+        m_db = QSqlDatabase::addDatabase("QSQLITE", "main");
+        m_db.setDatabaseName(path);
     }
 
     if (!m_db.open()) {
-        qDebug() << "DB open error:" << m_db.lastError().text();
+        qWarning() << "Failed to open database:" << m_db.lastError().text();
         return false;
     }
 
-    runMigrations();
-    return true;
+    return createSchema();
 }
 
 QSqlDatabase& DatabaseManager::db() {
     return m_db;
 }
 
-void DatabaseManager::runMigrations() {
+bool DatabaseManager::createSchema() {
     QSqlQuery q(m_db);
 
-    q.exec(R"(
+    q.exec("PRAGMA foreign_keys = ON");
+
+    if (!q.exec(R"(
+        CREATE TABLE IF NOT EXISTS providers (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            base_url TEXT NOT NULL,
+            api_key TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+    )")) {
+        qWarning() << q.lastError();
+        return false;
+    }
+
+    if (!q.exec(R"(
+        CREATE TABLE IF NOT EXISTS models (
+            id TEXT PRIMARY KEY,
+            provider_id TEXT NOT NULL,
+            model_key TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            api_key_override TEXT,
+            context_window INTEGER,
+            max_output_tokens INTEGER,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY(provider_id)
+                REFERENCES providers(id)
+                ON DELETE CASCADE,
+            UNIQUE(provider_id, model_key)
+        )
+    )")) {
+        qWarning() << q.lastError();
+        return false;
+    }
+
+    if (!q.exec(R"(
         CREATE TABLE IF NOT EXISTS chats (
             id TEXT PRIMARY KEY,
             title TEXT,
-            created_at TEXT,
-            updated_at TEXT
+            root_message_id TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
         )
-    )");
+    )")) {
+        qWarning() << q.lastError();
+        return false;
+    }
 
-    q.exec(R"(
+    if (!q.exec(R"(
         CREATE TABLE IF NOT EXISTS messages (
             id TEXT PRIMARY KEY,
-            chat_id TEXT,
-            role TEXT,
-            content TEXT,
-            model_used TEXT,
+            chat_id TEXT NOT NULL,
             parent_id TEXT,
-            created_at TEXT,
-
-            FOREIGN KEY(chat_id) REFERENCES chats(id)
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            provider_id TEXT,
+            model_id TEXT,
+            provider_name_snapshot TEXT,
+            model_name_snapshot TEXT,
+            temperature REAL,
+            top_p REAL,
+            max_tokens INTEGER,
+            prompt_tokens INTEGER,
+            completion_tokens INTEGER,
+            active_child_id TEXT,
+            deleted INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY(chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+            FOREIGN KEY(parent_id) REFERENCES messages(id) ON DELETE CASCADE,
+            FOREIGN KEY(active_child_id) REFERENCES messages(id) ON DELETE SET NULL,
+            FOREIGN KEY(provider_id) REFERENCES providers(id) ON DELETE SET NULL,
+            FOREIGN KEY(model_id) REFERENCES models(id) ON DELETE SET NULL
         )
-    )");
+    )")) {
+        qWarning() << q.lastError();
+        return false;
+    }
+
+    q.exec("CREATE INDEX IF NOT EXISTS idx_models_provider_id ON models(provider_id)");
+    q.exec("CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id)");
+    q.exec("CREATE INDEX IF NOT EXISTS idx_messages_parent_id ON messages(parent_id)");
+    q.exec("CREATE INDEX IF NOT EXISTS idx_messages_model_id ON messages(model_id)");
+    q.exec("CREATE INDEX IF NOT EXISTS idx_messages_provider_id ON messages(provider_id)");
+    q.exec("CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at)");
+    q.exec("CREATE INDEX IF NOT EXISTS idx_chats_updated_at ON chats(updated_at)");
+
+    return true;
 }

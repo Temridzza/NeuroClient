@@ -68,7 +68,10 @@ Rectangle {
                     enabled: !(chatVM && loading)
                     cursorShape: Qt.PointingHandCursor
 
-                    onClicked: root.send()
+                    onClicked: {
+                        console.log("ChatInput_onClicked_send")
+                        root.send()
+                    }
                 }
 
                 Text {

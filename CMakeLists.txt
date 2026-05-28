@@ -89,10 +89,12 @@ qt_add_qml_module(chatgpt_app
 
     SOURCES
         include/ui/qml/QmlModule.h
-        QML_FILES qml/pages/SettingsPage.qml
+        QML_FILES qml/settings/SettingsPage.qml
         QML_FILES qml/components/ChatInput.qml
         QML_FILES qml/theme/Theme.qml
         QML_FILES qml/pages/ChatPage.qml
+        QML_FILES qml/settings/pages/ProviderPage.qml
+        QML_FILES qml/settings/pages/ProviderEditPage.qml
 )
 
 # ==========================================

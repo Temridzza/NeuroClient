@@ -70,8 +70,6 @@ Rectangle {
 
                 Item { Layout.fillWidth: true }
 
-                ToolButton { text: "🔍" }
-
                 ToolButton {
                     text: "⚙"
                     onClicked: root.requestSettings()

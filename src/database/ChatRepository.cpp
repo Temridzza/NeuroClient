@@ -2,56 +2,121 @@
 #include "database/DatabaseManager.h"
 
 #include <QUuid>
+#include <QDateTime>
 #include <QtSql/QSqlQuery>
-
+#include <QtSql/QSqlError>
+#include <QDebug>
 
 QString ChatRepository::createChat(const QString &title) {
-    QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    const QString id =
+        QUuid::createUuid().toString(QUuid::WithoutBraces);
+
+    const qint64 now =
+        QDateTime::currentSecsSinceEpoch();
 
     QSqlQuery q(DatabaseManager::instance().db());
-    q.prepare("INSERT INTO chats(id, title, created_at, updated_at) "
-              "VALUES (?, ?, datetime('now'), datetime('now'))");
 
-    q.addBindValue(id);
-    q.addBindValue(title);
-    q.exec();
+    q.prepare(R"(
+        INSERT INTO chats(
+            id,
+            title,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            :id,
+            :title,
+            :created_at,
+            :updated_at
+        )
+    )");
+
+    q.bindValue(":id", id);
+    q.bindValue(":title", title);
+    q.bindValue(":created_at", now);
+    q.bindValue(":updated_at", now);
+
+    if (!q.exec()) {
+        qWarning() << "Failed to create chat:"
+                   << q.lastError().text();
+
+        return {};
+    }
 
     return id;
 }
 
 QList<QVariantMap> ChatRepository::listChats() {
     QList<QVariantMap> list;
+
     QSqlQuery q(DatabaseManager::instance().db());
 
-    q.exec("SELECT id, title, created_at, updated_at FROM chats ORDER BY updated_at DESC");
+    q.exec(R"(
+        SELECT
+            id,
+            title,
+            root_message_id,
+            created_at,
+            updated_at
+        FROM chats
+        ORDER BY updated_at DESC
+    )");
 
     while (q.next()) {
         QVariantMap map;
+
         map["id"] = q.value("id");
         map["title"] = q.value("title");
-        map["created_at"] = q.value("created_at");
-        map["updated_at"] = q.value("updated_at");
+
+        map["root_message_id"] =
+            q.value("root_message_id");
+
+        map["created_at"] =
+            q.value("created_at");
+
+        map["updated_at"] =
+            q.value("updated_at");
+
         list.append(map);
     }
 
     return list;
 }
 
-bool ChatRepository::renameChat(const QString &id, const QString &newTitle) {
+bool ChatRepository::renameChat(
+    const QString &id,
+    const QString &newTitle
+    ) {
     QSqlQuery q(DatabaseManager::instance().db());
-    q.prepare("UPDATE chats SET title=?, updated_at=datetime('now') WHERE id=?");
-    q.addBindValue(newTitle);
-    q.addBindValue(id);
+
+    q.prepare(R"(
+        UPDATE chats
+        SET
+            title = :title,
+            updated_at = :updated_at
+        WHERE id = :id
+    )");
+
+    q.bindValue(":title", newTitle);
+    q.bindValue(
+        ":updated_at",
+        QDateTime::currentSecsSinceEpoch()
+        );
+
+    q.bindValue(":id", id);
+
     return q.exec();
 }
 
 bool ChatRepository::deleteChat(const QString &id) {
     QSqlQuery q(DatabaseManager::instance().db());
-    q.prepare("DELETE FROM messages WHERE chat_id=?");
-    q.addBindValue(id);
-    q.exec();
 
-    q.prepare("DELETE FROM chats WHERE id=?");
-    q.addBindValue(id);
+    q.prepare(R"(
+        DELETE FROM chats
+        WHERE id = :id
+    )");
+
+    q.bindValue(":id", id);
+
     return q.exec();
 }

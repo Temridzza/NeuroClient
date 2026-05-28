@@ -6,6 +6,8 @@ import QtQuick.Effects
 import "components"
 import "theme"
 import "pages"
+import "settings"
+
 import ChatGPT 1.0
 import NeuroClient
 
@@ -18,7 +20,7 @@ ApplicationWindow {
     color: "transparent"
     title: "NeuroClient"
 
-    property bool sidebarOpened: true
+    property bool sidebarOpened: false
     property string currentPage: "chat"   // chat | settings
 
     property var modelVM: ModelSelectorViewModel {
@@ -81,7 +83,7 @@ ApplicationWindow {
     }
 
     // =========================
-    // Chat PAGE
+    // CHAT PAGE
     // =========================
     Component {
         id: chatPage
@@ -105,10 +107,6 @@ ApplicationWindow {
 
         SettingsPage {
             anchors.fill: parent
-
-            onSectionSelected: function(section) {
-                console.log("settings section:", section)
-            }
 
             onRequestBack: root.currentPage = "chat"
         }

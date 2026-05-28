@@ -1,0 +1,4 @@
+#ifndef CHATLISTMODEL_H
+#define CHATLISTMODEL_H
+
+#endif // CHATLISTMODEL_H

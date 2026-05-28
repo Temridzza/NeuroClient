@@ -9,10 +9,12 @@ import ChatGPT 1.0
 Rectangle {
     id: sidebar
 
-    width: 320
     color: Theme.bgColor
     radius: 22
 
+    width: root.sidebarOpened ? 320 : 0
+    Behavior on width { NumberAnimation { duration: 200 } }
+    visible: root.sidebarOpened
     layer.enabled: true
 
     layer.effect: MultiEffect {
@@ -40,8 +42,10 @@ Rectangle {
 
             Item { Layout.fillWidth: true }
 
-            ToolButton { text: "⚙" }
-            ToolButton { text: "✕" }
+            ToolButton {
+                text: "✕"
+                onClicked: root.sidebarOpened = !root.sidebarOpened
+            }
         }
 
         // NEW CHAT BUTTON

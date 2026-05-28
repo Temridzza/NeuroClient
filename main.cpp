@@ -71,6 +71,12 @@ int main(int argc, char *argv[]) {
 
     QGuiApplication app(argc, argv);
 
+    if (!DatabaseManager::instance().init("chat.db")) {
+        qFatal("Database initialization failed");
+        return -1;
+    }
+    auto& db = DatabaseManager::instance().db();
+
     QString lockFilePath =
         QDir::temp().absoluteFilePath("myapp.lock");
 
