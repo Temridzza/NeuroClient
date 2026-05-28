@@ -14,12 +14,31 @@ Rectangle {
     property bool sidebarOpened: true
     property var modelVM
     property var chatVM
+    property var chatModel
 
     radius: 24
     color: Theme.chatBgColor
     border.color: Theme.borderColor
 
     signal requestSettings()
+
+    Connections {
+        target: ChatModel
+
+        function onChatOpened(chatId) {
+            console.log("OPEN CHAT:", chatId)
+
+            root.chatVM.setCurrentChat(chatId)
+        }
+    }
+
+    Connections {
+        target: root.chatVM
+
+        function onMessagesChanged() {
+            chatView.positionViewAtEnd()
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent

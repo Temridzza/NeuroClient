@@ -23,13 +23,15 @@ ApplicationWindow {
     property bool sidebarOpened: false
     property string currentPage: "chat"   // chat | settings
 
-    property var modelVM: ModelSelectorViewModel {
+    property var modelVM: ModelSelector {
         id: modelVM
     }
 
     property var chatVM: ChatViewModel {
         id: chatVM
     }
+
+    property var chatModel
 
     Rectangle {
         anchors.fill: parent
@@ -54,6 +56,8 @@ ApplicationWindow {
             // SIDEBAR
             ChatsSideBar {
                 id: sideBar
+
+                chatModel: root.chatModel
 
                 Layout.fillHeight: true
                 Layout.preferredWidth: sidebarOpened ? 320 : 0
@@ -92,6 +96,7 @@ ApplicationWindow {
             sidebarOpened: root.sidebarOpened
             modelVM: root.modelVM
             chatVM: root.chatVM
+            chatModel: root.chatModel
 
             onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
 

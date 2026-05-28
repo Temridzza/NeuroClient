@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QStringList>
 
-class ModelSelectorViewModel : public QObject {
+class ModelSelector : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(QStringList models
@@ -16,7 +16,7 @@ class ModelSelectorViewModel : public QObject {
                            NOTIFY currentModelChanged)
 
 public:
-    explicit ModelSelectorViewModel(QObject *parent = nullptr);
+    explicit ModelSelector(QObject *parent = nullptr);
 
     QStringList models() const;
 

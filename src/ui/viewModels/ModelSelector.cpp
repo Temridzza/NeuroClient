@@ -1,9 +1,9 @@
-#include "ModelSelectorViewModel.h"
+#include "ModelSelector.h"
 #include "AppSettings.h"
 #include "QDebug"
 #include "QJsonArray"
 
-ModelSelectorViewModel::ModelSelectorViewModel(QObject *parent)
+ModelSelector::ModelSelector(QObject *parent)
     : QObject(parent)
 {
     loadModels();
@@ -15,15 +15,15 @@ ModelSelectorViewModel::ModelSelectorViewModel(QObject *parent)
     }
 }
 
-QStringList ModelSelectorViewModel::models() const {
+QStringList ModelSelector::models() const {
     return m_models;
 }
 
-QString ModelSelectorViewModel::currentModel() const {
+QString ModelSelector::currentModel() const {
     return m_currentModel;
 }
 
-void ModelSelectorViewModel::setCurrentModel(const QString &model) {
+void ModelSelector::setCurrentModel(const QString &model) {
     if (m_currentModel == model)
         return;
 
@@ -34,7 +34,7 @@ void ModelSelectorViewModel::setCurrentModel(const QString &model) {
     emit currentModelChanged();
 }
 
-void ModelSelectorViewModel::loadModels() {
+void ModelSelector::loadModels() {
     Result result = AppSettings::instance().getSelectedModels();
 
     if (!result.success)

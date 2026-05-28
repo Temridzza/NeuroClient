@@ -8,8 +8,12 @@
 #include <QFile>
 #include <QFileSystemWatcher>
 #include <QLockFile>
+#include <QQmlContext>
 
 #include "DatabaseManager.h"
+#include "ChatRepository.h"
+#include "ChatListModel.h"
+#include "ModelsModel.h"
 
 void messageHandler(
     QtMsgType type,
@@ -66,16 +70,14 @@ void messageHandler(
 
 int main(int argc, char *argv[]) {
 
-    // 👇 УСТАНОВКА ОБРАБОТЧИКА ЛОГОВ
     qInstallMessageHandler(messageHandler);
 
     QGuiApplication app(argc, argv);
 
-    if (!DatabaseManager::instance().init("chat.db")) {
-        qFatal("Database initialization failed");
+    if (!DatabaseManager::instance().init("chat_database.db")) {
+        qFatal("DB init failed");
         return -1;
     }
-    auto& db = DatabaseManager::instance().db();
 
     QString lockFilePath =
         QDir::temp().absoluteFilePath("myapp.lock");
@@ -83,9 +85,7 @@ int main(int argc, char *argv[]) {
     QLockFile lockFile(lockFilePath);
 
     if (!lockFile.tryLock(100)) {
-        QFile msgFile(
-            QDir::temp().absoluteFilePath("myapp.msg")
-            );
+        QFile msgFile(QDir::temp().absoluteFilePath("myapp.msg"));
 
         msgFile.open(QIODevice::WriteOnly);
         msgFile.write("raise");
@@ -94,37 +94,38 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    DatabaseManager::instance().init(
-        "chat_database.db"
-        );
-
-    registerQmlTypes();
-
     QQmlApplicationEngine engine;
+
+    // DB
+    auto& db = DatabaseManager::instance().db();
+
+    // CHAT
+    auto* chatRepo = new ChatRepository(db);
+    auto* chatModel = new ChatListModel(chatRepo);
+    auto* providerVM = new ProviderModel(db);
+    auto* modelsVM = new ModelsModel(db);
+
+    // REGISTRATION
+    registerQmlTypes(chatModel, providerVM, modelsVM);
+
+    // ================================
 
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
         &app,
         []() {
-            qCritical()
-            << "QML object creation failed";
-
+            qCritical() << "QML object creation failed";
             QCoreApplication::exit(-1);
         },
         Qt::QueuedConnection
         );
 
     engine.addImportPath("qrc:/");
-    engine.loadFromModule(
-        "ChatGPT",
-        "Main"
-        );
+    engine.loadFromModule("ChatGPT", "Main");
 
     if (engine.rootObjects().isEmpty()) {
-        qCritical()
-        << "Root objects are empty";
-
+        qCritical() << "Root objects are empty";
         return -1;
     }
 

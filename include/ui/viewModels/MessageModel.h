@@ -7,14 +7,16 @@
 #include "Markdown.h"
 
 struct Message {
+    QString id;
+    QString chatId;
+
     QString role;
     QString content;
-    QString html;
 
-    Message() = default;
+    QString providerId;
+    QString modelId;
 
-    Message(const QString& r)
-        : role(r), content(""), html("") {}
+    QString parentId;
 
     bool streaming = false;
 };
@@ -38,8 +40,7 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
 
-    void addMessage(const QString& role,
-                    const QString& content);
+    void addMessage(Message msg);
 
     // 🔥 STREAMING API
     void startStreaming(const QString &role);
@@ -48,7 +49,7 @@ public:
 
     void clear();
 
-    QList<Message> messages() const;
+    const QList<Message>& messages() const;
 
 private:
     void scheduleRender();

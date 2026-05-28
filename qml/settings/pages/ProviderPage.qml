@@ -4,12 +4,16 @@ import QtQuick.Layouts
 
 import "../../theme"
 import ChatGPT 1.0
+import NeuroClient 1.0
 
 Item {
     id: root
 
-    signal addProvider()
-    signal openProvider(string name)
+    signal openProvider(string providerId)
+
+    Component.onCompleted: {
+        ProviderVM.loadProviders()
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -28,12 +32,15 @@ Item {
                 color: Theme.textColor
             }
 
-            Item { Layout.fillWidth: true }
+            Item {
+                Layout.fillWidth: true
+            }
 
             Rectangle {
                 width: 140
                 height: 36
                 radius: 10
+
                 color: Qt.lighter(Theme.panelColor, 1.1)
 
                 Text {
@@ -44,7 +51,19 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: root.addProvider()
+
+                    onClicked: {
+                        const providerId =
+                                ProviderVM.createProvider(
+                                    "New Provider",
+                                    "",
+                                    ""
+                                )
+
+                        if (providerId.length > 0) {
+                            root.openProvider(providerId)
+                        }
+                    }
                 }
             }
         }
@@ -62,93 +81,169 @@ Item {
         ListView {
             Layout.fillWidth: true
             Layout.fillHeight: true
+
             spacing: 10
             clip: true
 
-            model: [
-                {
-                    name: "OpenAI",
-                    url: "https://api.openai.com",
-                    models: "gpt-4o, gpt-4.1",
-                    key: "************"
-                },
-                {
-                    name: "Ollama",
-                    url: "http://localhost:11434",
-                    models: "llama3, mistral",
-                    key: "(none)"
-                }
-            ]
+            model: ProviderVM
 
             delegate: Rectangle {
                 width: ListView.view.width
                 height: 110
                 radius: 14
 
-                color: Qt.lighter(Theme.panelColor, 1.05)
+                color: Qt.lighter(
+                           Theme.panelColor,
+                           hovered ? 1.08 : 1.05
+                       )
 
                 property bool hovered: false
 
                 scale: hovered ? 1.01 : 1.0
 
                 Behavior on scale {
-                    NumberAnimation { duration: 120 }
+                    NumberAnimation {
+                        duration: 120
+                    }
+                }
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 120
+                    }
                 }
 
                 MouseArea {
                     anchors.fill: parent
+
                     hoverEnabled: true
 
-                    onEntered: parent.hovered = true
-                    onExited: parent.hovered = false
+                    onEntered: {
+                        parent.hovered = true
+                    }
 
-                    onClicked: root.openProvider(modelData.name)
+                    onExited: {
+                        parent.hovered = false
+                    }
+
+                    onClicked: {
+                        root.openProvider(id)
+                    }
                 }
 
                 Column {
                     anchors.fill: parent
                     anchors.margins: 14
+
                     spacing: 4
 
-                    // NAME + ARROW
+                    // ─────────────────────────────
+                    // NAME
+                    // ─────────────────────────────
                     Row {
                         width: parent.width
 
                         Text {
-                            text: modelData.name
+                            text: name
+
                             font.pixelSize: 18
                             color: Theme.textColor
                         }
 
-                        Item { width: 10 }
+                        Item {
+                            width: 10
+                        }
 
                         Text {
                             text: "›"
+
                             font.pixelSize: 18
                             color: Theme.textColor
                             opacity: 0.6
                         }
                     }
 
+                    // ─────────────────────────────
+                    // URL
+                    // ─────────────────────────────
                     Text {
-                        text: "url: " + modelData.url
+                        text: "url: " + (
+                                  baseUrl.length > 0
+                                  ? baseUrl
+                                  : "(empty)"
+                              )
+
+                        color: Theme.textColor
+                        opacity: 0.7
+                        font.pixelSize: 13
+
+                        elide: Text.ElideRight
+                        width: parent.width
+                    }
+
+                    // ─────────────────────────────
+                    // API KEY
+                    // ─────────────────────────────
+                    Text {
+                        text: "key: " + (
+                                  apiKey.length > 0
+                                  ? "********"
+                                  : "(none)"
+                              )
+
                         color: Theme.textColor
                         opacity: 0.7
                         font.pixelSize: 13
                     }
 
+                    // ─────────────────────────────
+                    // ID
+                    // ─────────────────────────────
                     Text {
-                        text: "models: " + modelData.models
+                        text: id
+
                         color: Theme.textColor
-                        opacity: 0.7
-                        font.pixelSize: 13
+                        opacity: 0.35
+                        font.pixelSize: 11
+
+                        elide: Text.ElideMiddle
+                        width: parent.width
+                    }
+                }
+            }
+
+            // EMPTY STATE
+            Rectangle {
+                anchors.centerIn: parent
+
+                width: 320
+                height: 140
+                radius: 18
+
+                visible: ProviderVM.rowCount() === 0
+
+                color: Qt.lighter(Theme.panelColor, 1.03)
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 10
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+
+                        text: "No Providers"
+
+                        font.pixelSize: 20
+                        color: Theme.textColor
                     }
 
                     Text {
-                        text: "key: " + modelData.key
+                        anchors.horizontalCenter: parent.horizontalCenter
+
+                        text: "Add your first AI provider"
+
                         color: Theme.textColor
-                        opacity: 0.7
-                        font.pixelSize: 13
+                        opacity: 0.6
                     }
                 }
             }

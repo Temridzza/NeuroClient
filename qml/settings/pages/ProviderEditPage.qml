@@ -4,30 +4,50 @@ import QtQuick.Layouts
 
 import "../../theme"
 import ChatGPT 1.0
+import NeuroClient 1.0
 
 Item {
     id: root
 
-    property string providerName: "OpenAI"
-    property string providerUrl: "https://api.openai.com"
+    property string providerId: ""
+
+    property var providerData: ({ })
+
+    property string providerName: ""
+    property string providerUrl: ""
     property string providerKey: ""
-    property var providerModels: [
-        "gpt-4o",
-        "gpt-4.1",
-        "gpt-4.1-mini"
-    ]
+
+    property var providerModels: ModelsVM.models
 
     signal backRequested()
-    signal saveRequested()
+
+    Component.onCompleted: {
+        loadProvider()
+
+        ModelsVM.loadModelsByProvider(providerId)
+    }
+
+    function loadProvider() {
+        providerData =
+                ProviderVM.getProviderById(providerId)
+
+        providerName =
+                providerData.name || ""
+
+        providerUrl =
+                providerData.base_url || ""
+
+        providerKey =
+                providerData.api_key || ""
+    }
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 24
+
         spacing: 18
 
-        // ─────────────────────────────
         // HEADER
-        // ─────────────────────────────
         RowLayout {
             Layout.fillWidth: true
 
@@ -35,23 +55,33 @@ Item {
                 width: 42
                 height: 42
                 radius: 10
-                color: Qt.lighter(Theme.panelColor, 1.1)
+
+                color: Qt.lighter(
+                           Theme.panelColor,
+                           1.1
+                       )
 
                 Text {
                     anchors.centerIn: parent
+
                     text: "←"
+
                     color: Theme.textColor
                     font.pixelSize: 18
                 }
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: root.backRequested()
+
+                    onClicked: {
+                        root.backRequested()
+                    }
                 }
             }
 
             Text {
                 text: "Edit Provider"
+
                 font.pixelSize: 24
                 color: Theme.textColor
             }
@@ -64,25 +94,37 @@ Item {
                 width: 100
                 height: 40
                 radius: 10
+
                 color: "#3b82f6"
 
                 Text {
                     anchors.centerIn: parent
+
                     text: "Save"
+
                     color: "white"
                     font.pixelSize: 14
                 }
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: root.saveRequested()
+
+                    onClicked: {
+                        ProviderVM.updateProvider(
+                                    providerId,
+                                    {
+                                        "name": providerName,
+                                        "base_url": providerUrl,
+                                        "api_key": providerKey
+                                    }
+                                    )
+
+                        root.backRequested()
+                    }
                 }
             }
         }
 
-        // ─────────────────────────────
-        // FORM
-        // ─────────────────────────────
         Flickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -96,25 +138,34 @@ Item {
                 id: contentColumn
 
                 width: parent.width
+
                 spacing: 18
 
                 // NAME
                 ColumnLayout {
                     Layout.fillWidth: true
+
                     spacing: 6
 
                     Text {
                         text: "Provider Name"
+
                         color: Theme.textColor
                         opacity: 0.8
                     }
 
                     TextField {
                         Layout.fillWidth: true
+
                         text: root.providerName
+
+                        onTextChanged: {
+                            root.providerName = text
+                        }
 
                         background: Rectangle {
                             radius: 12
+
                             color: Theme.panelColor
                             border.color: Theme.borderColor
                         }
@@ -127,20 +178,28 @@ Item {
                 // URL
                 ColumnLayout {
                     Layout.fillWidth: true
+
                     spacing: 6
 
                     Text {
                         text: "Base URL"
+
                         color: Theme.textColor
                         opacity: 0.8
                     }
 
                     TextField {
                         Layout.fillWidth: true
+
                         text: root.providerUrl
+
+                        onTextChanged: {
+                            root.providerUrl = text
+                        }
 
                         background: Rectangle {
                             radius: 12
+
                             color: Theme.panelColor
                             border.color: Theme.borderColor
                         }
@@ -153,21 +212,30 @@ Item {
                 // API KEY
                 ColumnLayout {
                     Layout.fillWidth: true
+
                     spacing: 6
 
                     Text {
                         text: "API Key"
+
                         color: Theme.textColor
                         opacity: 0.8
                     }
 
                     TextField {
                         Layout.fillWidth: true
+
                         text: root.providerKey
+
+                        onTextChanged: {
+                            root.providerKey = text
+                        }
+
                         echoMode: TextInput.Password
 
                         background: Rectangle {
                             radius: 12
+
                             color: Theme.panelColor
                             border.color: Theme.borderColor
                         }
@@ -177,133 +245,170 @@ Item {
                     }
                 }
 
-                // FETCH MODELS SECTION
-                ColumnLayout {
+                // MODEL DISCOVERY
+                Rectangle {
                     Layout.fillWidth: true
-                    spacing: 10
 
-                    Rectangle {
-                        Layout.fillWidth: true
-                        radius: 14
-                        implicitHeight: contentLayout.implicitHeight + 32
+                    radius: 14
 
-                        color: Qt.lighter(Theme.panelColor, 1.03)
+                    implicitHeight:
+                        contentLayout.implicitHeight + 32
 
-                        ColumnLayout {
-                            id: contentLayout
-                            anchors.fill: parent
-                            anchors.margins: 16
-                            spacing: 14
+                    color: Qt.lighter(
+                               Theme.panelColor,
+                               1.03
+                           )
 
-                            RowLayout {
-                                Layout.fillWidth: true
+                    ColumnLayout {
+                        id: contentLayout
 
-                                Text {
-                                    text: "Model Discovery"
-                                    font.pixelSize: 16
-                                    color: Theme.textColor
-                                }
+                        anchors.fill: parent
+                        anchors.margins: 16
 
-                                Item {
-                                    Layout.fillWidth: true
-                                }
+                        spacing: 14
 
-                                Rectangle {
-                                    width: 90
-                                    height: 30
-                                    radius: 8
-                                    color: "#1f3a28"
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "Connected"
-                                        color: "#7dffae"
-                                        font.pixelSize: 12
-                                    }
-                                }
-                            }
+                        RowLayout {
+                            Layout.fillWidth: true
 
                             Text {
-                                text: "Automatically fetch available models from provider API or add them manually."
-                                wrapMode: Text.WordWrap
-                                color: Theme.textColor
-                                opacity: 0.7
+                                text: "Model Discovery"
 
+                                font.pixelSize: 16
+                                color: Theme.textColor
+                            }
+
+                            Item {
                                 Layout.fillWidth: true
                             }
 
-                            RowLayout {
-                                spacing: 10
+                            Rectangle {
+                                width: 90
+                                height: 30
+                                radius: 8
 
-                                // FETCH BUTTON
-                                Rectangle {
-                                    width: 140
-                                    height: 38
-                                    radius: 10
-                                    color: "#2563eb"
+                                color:
+                                    providerUrl.length > 0
+                                    ? "#1f3a28"
+                                    : "#3a1f1f"
 
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "Fetch Models"
-                                        color: "white"
-                                        font.pixelSize: 13
-                                    }
+                                Text {
+                                    anchors.centerIn: parent
 
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            console.log("fetch models")
-                                        }
-                                    }
+                                    text:
+                                        providerUrl.length > 0
+                                        ? "Configured"
+                                        : "Incomplete"
+
+                                    color:
+                                        providerUrl.length > 0
+                                        ? "#7dffae"
+                                        : "#ff9b9b"
+
+                                    font.pixelSize: 12
+                                }
+                            }
+                        }
+
+                        Text {
+                            text:
+                                "Automatically fetch available models from provider API."
+
+                            wrapMode: Text.WordWrap
+
+                            color: Theme.textColor
+                            opacity: 0.7
+
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            spacing: 10
+
+                            Rectangle {
+                                width: 140
+                                height: 38
+                                radius: 10
+
+                                color: "#2563eb"
+
+                                Text {
+                                    anchors.centerIn: parent
+
+                                    text: "Fetch Models"
+
+                                    color: "white"
+                                    font.pixelSize: 13
                                 }
 
-                                // ADD MODEL BUTTON
-                                Rectangle {
-                                    width: 120
-                                    height: 38
-                                    radius: 10
-                                    color: Qt.lighter(Theme.panelColor, 1.15)
+                                MouseArea {
+                                    anchors.fill: parent
 
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "+ Add Model"
-                                        color: Theme.textColor
-                                        font.pixelSize: 13
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            console.log("add model")
-                                        }
+                                    onClicked: {
+                                        console.log(
+                                                    "fetch models for",
+                                                    providerId
+                                                    )
                                     }
                                 }
                             }
 
                             Rectangle {
-                                Layout.fillWidth: true
-                                height: 1
-                                color: Theme.borderColor
-                                opacity: 0.3
-                            }
+                                width: 120
+                                height: 38
+                                radius: 10
 
-                            RowLayout {
-                                spacing: 8
-
-                                Rectangle {
-                                    width: 8
-                                    height: 8
-                                    radius: 999
-                                    color: "#4ade80"
-                                }
+                                color: Qt.lighter(
+                                           Theme.panelColor,
+                                           1.15
+                                       )
 
                                 Text {
-                                    text: "Last sync: just now"
+                                    anchors.centerIn: parent
+
+                                    text: "+ Add Model"
+
                                     color: Theme.textColor
-                                    opacity: 0.55
-                                    font.pixelSize: 12
+                                    font.pixelSize: 13
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+
+                                    onClicked: {
+                                        ModelsVM.createModel(
+                                                    providerId,
+                                                    "new-model",
+                                                    "New Model"
+                                                    )
+
+                                        ModelsVM.loadModelsByProvider(
+                                                    providerId
+                                                    )
+                                    }
                                 }
                             }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+
+                            height: 1
+
+                            color: Theme.borderColor
+                            opacity: 0.3
+                        }
+
+                        Text {
+                            text:
+                                "Provider ID: " + providerId
+
+                            color: Theme.textColor
+                            opacity: 0.45
+                            font.pixelSize: 11
+
+                            Layout.fillWidth: true
+
+                            elide: Text.ElideMiddle
                         }
                     }
                 }
@@ -311,10 +416,12 @@ Item {
                 // MODELS
                 ColumnLayout {
                     Layout.fillWidth: true
+
                     spacing: 10
 
                     Text {
                         text: "Models"
+
                         color: Theme.textColor
                         opacity: 0.8
                     }
@@ -324,22 +431,50 @@ Item {
 
                         delegate: Rectangle {
                             Layout.fillWidth: true
-                            height: 44
+
+                            height: 52
                             radius: 10
 
                             color: Theme.panelColor
+
+                            property var item: modelData
 
                             RowLayout {
                                 anchors.fill: parent
                                 anchors.margins: 12
 
                                 CheckBox {
-                                    checked: true
+                                    checked: item.enabled
+
+                                    onToggled: {
+                                        ModelsVM.updateModel(
+                                                    item.id,
+                                                    item.display_name,
+                                                    item.api_key_override || "",
+                                                    item.context_window || 0,
+                                                    item.max_output_tokens || 0,
+                                                    checked
+                                                    )
+                                    }
                                 }
 
-                                Text {
-                                    text: modelData
-                                    color: Theme.textColor
+                                ColumnLayout {
+                                    spacing: 2
+
+                                    Text {
+                                        text: item.display_name
+
+                                        color: Theme.textColor
+                                        font.pixelSize: 14
+                                    }
+
+                                    Text {
+                                        text: item.model_key
+
+                                        color: Theme.textColor
+                                        opacity: 0.5
+                                        font.pixelSize: 11
+                                    }
                                 }
 
                                 Item {
@@ -347,19 +482,62 @@ Item {
                                 }
 
                                 Rectangle {
-                                    width: 70
-                                    height: 28
+                                    width: 26
+                                    height: 26
                                     radius: 8
-                                    color: Qt.lighter(Theme.panelColor, 1.15)
+
+                                    color: "#402020"
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "Key"
-                                        color: Theme.textColor
-                                        font.pixelSize: 12
+
+                                        text: "×"
+
+                                        color: "#ff8080"
+                                        font.pixelSize: 16
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+
+                                        onClicked: {
+                                            ModelsVM.deleteModel(item.id)
+
+                                            ModelsVM.loadModelsByProvider(
+                                                        providerId
+                                                        )
+                                        }
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+
+                        height:
+                            providerModels.length === 0
+                            ? 80
+                            : 0
+
+                        visible:
+                            providerModels.length === 0
+
+                        radius: 12
+
+                        color: Qt.lighter(
+                                   Theme.panelColor,
+                                   1.02
+                               )
+
+                        Text {
+                            anchors.centerIn: parent
+
+                            text: "No models yet"
+
+                            color: Theme.textColor
+                            opacity: 0.5
                         }
                     }
                 }
@@ -367,23 +545,29 @@ Item {
                 // DANGER ZONE
                 Rectangle {
                     Layout.fillWidth: true
+
                     radius: 14
+
                     color: "#2a1616"
                     border.color: "#5a2a2a"
 
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 16
+
                         spacing: 10
 
                         Text {
                             text: "Danger Zone"
+
                             color: "#ff8080"
                             font.pixelSize: 16
                         }
 
                         Text {
-                            text: "Remove this provider permanently."
+                            text:
+                                "Remove this provider permanently."
+
                             color: Theme.textColor
                             opacity: 0.7
                         }
@@ -392,18 +576,26 @@ Item {
                             width: 120
                             height: 36
                             radius: 10
+
                             color: "#c0392b"
 
                             Text {
                                 anchors.centerIn: parent
+
                                 text: "Delete"
+
                                 color: "white"
                             }
 
                             MouseArea {
                                 anchors.fill: parent
+
                                 onClicked: {
-                                    console.log("delete provider")
+                                    ProviderVM.deleteProvider(
+                                                providerId
+                                                )
+
+                                    root.backRequested()
                                 }
                             }
                         }

@@ -45,16 +45,8 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
     };
 }
 
-void MessageModel::addMessage(const QString &role,
-                              const QString &content)
+void MessageModel::addMessage(Message msg)
 {
-    Message msg;
-
-    msg.role = role;
-    msg.content = content;
-    msg.html = markdownToHtml(content);
-    msg.streaming = false;
-
     beginInsertRows(QModelIndex(),
                     m_messages.size(),
                     m_messages.size());
@@ -70,7 +62,7 @@ void MessageModel::clear() {
     endResetModel();
 }
 
-QList<Message> MessageModel::messages() const {
+const QList<Message> &MessageModel::messages() const {
     return m_messages;
 }
 

@@ -7,10 +7,16 @@ set(SRC_FILES
         database/ChatRepository.cpp
         database/DatabaseManager.cpp
         database/MessageRepository.cpp
+        database/ProviderRepository.cpp
+        database/ModelRepository.cpp
 
-        ui/viewModels/ModelSelectorViewModel.cpp
+        ui/viewModels/ModelSelector.cpp
         ui/viewModels/ChatViewModel.cpp
         ui/viewModels/MessageModel.cpp
+        ui/viewModels/ChatListModel.cpp
+        ui/viewModels/ProviderModel.cpp
+        ui/viewModels/ModelsModel.cpp
+
         ui/qml/QmlModule.cpp
 
         core/Markdown.cpp
@@ -22,15 +28,22 @@ set(INCLUDE
         ../include/database/ChatRepository.h
         ../include/database/DatabaseManager.h
         ../include/database/MessageRepository.h
+        ../include/database/ProviderRepository.h
+        ../include/database/ModelRepository.h
 
-        ../include/ui/viewModels/ModelSelectorViewModel.h
+        ../include/ui/viewModels/ModelSelector.h
         ../include/ui/viewModels/ChatViewModel.h
         ../include/ui/viewModels/MessageModel.h
+        ../include/ui/viewModels/ChatListModel.h
+        ../include/ui/viewModels/ProviderModel.h
+        ../include/ui/viewModels/ModelsModel.h
+
         ../include/ui/qml/QmlModule.h
 
         ../include/core/Markdown.h
 )
 add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE}
+
 )
 target_include_directories(chatgptlib PUBLIC
         ${CMAKE_SOURCE_DIR}/include

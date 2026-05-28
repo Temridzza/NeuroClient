@@ -5,6 +5,7 @@ import QtQuick.Effects
 
 import "../theme"
 import ChatGPT 1.0
+import NeuroClient 1.0
 
 Rectangle {
     id: sidebar
@@ -16,6 +17,8 @@ Rectangle {
     Behavior on width { NumberAnimation { duration: 200 } }
     visible: root.sidebarOpened
     layer.enabled: true
+
+    property var chatModel
 
     layer.effect: MultiEffect {
         shadowEnabled: true
@@ -61,7 +64,10 @@ Rectangle {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
 
-                onClicked: console.log("new chat")
+                onClicked: {
+                    console.log("new chat")
+                    ChatModel.createChat("Новый чат")
+                }
             }
 
             Row {
@@ -70,14 +76,14 @@ Rectangle {
 
                 Text {
                     text: "+"
-                    color: "white"
+                    color: Theme.textColor
                     font.pixelSize: 20
                     font.bold: true
                 }
 
                 Text {
                     text: "Новый чат"
-                    color: "white"
+                    color: Theme.textColor
                     font.pixelSize: 15
                     font.bold: true
                 }
@@ -120,128 +126,56 @@ Rectangle {
         }
 
         // CHAT LIST
-        ScrollView {
+        ListView {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
 
-            Column {
-                width: sidebar.width - 28
-                spacing: 18
+            model: ChatModel
 
-                // PROJECTS
-                Column {
-                    width: parent.width
-                    spacing: 8
+            delegate: Rectangle {
+                width: ListView.view.width
+                height: 44
+                radius: 12
 
-                    Text {
-                        text: "ПРОЕКТЫ"
-                        color: Theme.secondaryText
-                        font.pixelSize: 11
-                        font.bold: true
-                    }
+                property string chatTitle: title
+                property string chatId: id
 
-                    Repeater {
-                        model: ["NeuroClient", "AI Assistant", "QML UI"]
+                color: mouse.containsMouse
+                       ? Theme.hoverColor
+                       : "transparent"
 
-                        delegate: Rectangle {
-                            width: parent.width
-                            height: 44
-                            radius: 12
+                MouseArea {
+                    id: mouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
 
-                            color: mouse.containsMouse
-                                   ? Theme.hoverColor
-                                   : "transparent"
-
-                            MouseArea {
-                                id: mouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                            }
-
-                            Row {
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: parent.left
-                                anchors.leftMargin: 12
-                                spacing: 10
-
-                                Rectangle {
-                                    width: 10
-                                    height: 10
-                                    radius: 5
-                                    color: Theme.accentColor
-                                }
-
-                                Text {
-                                    text: modelData
-                                    color: Theme.textColor
-                                    font.pixelSize: 14
-                                }
-                            }
-                        }
+                    onClicked: {
+                        console.log("open chat:", chatId, chatTitle)
+                        ChatModel.openChat(chatId)
                     }
                 }
 
-                // RECENT
-                Column {
-                    width: parent.width
-                    spacing: 8
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    anchors.leftMargin: 12
+                    spacing: 10
 
-                    Text {
-                        text: "НЕДАВНЕЕ"
-                        color: Theme.secondaryText
-                        font.pixelSize: 11
-                        font.bold: true
+                    Rectangle {
+                        width: 8
+                        height: 8
+                        radius: 4
+                        color: Theme.accentColor
                     }
 
-                    Repeater {
-                        model: [
-                            "Квантовая физика",
-                            "Linux команды",
-                            "Помощь с кодом",
-                            "OpenAI API",
-                            "Qt Quick Effects",
-                            "Wayland clipboard"
-                        ]
-
-                        delegate: Rectangle {
-                            width: parent.width
-                            height: 44
-                            radius: 12
-
-                            color: mouse.containsMouse
-                                   ? Theme.hoverColor
-                                   : "transparent"
-
-                            MouseArea {
-                                id: mouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                            }
-
-                            Row {
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: parent.left
-                                anchors.leftMargin: 12
-                                spacing: 10
-
-                                Text {
-                                    text: "○"
-                                    color: Theme.secondaryText
-                                    font.pixelSize: 10
-                                }
-
-                                Text {
-                                    text: modelData
-                                    color: Theme.textColor
-                                    font.pixelSize: 14
-                                    elide: Text.ElideRight
-                                    width: 220
-                                }
-                            }
-                        }
+                    Text {
+                        text: chatTitle
+                        color: Theme.textColor
+                        font.pixelSize: 14
+                        elide: Text.ElideRight
+                        width: sidebar.width - 40
                     }
                 }
             }
