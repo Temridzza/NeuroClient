@@ -26,11 +26,7 @@ ApplicationWindow {
     property var modelVM: ModelSelector {
         id: modelVM
     }
-
-    property var chatVM: ChatViewModel {
-        id: chatVM
-    }
-
+    property var chatVM: ChatVM
     property var chatModel
 
     Rectangle {

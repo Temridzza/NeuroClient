@@ -3,23 +3,18 @@
 #include "QmlModule.h"
 #include "ModelSelector.h"
 #include "ProviderModel.h"
+#include "ChatViewModel.h"
 
-void registerQmlTypes(ChatListModel* chatModel,
+void registerQmlTypes(ChatListViewModel* chatModel,
                       ProviderModel* providerVM,
-                      ModelsModel* modelsVM
+                      ModelsModel* modelsVM,
+                      ChatViewModel* chatVM
                       ) {
     qmlRegisterType<ModelSelector>(
         "NeuroClient",
         1,
         0,
         "ModelSelector"
-        );
-
-    qmlRegisterType<ChatViewModel>(
-        "NeuroClient",
-        1,
-        0,
-        "ChatViewModel"
         );
     qmlRegisterSingletonInstance(
         "NeuroClient",
@@ -41,5 +36,13 @@ void registerQmlTypes(ChatListModel* chatModel,
         0,
         "ModelsVM",
         modelsVM
+        );
+
+    qmlRegisterSingletonInstance(
+        "NeuroClient",
+        1,
+        0,
+        "ChatVM",
+        chatVM
         );
 }

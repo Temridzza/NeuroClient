@@ -12,8 +12,9 @@
 
 #include "DatabaseManager.h"
 #include "ChatRepository.h"
-#include "ChatListModel.h"
+#include "ChatListViewModel.h"
 #include "ModelsModel.h"
+#include "ChatOrchestrator.h"
 
 void messageHandler(
     QtMsgType type,
@@ -100,13 +101,16 @@ int main(int argc, char *argv[]) {
     auto& db = DatabaseManager::instance().db();
 
     // CHAT
+    auto orchestrator = new ChatOrchestrator();
+    auto chatVM = new ChatViewModel(orchestrator);
+
     auto* chatRepo = new ChatRepository(db);
-    auto* chatModel = new ChatListModel(chatRepo);
+    auto* chatModel = new ChatListViewModel(chatRepo);
     auto* providerVM = new ProviderModel(db);
     auto* modelsVM = new ModelsModel(db);
 
     // REGISTRATION
-    registerQmlTypes(chatModel, providerVM, modelsVM);
+    registerQmlTypes(chatModel, providerVM, modelsVM, chatVM);
 
     // ================================
 

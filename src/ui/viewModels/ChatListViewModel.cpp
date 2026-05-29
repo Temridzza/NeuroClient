@@ -1,18 +1,18 @@
-#include "ChatListModel.h"
+#include "ChatListViewModel.h"
 
-ChatListModel::ChatListModel(ChatRepository* repo, QObject* parent)
+ChatListViewModel::ChatListViewModel(ChatRepository* repo, QObject* parent)
     : QAbstractListModel(parent), m_repo(repo) {
     refresh();
 }
 
-int ChatListModel::rowCount(const QModelIndex& parent) const {
+int ChatListViewModel::rowCount(const QModelIndex& parent) const {
     if (parent.isValid())
         return 0;
 
     return m_chats.size();
 }
 
-QVariant ChatListModel::data(const QModelIndex& index, int role) const {
+QVariant ChatListViewModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid() || index.row() >= m_chats.size())
         return {};
 
@@ -27,20 +27,20 @@ QVariant ChatListModel::data(const QModelIndex& index, int role) const {
     }
 }
 
-QHash<int, QByteArray> ChatListModel::roleNames() const {
+QHash<int, QByteArray> ChatListViewModel::roleNames() const {
     return {
         { IdRole, "id" },
         { TitleRole, "title" }
     };
 }
 
-void ChatListModel::refresh() {
+void ChatListViewModel::refresh() {
     beginResetModel();
     m_chats = m_repo->listChats();
     endResetModel();
 }
 
-QString ChatListModel::createChat(const QString& title) {
+QString ChatListViewModel::createChat(const QString& title) {
     QString id = m_repo->createChat(title);
     if (!id.isEmpty()) {
         refresh();
@@ -48,26 +48,26 @@ QString ChatListModel::createChat(const QString& title) {
     return id;
 }
 
-void ChatListModel::renameChat(const QString& id, const QString& title) {
+void ChatListViewModel::renameChat(const QString& id, const QString& title) {
     if (m_repo->renameChat(id, title)) {
         refresh();
     }
 }
 
-void ChatListModel::deleteChat(const QString& id) {
+void ChatListViewModel::deleteChat(const QString& id) {
     if (m_repo->deleteChat(id)) {
         refresh();
     }
 }
 
-QVariantMap ChatListModel::get(int index) const {
+QVariantMap ChatListViewModel::get(int index) const {
     if (index < 0 || index >= m_chats.size())
         return {};
 
     return m_chats.at(index);
 }
 
-void ChatListModel::openChat(const QString& id)
+void ChatListViewModel::openChat(const QString& id)
 {
     emit chatOpened(id);
 }

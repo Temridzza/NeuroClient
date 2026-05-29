@@ -5,21 +5,7 @@
 #include <QTimer>
 
 #include "Markdown.h"
-
-struct Message {
-    QString id;
-    QString chatId;
-
-    QString role;
-    QString content;
-
-    QString providerId;
-    QString modelId;
-
-    QString parentId;
-
-    bool streaming = false;
-};
+#include "Message.h"
 
 class MessageModel : public QAbstractListModel {
     Q_OBJECT

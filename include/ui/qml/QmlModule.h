@@ -2,18 +2,21 @@
 #define QMLMODULE_H
 
 #include "ChatViewModel.h"
-#include "ChatListModel.h"
+#include "ChatListViewModel.h"
 #include "ProviderModel.h"
 #include "ModelsModel.h"
+#include "ChatOrchestrator.h"
 
-class ChatListModel;
+class ChatListViewModel;
 class ProviderModel;
 class ModelsModel;
+class ChatOrchestrator;
 
 void registerQmlTypes(
-    ChatListModel* chatModel,
+    ChatListViewModel* chatModel,
     ProviderModel* providerVM,
-    ModelsModel* modelsVM
+    ModelsModel* modelsVM,
+    ChatViewModel* chatVM
     );
 
 #endif

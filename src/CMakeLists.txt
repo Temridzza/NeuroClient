@@ -13,13 +13,14 @@ set(SRC_FILES
         ui/viewModels/ModelSelector.cpp
         ui/viewModels/ChatViewModel.cpp
         ui/viewModels/MessageModel.cpp
-        ui/viewModels/ChatListModel.cpp
+        ui/viewModels/ChatListViewModel.cpp
         ui/viewModels/ProviderModel.cpp
         ui/viewModels/ModelsModel.cpp
 
         ui/qml/QmlModule.cpp
 
         core/Markdown.cpp
+        core/ChatOrchestrator.cpp
 )
 set(INCLUDE
         ../include/network/LLMClient.h
@@ -34,17 +35,17 @@ set(INCLUDE
         ../include/ui/viewModels/ModelSelector.h
         ../include/ui/viewModels/ChatViewModel.h
         ../include/ui/viewModels/MessageModel.h
-        ../include/ui/viewModels/ChatListModel.h
+        ../include/ui/viewModels/ChatListViewModel.h
         ../include/ui/viewModels/ProviderModel.h
         ../include/ui/viewModels/ModelsModel.h
 
         ../include/ui/qml/QmlModule.h
 
         ../include/core/Markdown.h
+        ../include/core/Message.h
+        ../include/core/ChatOrchestrator.h
 )
-add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE}
-
-)
+add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE})
 target_include_directories(chatgptlib PUBLIC
         ${CMAKE_SOURCE_DIR}/include
 

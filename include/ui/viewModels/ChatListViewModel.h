@@ -1,5 +1,5 @@
-#ifndef CHATLISTMODEL_H
-#define CHATLISTMODEL_H
+#ifndef ChatListViewModel_H
+#define ChatListViewModel_H
 
 #pragma once
 
@@ -8,7 +8,7 @@
 #include <QVariantMap>
 #include "ChatRepository.h"
 
-class ChatListModel : public QAbstractListModel {
+class ChatListViewModel : public QAbstractListModel {
     Q_OBJECT
 
 public:
@@ -17,7 +17,7 @@ public:
         TitleRole
     };
 
-    explicit ChatListModel(ChatRepository* repo, QObject* parent = nullptr);
+    explicit ChatListViewModel(ChatRepository* repo, QObject* parent = nullptr);
 
     // QAbstractListModel
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -42,4 +42,4 @@ signals:
     void chatOpened(const QString& chatId);
 };
 
-#endif // CHATLISTMODEL_H
+#endif // ChatListViewModel_H
