@@ -21,6 +21,7 @@ set(SRC_FILES
 
         core/Markdown.cpp
         core/ChatOrchestrator.cpp
+        core/ApplicationOrchestrator.cpp
 )
 set(INCLUDE
         ../include/network/LLMClient.h
@@ -44,6 +45,8 @@ set(INCLUDE
         ../include/core/Markdown.h
         ../include/core/Message.h
         ../include/core/ChatOrchestrator.h
+        ../include/core/ApplicationOrchestrator.h
+
 )
 add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE})
 target_include_directories(chatgptlib PUBLIC
