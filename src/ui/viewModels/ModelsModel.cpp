@@ -1,8 +1,10 @@
 #include "ModelsModel.h"
 
-ModelsModel::ModelsModel(QSqlDatabase db, QObject* parent)
+ModelsModel::ModelsModel(ModelRepository *repo, QObject* parent)
     : QObject(parent),
-    m_repo(db) {}
+    m_repo(*repo)
+{
+}
 
 QVariantList ModelsModel::models() const {
     return m_models;

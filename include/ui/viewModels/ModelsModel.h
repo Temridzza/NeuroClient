@@ -16,7 +16,8 @@ class ModelsModel : public QObject {
                        NOTIFY modelsChanged)
 
 public:
-    explicit ModelsModel(QSqlDatabase db, QObject* parent = nullptr);
+    explicit ModelsModel(ModelRepository* repo,
+                         QObject* parent = nullptr);
 
     QVariantList models() const;
 

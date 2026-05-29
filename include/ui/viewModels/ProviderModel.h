@@ -22,7 +22,10 @@ public:
         UpdatedAtRole
     };
 
-    explicit ProviderModel(QSqlDatabase db, QObject* parent = nullptr);
+    explicit ProviderModel(
+        ProviderRepository* repo,
+        QObject* parent = nullptr
+        );
 
     // QAbstractListModel
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;

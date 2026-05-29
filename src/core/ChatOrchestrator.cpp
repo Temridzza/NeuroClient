@@ -3,8 +3,12 @@
 
 #include <QtConcurrent/QtConcurrent>
 
-ChatOrchestrator::ChatOrchestrator(QObject* parent)
-    : QObject(parent)
+ChatOrchestrator::ChatOrchestrator(
+    QSqlDatabase db,
+    QObject* parent
+    )
+    : QObject(parent),
+    m_messageRepo(db)
 {
     rebuildClient();
 

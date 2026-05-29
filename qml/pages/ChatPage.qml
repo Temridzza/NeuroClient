@@ -12,9 +12,7 @@ Rectangle {
     id: root
 
     property bool sidebarOpened: true
-    property var modelVM
     property var chatVM
-    property var chatModel
 
     radius: 24
     color: Theme.chatBgColor
@@ -23,17 +21,17 @@ Rectangle {
     signal requestSettings()
 
     Connections {
-        target: ChatModel
+        target: App.chats
 
         function onChatOpened(chatId) {
             console.log("OPEN CHAT:", chatId)
 
-            root.chatVM.setCurrentChat(chatId)
+            App.chat.setCurrentChat(chatId)
         }
     }
 
     Connections {
-        target: root.chatVM
+        target: App.chat
 
         function onMessagesChanged() {
             chatView.positionViewAtEnd()
@@ -79,11 +77,11 @@ Rectangle {
 
                 ComboBox {
                     Layout.preferredWidth: 180
-                    model: root.modelVM.models
-                    currentIndex: model.indexOf(root.modelVM.currentModel)
+                    model: App.modelSelector.models
+                    currentIndex: model.indexOf(App.modelSelector.currentModel)
 
                     onCurrentTextChanged: {
-                        root.modelVM.currentModel = currentText
+                        App.modelSelector.currentModel = currentText
                     }
                 }
 
@@ -106,7 +104,7 @@ Rectangle {
             spacing: 12
             clip: true
 
-            model: root.chatVM.messages
+            model: App.chat.messages
 
             delegate: Item {
                 width: chatView.width
@@ -152,7 +150,7 @@ Rectangle {
             }
 
             Connections {
-                target: root.chatVM.messages
+                target: App.chat.messages
                 function onRowsInserted() {
                     chatView.positionViewAtEnd()
                 }
@@ -160,7 +158,7 @@ Rectangle {
         }
 
         Text {
-            visible: root.chatVM.loading
+            visible: App.chat.loading
             text: "Assistant is typing..."
             color: Theme.secondaryText
             font.pixelSize: 13
@@ -168,10 +166,10 @@ Rectangle {
 
         ChatInput {
             Layout.fillWidth: true
-            loading: root.chatVM.loading
+            loading: App.chat.loading
 
             onSendRequested: function(text) {
-                root.chatVM.sendMessage(text)
+                App.chat.sendMessage(text)
             }
         }
     }

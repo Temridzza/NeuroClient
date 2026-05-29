@@ -9,14 +9,17 @@
 #include "network/LLMClient.h"
 #include "core/Message.h"
 #include "database/MessageRepository.h"
-#include "ui/viewModels/MessageModel.h"
+#include "MessageModel.h"
 
 class ChatOrchestrator : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ChatOrchestrator(QObject* parent = nullptr);
+    explicit ChatOrchestrator(
+        QSqlDatabase db,
+        QObject* parent = nullptr
+        );
 
     void sendMessage(
         const QString& chatId,

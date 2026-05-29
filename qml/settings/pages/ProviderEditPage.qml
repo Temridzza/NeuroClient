@@ -17,19 +17,17 @@ Item {
     property string providerUrl: ""
     property string providerKey: ""
 
-    property var providerModels: ModelsVM.models
-
     signal backRequested()
 
     Component.onCompleted: {
         loadProvider()
 
-        ModelsVM.loadModelsByProvider(providerId)
+        App.models.loadModelsByProvider(providerId)
     }
 
     function loadProvider() {
         providerData =
-                ProviderVM.getProviderById(providerId)
+                App.providers.getProviderById(providerId)
 
         providerName =
                 providerData.name || ""
@@ -110,7 +108,7 @@ Item {
                     anchors.fill: parent
 
                     onClicked: {
-                        ProviderVM.updateProvider(
+                        App.providers.updateProvider(
                                     providerId,
                                     {
                                         "name": providerName,
@@ -375,13 +373,13 @@ Item {
                                     anchors.fill: parent
 
                                     onClicked: {
-                                        ModelsVM.createModel(
+                                        App.models.createModel(
                                                     providerId,
                                                     "new-model",
                                                     "New Model"
                                                     )
 
-                                        ModelsVM.loadModelsByProvider(
+                                        App.models.loadModelsByProvider(
                                                     providerId
                                                     )
                                     }
@@ -427,7 +425,7 @@ Item {
                     }
 
                     Repeater {
-                        model: root.providerModels
+                        model: root.App.models.models
 
                         delegate: Rectangle {
                             Layout.fillWidth: true
@@ -447,7 +445,7 @@ Item {
                                     checked: item.enabled
 
                                     onToggled: {
-                                        ModelsVM.updateModel(
+                                        App.models.updateModel(
                                                     item.id,
                                                     item.display_name,
                                                     item.api_key_override || "",
@@ -501,9 +499,9 @@ Item {
                                         anchors.fill: parent
 
                                         onClicked: {
-                                            ModelsVM.deleteModel(item.id)
+                                            App.models.deleteModel(item.id)
 
-                                            ModelsVM.loadModelsByProvider(
+                                            App.models.loadModelsByProvider(
                                                         providerId
                                                         )
                                         }
@@ -517,12 +515,12 @@ Item {
                         Layout.fillWidth: true
 
                         height:
-                            providerModels.length === 0
+                            App.models.models.length === 0
                             ? 80
                             : 0
 
                         visible:
-                            providerModels.length === 0
+                            App.models.models.length === 0
 
                         radius: 12
 
@@ -591,7 +589,7 @@ Item {
                                 anchors.fill: parent
 
                                 onClicked: {
-                                    ProviderVM.deleteProvider(
+                                    App.providers.deleteProvider(
                                                 providerId
                                                 )
 

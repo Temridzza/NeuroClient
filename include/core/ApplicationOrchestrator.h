@@ -16,11 +16,11 @@
 class ApplicationOrchestrator : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(ChatViewModel* chat READ chat CONSTANT)
-    Q_PROPERTY(ChatListViewModel* chats READ chats CONSTANT)
+    Q_PROPERTY(ChatViewModel* chat READ chat CONSTANT) //chatVM
+    Q_PROPERTY(ChatListViewModel* chats READ chats CONSTANT) //chatModel
     Q_PROPERTY(ProviderModel* providers READ providers CONSTANT)
     Q_PROPERTY(ModelsModel* models READ models CONSTANT)
-    Q_PROPERTY(ModelSelector* modelSelector READ modelSelector CONSTANT)
+    Q_PROPERTY(ModelSelector* modelSelector READ modelSelector CONSTANT) //modelVM
 
 public:
     explicit ApplicationOrchestrator(QObject* parent = nullptr);
@@ -32,17 +32,21 @@ public:
     ModelSelector* modelSelector();
 
 private:
-    ChatOrchestrator m_orchestrator;
-
-    ChatRepository m_chatRepo;
-
-    ChatViewModel m_chatVM;
-    ChatListViewModel m_chatListVM;
-
-    ProviderModel m_providerVM;
-    ModelsModel m_modelsVM;
+    DatabaseManager m_database;
 
     ModelSelector m_modelSelector;
+
+    std::unique_ptr<ChatRepository> m_chatRepo;
+    std::unique_ptr<ProviderRepository> m_providerRepo;
+    std::unique_ptr<ModelRepository> m_modelRepo;
+
+    std::unique_ptr<ChatOrchestrator> m_orchestrator;
+
+    std::unique_ptr<ChatViewModel> m_chatVM;
+
+    std::unique_ptr<ChatListViewModel> m_chatListVM;
+    std::unique_ptr<ProviderModel> m_providerVM;
+    std::unique_ptr<ModelsModel> m_modelsVM;
 };
 
 #endif // APPLICATIONORCHESTRATOR_H

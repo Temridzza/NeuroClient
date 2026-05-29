@@ -11,7 +11,7 @@
 #include <QtSql/QSqlError>
 #include <QDebug>
 
-#include "database/DatabaseManager.h"
+#include "DatabaseManager.h"
 
 class ChatRepository {
 public:

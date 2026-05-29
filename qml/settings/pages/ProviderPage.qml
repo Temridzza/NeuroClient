@@ -12,7 +12,7 @@ Item {
     signal openProvider(string providerId)
 
     Component.onCompleted: {
-        ProviderVM.loadProviders()
+        App.providers.loadProviders()
     }
 
     ColumnLayout {
@@ -54,7 +54,7 @@ Item {
 
                     onClicked: {
                         const providerId =
-                                ProviderVM.createProvider(
+                                App.providers.createProvider(
                                     "New Provider",
                                     "",
                                     ""
@@ -85,7 +85,7 @@ Item {
             spacing: 10
             clip: true
 
-            model: ProviderVM
+            model: App.providers
 
             delegate: Rectangle {
                 width: ListView.view.width
@@ -220,7 +220,7 @@ Item {
                 height: 140
                 radius: 18
 
-                visible: ProviderVM.rowCount() === 0
+                visible: App.providers.rowCount() === 0
 
                 color: Qt.lighter(Theme.panelColor, 1.03)
 

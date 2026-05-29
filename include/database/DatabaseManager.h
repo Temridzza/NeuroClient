@@ -8,14 +8,14 @@
 
 class DatabaseManager {
 public:
-    static DatabaseManager& instance();
+    DatabaseManager();
 
     bool init(const QString& path = "chat.db");
 
     QSqlDatabase& db();
 
 private:
-    DatabaseManager() = default;
+
 
     bool createSchema();
 

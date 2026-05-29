@@ -15,6 +15,7 @@
 #include "ChatListViewModel.h"
 #include "ModelsModel.h"
 #include "ChatOrchestrator.h"
+#include "ApplicationOrchestrator.h"
 
 void messageHandler(
     QtMsgType type,
@@ -75,11 +76,6 @@ int main(int argc, char *argv[]) {
 
     QGuiApplication app(argc, argv);
 
-    if (!DatabaseManager::instance().init("chat_database.db")) {
-        qFatal("DB init failed");
-        return -1;
-    }
-
     QString lockFilePath =
         QDir::temp().absoluteFilePath("myapp.lock");
 
@@ -98,19 +94,20 @@ int main(int argc, char *argv[]) {
     QQmlApplicationEngine engine;
 
     // DB
-    auto& db = DatabaseManager::instance().db();
+    // auto& db = DatabaseManager::instance().db();
 
     // CHAT
-    auto orchestrator = new ChatOrchestrator();
-    auto chatVM = new ChatViewModel(orchestrator);
+    // auto orchestrator = new ChatOrchestrator();
+    // auto chatVM = new ChatViewModel(orchestrator);
 
-    auto* chatRepo = new ChatRepository(db);
-    auto* chatModel = new ChatListViewModel(chatRepo);
-    auto* providerVM = new ProviderModel(db);
-    auto* modelsVM = new ModelsModel(db);
+    // auto* chatRepo = new ChatRepository(db);
+    // auto* chatModel = new ChatListViewModel(chatRepo);
+    // auto* providerVM = new ProviderModel(db);
+    // auto* modelsVM = new ModelsModel(db);
+    auto* appOrchestrator = new ApplicationOrchestrator();
 
     // REGISTRATION
-    registerQmlTypes(chatModel, providerVM, modelsVM, chatVM);
+    registerQmlTypes(appOrchestrator);
 
     // ================================
 

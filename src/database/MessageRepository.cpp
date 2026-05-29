@@ -8,6 +8,11 @@
 #include <QDateTime>
 #include <QDebug>
 
+MessageRepository::MessageRepository(QSqlDatabase db)
+    : m_db(db)
+{
+}
+
 QString MessageRepository::addMessage(
     const QString& chatId,
     const QString& role,
@@ -26,7 +31,7 @@ QString MessageRepository::addMessage(
             QUuid::WithoutBraces
             );
 
-    QSqlQuery q(DatabaseManager::instance().db());
+    QSqlQuery q(m_db);
 
     q.prepare(R"(
         INSERT INTO messages(
@@ -122,7 +127,7 @@ QList<QVariantMap> MessageRepository::getMessages(
     ) {
     QList<QVariantMap> list;
 
-    QSqlQuery q(DatabaseManager::instance().db());
+    QSqlQuery q(m_db);
 
     q.prepare(R"(
         SELECT

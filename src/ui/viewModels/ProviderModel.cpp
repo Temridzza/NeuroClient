@@ -2,9 +2,13 @@
 
 #include <QDebug>
 
-ProviderModel::ProviderModel(QSqlDatabase db, QObject* parent)
-    : QAbstractListModel(parent),
-    m_repo(db) {}
+ProviderModel::ProviderModel(
+    ProviderRepository* repo,
+    QObject* parent
+    ): QAbstractListModel(parent),
+    m_repo(*repo)
+{
+}
 
 int ProviderModel::rowCount(const QModelIndex& parent) const {
     if (parent.isValid())

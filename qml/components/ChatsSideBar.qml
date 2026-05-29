@@ -18,8 +18,6 @@ Rectangle {
     visible: root.sidebarOpened
     layer.enabled: true
 
-    property var chatModel
-
     layer.effect: MultiEffect {
         shadowEnabled: true
         shadowOpacity: Theme.shadowOpacity
@@ -66,7 +64,7 @@ Rectangle {
 
                 onClicked: {
                     console.log("new chat")
-                    ChatModel.createChat("Новый чат")
+                    App.chats.createChat("Новый чат")
                 }
             }
 
@@ -131,7 +129,7 @@ Rectangle {
             Layout.fillHeight: true
             clip: true
 
-            model: ChatModel
+            model: App.chats
 
             delegate: Rectangle {
                 width: ListView.view.width
@@ -153,7 +151,7 @@ Rectangle {
 
                     onClicked: {
                         console.log("open chat:", chatId, chatTitle)
-                        ChatModel.openChat(chatId)
+                        App.chats.openChat(chatId)
                     }
                 }
 

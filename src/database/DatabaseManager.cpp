@@ -4,10 +4,8 @@
 #include <QSqlQuery>
 #include <QDebug>
 
-DatabaseManager& DatabaseManager::instance() {
-    static DatabaseManager instance;
-    return instance;
-}
+
+DatabaseManager::DatabaseManager() {}
 
 bool DatabaseManager::init(const QString& path) {
     if (QSqlDatabase::contains("main")) {

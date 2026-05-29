@@ -4,7 +4,7 @@
 #pragma once
 
 #include <QObject>
-#include "ui/viewModels/MessageModel.h"
+#include "MessageModel.h"
 
 class ChatOrchestrator;
 
