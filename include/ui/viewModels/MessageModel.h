@@ -42,9 +42,11 @@ public:
 private:
     void scheduleRender();
     void renderLastMessage();
+
 private:
     QList<Message> m_messages;
     QTimer m_renderTimer;
+    QString m_chatId;
 };
 
 #endif // MESSAGEMODEL_H

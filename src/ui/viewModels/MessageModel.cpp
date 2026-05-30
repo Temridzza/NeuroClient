@@ -117,7 +117,7 @@ void MessageModel::renderLastMessage()
 
     const QModelIndex idx = index(m_messages.size() - 1);
 
-    emit dataChanged(idx, idx, {RoleHtml});
+    emit dataChanged(idx, idx, {RoleHtml, RoleHtmlReady});
 }
 
 void MessageModel::finishStreaming()
@@ -132,7 +132,7 @@ void MessageModel::finishStreaming()
     msg.html = markdownToHtml(msg.content);
 
     const QModelIndex idx = index(row);
-    emit dataChanged(idx, idx, {RoleHtml});
+    emit dataChanged(idx, idx, {RoleHtml, RoleHtmlReady});
 }
 
 void MessageModel::ensureRendered(int row)
@@ -149,5 +149,5 @@ void MessageModel::ensureRendered(int row)
     msg.htmlReady = true;
 
     const QModelIndex idx = index(row);
-    emit dataChanged(idx, idx, {RoleHtml});
+    emit dataChanged(idx, idx, {RoleHtml, RoleHtmlReady});
 }
