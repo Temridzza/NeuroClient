@@ -1,15 +1,28 @@
 #include "ChatViewModel.h"
 #include "ChatOrchestrator.h"
 
-ChatViewModel::ChatViewModel(ChatOrchestrator* orchestrator, QObject* parent)
+ChatViewModel::ChatViewModel(ChatOrchestrator* orchestrator,
+    MessageModel* m_messages,
+    QObject* parent
+    )
     : QObject(parent),
+    m_messages(m_messages),
     m_orchestrator(orchestrator)
 {
+    connect(m_orchestrator, &ChatOrchestrator::requestStarted,
+            this, [this](const QString&) {
+                setLoading(true);
+            });
+
+    connect(m_orchestrator, &ChatOrchestrator::requestFinish,
+            this, [this](const QString&) {
+                setLoading(false);
+            });
 }
 
 MessageModel* ChatViewModel::messages()
 {
-    return &m_messages;
+    return m_messages;
 }
 
 bool ChatViewModel::loading() const
@@ -31,12 +44,10 @@ void ChatViewModel::sendMessage(const QString& text)
     if (!m_orchestrator)
         return;
 
-    setLoading(true);
-
     m_orchestrator->sendMessage(
         m_currentChatId,
         text,
-        &m_messages,
+        m_messages,
         this
         );
 }
@@ -48,15 +59,11 @@ void ChatViewModel::loadChat(const QString& chatId)
 
     m_currentChatId = chatId;
 
-    setLoading(true);
-
     m_orchestrator->loadChat(
         chatId,
-        &m_messages,
+        m_messages,
         this
         );
-
-    setLoading(false);
 }
 
 void ChatViewModel::setCurrentChat(const QString& chatId)

@@ -14,7 +14,8 @@ public:
     enum Roles {
         RoleRole = Qt::UserRole + 1,
         RoleContent,
-        RoleHtml
+        RoleHtml,
+        RoleHtmlReady
     };
 
     explicit MessageModel(QObject *parent = nullptr);
@@ -27,6 +28,7 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     void addMessage(Message msg);
+    Q_INVOKABLE void ensureRendered(int row);
 
     // 🔥 STREAMING API
     void startStreaming(const QString &role);

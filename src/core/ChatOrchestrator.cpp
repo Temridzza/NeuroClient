@@ -1,28 +1,38 @@
 #include "ChatOrchestrator.h"
-#include "config/AppSettings.h"
-
 #include <QtConcurrent/QtConcurrent>
 
 ChatOrchestrator::ChatOrchestrator(
     QSqlDatabase db,
-    SettingsService* settings,
+    LLMClient *client,
     QObject* parent
     )
     : QObject(parent),
     m_messageRepo(db),
-    m_settings(settings)
+    m_client(client)
 {
-    rebuildClient();
+}
 
-    connect(
-        m_settings,
-        &SettingsService::currentModelIdChanged,
-        this,
-        [this](const QString&)
-        {
-            rebuildClient();
-        }
-        );
+void ChatOrchestrator::loadChat(
+    const QString& chatId,
+    MessageModel* model,
+    QObject* uiContext
+    )
+{
+    Q_UNUSED(uiContext)
+
+    emit chatLoadingStarted(chatId);
+
+    model->clear();
+
+    const QList<Message> messages =
+        m_messageRepo.getMessages(chatId);
+
+    for (const auto& msg : messages)
+    {
+        model->addMessage(msg);
+    }
+
+    emit chatLoadingFinished(chatId);
 }
 
 void ChatOrchestrator::sendMessage(
@@ -32,120 +42,116 @@ void ChatOrchestrator::sendMessage(
     QObject* uiContext
     )
 {
-    if (text.trimmed().isEmpty())
+    Q_UNUSED(uiContext)
+
+    if (!model || !m_client)
         return;
 
+    const QString trimmed = text.trimmed();
+    if (trimmed.isEmpty())
+        return;
+    emit requestStarted(chatId);
+
+    // 1) Берём tip ветки из БД, до вставки новых сообщений
+    const QString branchParentId = m_messageRepo.lastMessageId(chatId);
+
+    // 2) Сохраняем user в БД
     Message userMsg;
     userMsg.chatId = chatId;
     userMsg.role = "user";
-    userMsg.content = text;
+    userMsg.content = trimmed;
+    userMsg.parentId = branchParentId;
 
+    const QString userId = m_messageRepo.addMessage(userMsg);
+    if (userId.isEmpty()) {
+        qWarning() << "Failed to insert user message";
+        return;
+    }
+
+    userMsg.id = userId;
     model->addMessage(userMsg);
 
-    QList<Message> history = model->messages();
+    // 3) История для LLM — из БД, уже с user, но ещё без assistant placeholder
+    const QList<Message> history = m_messageRepo.getMessages(chatId);
 
-    // assistant placeholder
+    // 4) Создаём assistant placeholder и сразу сохраняем его в БД
     Message assistantMsg;
     assistantMsg.chatId = chatId;
     assistantMsg.role = "assistant";
+    assistantMsg.parentId = userId;
+    assistantMsg.content.clear();
     assistantMsg.streaming = true;
 
+    const QString assistantId = m_messageRepo.addMessage(assistantMsg);
+    if (assistantId.isEmpty()) {
+        qWarning() << "Failed to insert assistant placeholder";
+        return;
+    }
+
+    assistantMsg.id = assistantId;
     model->addMessage(assistantMsg);
 
     auto buffer = std::make_shared<QString>();
 
-    m_client->onStreamChunk =
-        [model, buffer](const QString& delta)
+    m_client->onStreamChunk = [model, buffer](const QString& delta)
     {
-        QMetaObject::invokeMethod(model, [model, buffer, delta]()
-                                  {
-                                      *buffer += delta;
-                                      model->appendStream(delta);
-                                  }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(
+            model,
+            [model, buffer, delta]()
+            {
+                *buffer += delta;
+                model->appendStream(delta);
+            },
+            Qt::QueuedConnection
+            );
     };
 
-    m_client->onFinished =
-        [this, model, buffer, assistantMsg]()
+    m_client->onFinished = [this, model, buffer, assistantId, chatId]()
     {
-        QMetaObject::invokeMethod(model, [this, model, buffer, assistantMsg]()
-                                  {
-                                      model->finishStreaming();
+        QMetaObject::invokeMethod(
+            model,
+            [this, model, buffer, assistantId, chatId]()
+            {
+                model->finishStreaming();
 
-                                      if (!buffer->isEmpty())
-                                      {
-                                          Message finalMsg = assistantMsg;
-                                          finalMsg.content = *buffer;
-                                          finalMsg.streaming = false;
+                if (!buffer->isEmpty()) {
+                    m_messageRepo.updateMessageContent(assistantId, *buffer);
+                }
 
-                                          m_messageRepo.addMessage(
-                                              finalMsg.chatId,
-                                              finalMsg.role,
-                                              finalMsg.content,
-                                              finalMsg.providerId,
-                                              finalMsg.modelId,
-                                              finalMsg.providerId,
-                                              finalMsg.modelId
-                                              );
-                                      }
-                                  }, Qt::QueuedConnection);
+                emit requestFinish(chatId);
+            },
+            Qt::QueuedConnection
+            );
     };
 
-    m_client->onError =
-        [model](const QString& err)
+    m_client->onError = [this, model, assistantId, chatId](const QString& err)
     {
-        QMetaObject::invokeMethod(model, [model, err]()
-                                  {
-                                      model->finishStreaming();
+        QMetaObject::invokeMethod(
+            model,
+            [this, model, assistantId, chatId, err]()
+            {
+                model->finishStreaming();
 
-                                      Message sysMsg;
-                                      sysMsg.role = "system";
-                                      sysMsg.content = err;
+                // Можно оставить assistant-row как failed response
+                m_messageRepo.updateMessageContent(
+                    assistantId,
+                    QString("[error] %1").arg(err)
+                    );
 
-                                      model->addMessage(sysMsg);
-                                  }, Qt::QueuedConnection);
+                Message sysMsg;
+                sysMsg.chatId = chatId;
+                sysMsg.role = "system";
+                sysMsg.content = err;
+                model->addMessage(sysMsg);
+
+                emit requestFinish(chatId);
+            },
+            Qt::QueuedConnection
+            );
     };
 
     QtConcurrent::run([this, history]()
                       {
                           m_client->ask(history);
                       });
-}
-
-void ChatOrchestrator::loadChat(
-    const QString& chatId,
-    MessageModel* model,
-    QObject* uiContext
-    )
-{
-    model->clear();
-
-    const auto rows = m_messageRepo.getMessages(chatId);
-
-    for (const auto& row : rows)
-    {
-        Message msg;
-
-        msg.chatId = row.value("chat_id").toString();
-        msg.role = row.value("role").toString();
-        msg.content = row.value("content").toString();
-
-        msg.providerId = row.value("provider_id").toString();
-        msg.modelId = row.value("model_id").toString();
-        msg.parentId = row.value("parent_id").toString();
-
-        msg.streaming = false;
-
-        model->addMessage(msg);
-    }
-}
-
-void ChatOrchestrator::rebuildClient()
-{
-    // TODO: реализовать загрузку apikey из бд
-    LLMConfig config{
-        .apiKey = "fixme",
-        .model = m_settings->currentModelId()
-    };
-
-    m_client = std::make_unique<LLMClient>(config);
 }

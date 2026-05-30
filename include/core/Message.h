@@ -16,6 +16,8 @@ struct Message {
     QString parentId;
     QString html;
 
+    bool htmlReady;
+
     bool streaming = false;
 };
 

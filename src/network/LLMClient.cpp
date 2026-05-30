@@ -224,3 +224,11 @@ void LLMClient::ask(
     if (onFinished)
         onFinished();
 }
+
+void LLMClient::setApiKey(QString& apiKey) {
+    m_apiKey = apiKey;
+}
+
+void LLMClient::setModel(QString& model) {
+    m_model = model;
+}

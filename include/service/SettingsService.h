@@ -23,9 +23,14 @@ public:
     Result setCurrentProviderId(const QString& id);
     Result setCurrentModelId(const QString& id);
 
+    QString currentChatId() const;
+    Result setCurrentChatId(const QString& id);
+
 signals:
     void currentProviderIdChanged(const QString& id);
     void currentModelIdChanged(const QString& id);
+
+    void currentChatIdChanged(const QString& id);
 
 private:
     AppSettings* m_settings {};

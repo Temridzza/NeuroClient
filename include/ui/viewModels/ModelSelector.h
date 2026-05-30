@@ -2,15 +2,13 @@
 
 #include <QObject>
 #include <QStringList>
-#include "SettingsService.h"
-#include "QDebug"
-#include "QJsonArray"
-#include "QString"
+
+#include "ModelService.h"
 
 class ModelSelector : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(QStringList models
+    Q_PROPERTY(QVariantList models
                    READ models
                        NOTIFY modelsChanged)
 
@@ -18,26 +16,33 @@ class ModelSelector : public QObject {
                    READ currentModel
                        WRITE setCurrentModel
                            NOTIFY currentModelChanged)
+    Q_PROPERTY(int currentModelIndex
+                   READ currentModelIndex
+                       NOTIFY currentModelChanged)
 
 public:
     explicit ModelSelector(
-        SettingsService* m_settings,
         QObject *parent = nullptr
         );
 
-    QStringList models() const;
-
+    QVariantList models();
     QString currentModel() const;
+
     void setCurrentModel(const QString &model);
+    void setState(const QVariantList& models,
+                  const QString& current);
+    int currentModelIndex() const;
+
 
 signals:
     void modelsChanged();
     void currentModelChanged();
 
 private:
-    QStringList m_models;
+    QVariantList m_models;
     QString m_currentModel;
-    SettingsService* m_settings;
 
-    void loadModels();
+    ModelService* m_service;
+
+    QString m_providerId;
 };

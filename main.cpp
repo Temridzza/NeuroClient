@@ -105,6 +105,7 @@ int main(int argc, char *argv[]) {
     // auto* providerVM = new ProviderModel(db);
     // auto* modelsVM = new ModelsModel(db);
     auto* appOrchestrator = new ApplicationOrchestrator();
+    appOrchestrator->init();
 
     // REGISTRATION
     registerQmlTypes(appOrchestrator);

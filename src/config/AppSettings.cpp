@@ -30,6 +30,10 @@ void AppSettings::initDefaults()
             );
     }
 
+    if (!m_settings.contains("session/currentChatId")) {
+        m_settings.setValue("session/currentChatId", "");
+    }
+
     m_settings.sync();
 }
 
@@ -82,5 +86,20 @@ void AppSettings::setCurrentModelId(const QString &id)
         id
         );
 
+    m_settings.sync();
+}
+
+QString AppSettings::currentChatId() const
+{
+    return m_settings.value("session/currentChatId", "").toString();
+}
+
+void AppSettings::setCurrentChatId(const QString &id)
+{
+    if (currentChatId() == id) {
+        return;
+    }
+
+    m_settings.setValue("session/currentChatId", id);
     m_settings.sync();
 }

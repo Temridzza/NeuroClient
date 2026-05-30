@@ -68,3 +68,23 @@ Result SettingsService::setCurrentModelId(const QString& id)
         {}
     };
 }
+
+QString SettingsService::currentChatId() const
+{
+    return m_settings->currentChatId();
+}
+
+Result SettingsService::setCurrentChatId(const QString& id)
+{
+    if (id.isEmpty()) {
+        qWarning() << "SettingsService:" << "Chat id is empty";
+
+        return { false, {}, "Chat id is empty" };
+    }
+
+    m_settings->setCurrentChatId(id);
+
+    emit currentChatIdChanged(id);
+
+    return { true, {}, {} };
+}

@@ -8,27 +8,18 @@
 #include <QVariantMap>
 #include <QSqlDatabase>
 
+#include "Message.h"
+
 class MessageRepository {
 public:
     explicit MessageRepository(QSqlDatabase db);
 
-    QString addMessage(
-        const QString& chatId,
-        const QString& role,
-        const QString& content,
+    QString addMessage(Message& message);
 
-        const QString& providerId,
-        const QString& modelId,
+    QList<Message> getMessages(const QString& chatId);
+    QString lastMessageId(const QString& chatId);
+    bool updateMessageContent(const QString& id, const QString& content);
 
-        const QString& providerSnapshot,
-        const QString& modelSnapshot,
-
-        const QString& parentId = ""
-        );
-
-    QList<QVariantMap> getMessages(
-        const QString& chatId
-        );
 private:
     QSqlDatabase m_db;
 };

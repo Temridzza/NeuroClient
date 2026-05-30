@@ -11,7 +11,6 @@
 #include "Message.h"
 #include "MessageRepository.h"
 #include "MessageModel.h"
-#include "SettingsService.h"
 
 class ChatOrchestrator : public QObject
 {
@@ -20,7 +19,7 @@ class ChatOrchestrator : public QObject
 public:
     explicit ChatOrchestrator(
         QSqlDatabase db,
-        SettingsService* settings,
+        LLMClient* client,
         QObject* parent = nullptr
         );
 
@@ -36,14 +35,19 @@ public:
         MessageModel* model,
         QObject* uiContext
         );
+signals:
+    void chatLoadingStarted(const QString& chatId);
+    void chatLoadingFinished(const QString& chatId);
+
+    void requestStarted(const QString& chatId);
+    void requestFinish(const QString& chatId);
 
 private:
     void rebuildClient();
 
 private:
-    std::unique_ptr<LLMClient> m_client;
+    LLMClient* m_client;
     MessageRepository m_messageRepo;
-    SettingsService* m_settings;
 
     QString m_currentChatId;
 };

@@ -16,6 +16,9 @@ public:
     QString currentModelId() const;
     void setCurrentModelId(const QString& id);
 
+    QString currentChatId() const;
+    void setCurrentChatId(const QString& id);
+
 private:
     AppSettings(const AppSettings&) = delete;
     AppSettings& operator=(const AppSettings&) = delete;

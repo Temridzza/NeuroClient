@@ -1,48 +1,61 @@
 #include "ModelSelector.h"
 
 ModelSelector::ModelSelector(
-    SettingsService *m_settings,
     QObject *parent
-)
-    : QObject(parent),
-    m_settings(m_settings)
+    )
+    : QObject(parent)
 {
-    loadModels();
-
-    m_currentModel = m_settings->currentModelId();
 }
 
-QStringList ModelSelector::models() const {
+QVariantList ModelSelector::models()
+{
     return m_models;
 }
 
-QString ModelSelector::currentModel() const {
+QString ModelSelector::currentModel() const
+{
     return m_currentModel;
 }
 
-void ModelSelector::setCurrentModel(const QString &model) {
+void ModelSelector::setCurrentModel(const QString &model)
+{
     if (m_currentModel == model)
         return;
 
     m_currentModel = model;
 
-    m_settings->setCurrentModelId(model);
+    emit currentModelChanged();
+}
+
+void ModelSelector::setState(const QVariantList& models, const QString& current)
+{
+    m_models = models;
+    emit modelsChanged();
+
+    bool found = false;
+    for (const auto& m : m_models) {
+        if (m.toMap()["id"].toString() == current) {
+            found = true;
+            break;
+        }
+    }
+
+    m_currentModel = found && !current.isEmpty()
+                         ? current
+                         : (m_models.isEmpty()
+                                ? QString()
+                                : m_models.first().toMap()["id"].toString());
 
     emit currentModelChanged();
 }
 
-void ModelSelector::loadModels() {
-    // Result result = AppSettings::instance().selectedModelId();
+int ModelSelector::currentModelIndex() const
+{
+    for (int i = 0; i < m_models.size(); ++i) {
+        const auto map = m_models[i].toMap();
+        if (map.value("id").toString() == m_currentModel)
+            return i;
+    }
 
-    // if (!result.success)
-    //     return;
-
-    // QStringList list;
-
-    // for (const auto &v : result.data.toJsonArray())
-    //     list << v.toString();
-
-    // m_models = list;
-
-    emit modelsChanged();
+    return 0;
 }

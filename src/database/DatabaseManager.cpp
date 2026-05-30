@@ -93,7 +93,7 @@ bool DatabaseManager::createSchema() {
             chat_id TEXT NOT NULL,
             parent_id TEXT,
             role TEXT NOT NULL,
-            content TEXT NOT NULL,
+            content TEXT,
             provider_id TEXT,
             model_id TEXT,
             provider_name_snapshot TEXT,
@@ -159,7 +159,7 @@ bool DatabaseManager::seed() {
         insertProvider.addBindValue(providerId);
         insertProvider.addBindValue("openrouter");
         insertProvider.addBindValue("https://openrouter.ai/api/v1/chat/completions");
-        insertProvider.addBindValue("paste");
+        insertProvider.addBindValue("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");
         insertProvider.addBindValue(now);
         insertProvider.addBindValue(now);
 
@@ -211,6 +211,85 @@ bool DatabaseManager::seed() {
         "openrouter-nemotron-3-nano",
         "nvidia/nemotron-3-nano-30b-a3b:free",
         "Nemotron 3 Nano 30B (Free)"
+        );
+    // ===============================
+
+    // второй провайдер для тестов
+    QSqlQuery testProvider(m_db);
+    testProvider.prepare("SELECT id FROM providers WHERE name = ?");
+    testProvider.addBindValue("test-provider");
+
+    QString testProviderId = "test-provider";
+
+    if (testProvider.exec() && !testProvider.next()) {
+        QSqlQuery insertProvider(m_db);
+
+        insertProvider.prepare(R"(
+        INSERT INTO providers (
+            id, name, base_url, api_key, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+    )");
+
+        const qint64 now = QDateTime::currentSecsSinceEpoch();
+
+        insertProvider.addBindValue(testProviderId);
+        insertProvider.addBindValue("test-provider");
+        insertProvider.addBindValue("https://example.com");
+        insertProvider.addBindValue("paste");
+        insertProvider.addBindValue(now);
+        insertProvider.addBindValue(now);
+
+        insertProvider.exec();
+    }
+    auto insertModelForProvider = [&](const QString& providerId,
+                                      const QString& id,
+                                      const QString& modelKey,
+                                      const QString& displayName) {
+
+        QSqlQuery m(m_db);
+
+        m.prepare(R"(
+        INSERT OR IGNORE INTO models (
+            id,
+            provider_id,
+            model_key,
+            display_name,
+            created_at,
+            updated_at,
+            enabled
+        ) VALUES (?, ?, ?, ?, ?, ?, 1)
+    )");
+
+        const qint64 now = QDateTime::currentSecsSinceEpoch();
+
+        m.addBindValue(id);
+        m.addBindValue(providerId);
+        m.addBindValue(modelKey);
+        m.addBindValue(displayName);
+        m.addBindValue(now);
+        m.addBindValue(now);
+
+        m.exec();
+    };
+    insertModelForProvider(
+        testProviderId,
+        "test-model-1",
+        "test/model-1",
+        "Test Model 1"
+        );
+
+    insertModelForProvider(
+        testProviderId,
+        "test-model-2",
+        "test/model-2",
+        "Test Model 2"
+        );
+
+    insertModelForProvider(
+        testProviderId,
+        "test-model-3",
+        "test/model-3",
+        "Test Model 3"
         );
 
     return true;

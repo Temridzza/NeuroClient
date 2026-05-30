@@ -15,8 +15,7 @@
 struct LLMConfig {
     QString apiKey;
     QString model;
-    QString baseUrl =
-        "https://openrouter.ai/api/v1/chat/completions";
+    QString baseUrl;
 };
 
 class LLMClient {
@@ -41,6 +40,9 @@ public:
 
     std::function<void(const QString&)>
         onError;
+
+    void setApiKey(QString &apiKey);
+    void setModel(QString &model);
 
 private:
     QString m_apiKey;

@@ -31,6 +31,8 @@ QVariant MessageModel::data(const QModelIndex &index,
 
     case RoleHtml:
         return message.html;
+    case RoleHtmlReady:
+        return message.htmlReady;
 
     default:
         return {};
@@ -41,7 +43,8 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
     return {
         {RoleRole, "role"},
         {RoleContent, "message"},
-        {RoleHtml, "html"}
+        {RoleHtml, "html"},
+        {RoleHtmlReady, "htmlReady"}
     };
 }
 
@@ -132,3 +135,19 @@ void MessageModel::finishStreaming()
     emit dataChanged(idx, idx, {RoleHtml});
 }
 
+void MessageModel::ensureRendered(int row)
+{
+    if (row < 0 || row >= m_messages.size())
+        return;
+
+    auto &msg = m_messages[row];
+
+    if (msg.htmlReady)
+        return;
+
+    msg.html = markdownToHtml(msg.content);
+    msg.htmlReady = true;
+
+    const QModelIndex idx = index(row);
+    emit dataChanged(idx, idx, {RoleHtml});
+}

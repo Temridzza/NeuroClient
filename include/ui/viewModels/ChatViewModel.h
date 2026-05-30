@@ -11,11 +11,13 @@ class ChatOrchestrator;
 class ChatViewModel : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(MessageModel* messages READ messages NOTIFY messagesChanged)
     Q_PROPERTY(bool loading READ loading WRITE setLoading NOTIFY loadingChanged)
 
 public:
-    explicit ChatViewModel(ChatOrchestrator* orchestrator, QObject* parent = nullptr);
+    explicit ChatViewModel(ChatOrchestrator* orchestrator,
+                           MessageModel* m_messages,
+                           QObject* parent = nullptr
+                           );
 
     MessageModel* messages();
 
@@ -31,7 +33,7 @@ signals:
     void loadingChanged();
 
 private:
-    MessageModel m_messages;
+    MessageModel* m_messages;
     bool m_loading = false;
     QString m_currentChatId;
 

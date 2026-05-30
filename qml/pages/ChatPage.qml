@@ -24,8 +24,6 @@ Rectangle {
         target: App.chats
 
         function onChatOpened(chatId) {
-            console.log("OPEN CHAT:", chatId)
-
             App.chat.setCurrentChat(chatId)
         }
     }
@@ -35,6 +33,26 @@ Rectangle {
 
         function onMessagesChanged() {
             chatView.positionViewAtEnd()
+        }
+    }
+
+    Connections {
+        target: App.chatOrchestrator
+
+        function onChatLoadingFinished(chatId) {
+            chatView.positionViewAtEnd()
+            chatView.ensureVisible()
+
+            // форсируем ререндер видимой области
+            var first = chatView.indexAt(10, chatView.contentY)
+            var last = chatView.indexAt(10, chatView.contentY + chatView.height)
+
+            if (first < 0) first = 0
+            if (last < 0) last = chatView.count - 1
+
+            for (var i = first; i <= last; i++) {
+                App.messages.ensureRendered(i)
+            }
         }
     }
 
@@ -77,11 +95,29 @@ Rectangle {
 
                 ComboBox {
                     Layout.preferredWidth: 180
-                    model: App.modelSelector.models
-                    currentIndex: model.indexOf(App.modelSelector.currentModel)
 
-                    onCurrentTextChanged: {
-                        App.modelSelector.currentModel = currentText
+                    model: App.providerSelector.providers
+                    textRole: "display_name"
+
+                    currentIndex: App.providerSelector.currentProviderIndex
+
+                    onActivated: function(index) {
+                        App.providerSelector.currentProvider =
+                            model[index].id
+                    }
+                }
+
+                ComboBox {
+                    Layout.preferredWidth: 180
+
+                    model: App.modelSelector.models
+                    textRole: "display_name"
+
+                    currentIndex: App.modelSelector.currentModelIndex
+
+                    onActivated: function(index) {
+                        App.modelSelector.currentModel =
+                            model[index].id
                     }
                 }
 
@@ -104,11 +140,54 @@ Rectangle {
             spacing: 12
             clip: true
 
-            model: App.chat.messages
+            model: App.messages
+
+            onContentYChanged: ensureVisible()
+            onHeightChanged: ensureVisible()
+            onCountChanged: ensureVisible()
+
+            function ensureVisible() {
+                var first = indexAt(0, contentY)
+                var last = indexAt(0, contentY + height)
+
+                if (first < 0) first = 0
+                if (last < 0) last = count - 1
+
+                for (var i = first; i <= last; i++) {
+                    App.messages.ensureRendered(i)
+                }
+            }
+
+            Component.onCompleted: ensureVisible()
 
             delegate: Item {
+                id: rootItem
                 width: chatView.width
                 height: bubble.height + 8
+
+                property bool isVisibleInView: false
+
+                Component.onCompleted: checkVisibility()
+                onYChanged: checkVisibility()
+
+                function checkVisibility() {
+                    var first = chatView.indexAt(10, chatView.contentY)
+                    var last = chatView.indexAt(10, chatView.contentY + chatView.height)
+
+                    if (first < 0) first = 0
+                    if (last < 0) last = chatView.count - 1
+
+                    for (var i = first; i <= last; i++) {
+                        App.messages.ensureRendered(i)
+                    }
+                }
+
+                Connections {
+                    target: chatView
+                    function onContentYChanged() {
+                        rootItem.checkVisibility()
+                    }
+                }
 
                 Rectangle {
                     id: bubble
@@ -134,8 +213,8 @@ Rectangle {
                         anchors.fill: parent
                         anchors.margins: 14
 
-                        text: html.length > 0 ? html : message
-                        textFormat: html.length > 0 ? Text.RichText : Text.PlainText
+                        text: htmlReady ? html : message
+                        textFormat: htmlReady ? Text.RichText : Text.PlainText
 
                         color: Theme.textColor
                         wrapMode: Text.Wrap
@@ -150,7 +229,7 @@ Rectangle {
             }
 
             Connections {
-                target: App.chat.messages
+                target: App.messages
                 function onRowsInserted() {
                     chatView.positionViewAtEnd()
                 }

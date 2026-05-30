@@ -15,6 +15,8 @@ set(SRC_FILES
     # =========================
 
     service/SettingsService.cpp
+    service/ModelService.cpp
+    service/ProviderService.cpp
 
     # =========================
     # Network
@@ -51,6 +53,7 @@ set(SRC_FILES
     ui/viewModels/ProviderModel.cpp
     ui/viewModels/ModelsModel.cpp
     ui/viewModels/ModelSelector.cpp
+    ui/viewModels/ProviderSelector.cpp
 
     # =========================
     # QML
@@ -77,6 +80,8 @@ set(INCLUDE
     # =========================
 
     ../include/service/SettingsService.h
+    ../include/service/ModelService.h
+    ../include/service/ProviderService.h
 
     # =========================
     # Network
@@ -113,6 +118,7 @@ set(INCLUDE
     ../include/ui/viewModels/ProviderModel.h
     ../include/ui/viewModels/ModelsModel.h
     ../include/ui/viewModels/ModelSelector.h
+    ../include/ui/viewModels/ProviderSelector.h
 
     # =========================
     # QML
@@ -121,9 +127,7 @@ set(INCLUDE
     ../include/ui/qml/QmlModule.h
 )
 
-add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE}
-
-)
+add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE})
 target_include_directories(chatgptlib PUBLIC
         ${CMAKE_SOURCE_DIR}/include
 
