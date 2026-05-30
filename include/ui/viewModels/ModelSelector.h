@@ -2,6 +2,10 @@
 
 #include <QObject>
 #include <QStringList>
+#include "SettingsService.h"
+#include "QDebug"
+#include "QJsonArray"
+#include "QString"
 
 class ModelSelector : public QObject {
     Q_OBJECT
@@ -16,7 +20,10 @@ class ModelSelector : public QObject {
                            NOTIFY currentModelChanged)
 
 public:
-    explicit ModelSelector(QObject *parent = nullptr);
+    explicit ModelSelector(
+        SettingsService* m_settings,
+        QObject *parent = nullptr
+        );
 
     QStringList models() const;
 
@@ -30,6 +37,7 @@ signals:
 private:
     QStringList m_models;
     QString m_currentModel;
+    SettingsService* m_settings;
 
     void loadModels();
 };

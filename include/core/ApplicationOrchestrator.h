@@ -12,6 +12,7 @@
 #include "ModelSelector.h"
 #include "ChatOrchestrator.h"
 #include "ChatRepository.h"
+#include "AppSettings.h"
 
 class ApplicationOrchestrator : public QObject {
     Q_OBJECT
@@ -34,7 +35,9 @@ public:
 private:
     DatabaseManager m_database;
 
-    ModelSelector m_modelSelector;
+    std::unique_ptr<AppSettings> m_appSettings;
+    std::unique_ptr<SettingsService> m_settingsService;
+    std::unique_ptr<ModelSelector> m_modelSelector;
 
     std::unique_ptr<ChatRepository> m_chatRepo;
     std::unique_ptr<ProviderRepository> m_providerRepo;

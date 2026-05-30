@@ -18,6 +18,7 @@ private:
 
 
     bool createSchema();
+    bool seed();
 
     QSqlDatabase m_db;
 };

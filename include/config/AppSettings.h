@@ -1,67 +1,29 @@
 #ifndef AppSettings_H
 #define AppSettings_H
 
-#include <QString>
-#include <QStringList>
-#include <QVariant>
 #include <QSettings>
-#include <QObject>
+#include <QString>
 
-struct Result {
-    bool success = false;
-    QVariant data;
-    QString error;
-};
-
-class AppSettings : public QObject  {
-    Q_OBJECT
+class AppSettings : public QObject
+{
 public:
-    static AppSettings& instance();
-
-    // API Key
-    Result getApiKey();
-    Result setApiKey(const QString &apiKey);
-
-    Result setApiKeyPath(const QString &path);
-    Result getApiKeyPath();
-
-    // Tor
-    Result getTorEnable() const;
-    Result setTorEnable(bool enabled);
-
-    // Current model
-    Result getCurrentModel() const;
-    Result setCurrentModel(const QString &model);
-
-    // Selected models
-    Result getSelectedModels() const;
-    Result addSelectedModels(const QString &model);
-    Result delSelectedModels(const QString &model);
-
-signals:
-    void currentModelChanged(
-        const QString& model
-        );
-
-private:
-    explicit AppSettings(
-        QObject* parent = nullptr
-        );
-
+    explicit AppSettings();
     ~AppSettings() = default;
 
+    QString currentProviderId() const;
+    void setCurrentProviderId(const QString& id);
+
+    QString currentModelId() const;
+    void setCurrentModelId(const QString& id);
+
+private:
     AppSettings(const AppSettings&) = delete;
-    AppSettings& operator=(
-        const AppSettings&
-        ) = delete;
-
-    QSettings settings;
-
-    Result setConfigField(const QString &key, const QVariant &value);
-    Result getConfigField(const QString &key) const;
+    AppSettings& operator=(const AppSettings&) = delete;
 
     void initDefaults();
 
+private:
+    QSettings m_settings;
 };
 
 #endif // AppSettings_H

@@ -1,18 +1,15 @@
 #include "ModelSelector.h"
-#include "AppSettings.h"
-#include "QDebug"
-#include "QJsonArray"
 
-ModelSelector::ModelSelector(QObject *parent)
-    : QObject(parent)
+ModelSelector::ModelSelector(
+    SettingsService *m_settings,
+    QObject *parent
+)
+    : QObject(parent),
+    m_settings(m_settings)
 {
     loadModels();
 
-    Result current = AppSettings::instance().getCurrentModel();
-
-    if (current.success) {
-        m_currentModel = current.data.toString();
-    }
+    m_currentModel = m_settings->currentModelId();
 }
 
 QStringList ModelSelector::models() const {
@@ -29,23 +26,23 @@ void ModelSelector::setCurrentModel(const QString &model) {
 
     m_currentModel = model;
 
-    AppSettings::instance().setCurrentModel(model);
+    m_settings->setCurrentModelId(model);
 
     emit currentModelChanged();
 }
 
 void ModelSelector::loadModels() {
-    Result result = AppSettings::instance().getSelectedModels();
+    // Result result = AppSettings::instance().selectedModelId();
 
-    if (!result.success)
-        return;
+    // if (!result.success)
+    //     return;
 
-    QStringList list;
+    // QStringList list;
 
-    for (const auto &v : result.data.toJsonArray())
-        list << v.toString();
+    // for (const auto &v : result.data.toJsonArray())
+    //     list << v.toString();
 
-    m_models = list;
+    // m_models = list;
 
     emit modelsChanged();
 }

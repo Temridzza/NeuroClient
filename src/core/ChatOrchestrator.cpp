@@ -5,16 +5,18 @@
 
 ChatOrchestrator::ChatOrchestrator(
     QSqlDatabase db,
+    SettingsService* settings,
     QObject* parent
     )
     : QObject(parent),
-    m_messageRepo(db)
+    m_messageRepo(db),
+    m_settings(settings)
 {
     rebuildClient();
 
     connect(
-        &AppSettings::instance(),
-        &AppSettings::currentModelChanged,
+        m_settings,
+        &SettingsService::currentModelIdChanged,
         this,
         [this](const QString&)
         {
@@ -139,11 +141,10 @@ void ChatOrchestrator::loadChat(
 
 void ChatOrchestrator::rebuildClient()
 {
-    AppSettings& settings = AppSettings::instance();
-
+    // TODO: реализовать загрузку apikey из бд
     LLMConfig config{
-        .apiKey = settings.getApiKey().data.toString(),
-        .model = settings.getCurrentModel().data.toString()
+        .apiKey = "fixme",
+        .model = m_settings->currentModelId()
     };
 
     m_client = std::make_unique<LLMClient>(config);

@@ -9,17 +9,58 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
         qFatal("DB init failed");
     }
 
-    m_chatRepo = std::make_unique<ChatRepository>(m_database.db());
-    m_providerRepo = std::make_unique<ProviderRepository>(m_database.db());
-    m_modelRepo = std::make_unique<ModelRepository>(m_database.db());
+    m_appSettings = std::make_unique<AppSettings>();
 
-    m_orchestrator = std::make_unique<ChatOrchestrator>(m_database.db());
+    m_settingsService =
+        std::make_unique<SettingsService>(
+            m_appSettings.get()
+            );
 
-    m_chatVM = std::make_unique<ChatViewModel>(m_orchestrator.get());
-    m_chatListVM = std::make_unique<ChatListViewModel>(m_chatRepo.get());
+    m_chatRepo =
+        std::make_unique<ChatRepository>(
+            m_database.db()
+            );
 
-    m_providerVM = std::make_unique<ProviderModel>(m_providerRepo.get());
-    m_modelsVM = std::make_unique<ModelsModel>(m_modelRepo.get());
+    m_providerRepo =
+        std::make_unique<ProviderRepository>(
+            m_database.db()
+            );
+
+    m_modelRepo =
+        std::make_unique<ModelRepository>(
+            m_database.db()
+            );
+
+    m_modelSelector =
+        std::make_unique<ModelSelector>(
+            m_settingsService.get()
+            );
+
+    m_orchestrator =
+        std::make_unique<ChatOrchestrator>(
+            m_database.db(),
+            m_settingsService.get()
+            );
+
+    m_chatVM =
+        std::make_unique<ChatViewModel>(
+            m_orchestrator.get()
+            );
+
+    m_chatListVM =
+        std::make_unique<ChatListViewModel>(
+            m_chatRepo.get()
+            );
+
+    m_providerVM =
+        std::make_unique<ProviderModel>(
+            m_providerRepo.get()
+            );
+
+    m_modelsVM =
+        std::make_unique<ModelsModel>(
+            m_modelRepo.get()
+            );
 }
 
 ChatViewModel* ApplicationOrchestrator::chat() {
@@ -39,5 +80,5 @@ ModelsModel* ApplicationOrchestrator::models() {
 }
 
 ModelSelector* ApplicationOrchestrator::modelSelector() {
-    return &m_modelSelector;
+    return m_modelSelector.get();
 }

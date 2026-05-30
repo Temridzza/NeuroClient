@@ -3,6 +3,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QDebug>
+#include <QDateTime>
 
 
 DatabaseManager::DatabaseManager() {}
@@ -20,7 +21,12 @@ bool DatabaseManager::init(const QString& path) {
         return false;
     }
 
-    return createSchema();
+    if (!createSchema()) {
+        return false;
+    }
+
+    seed();
+    return true;
 }
 
 QSqlDatabase& DatabaseManager::db() {
@@ -118,6 +124,94 @@ bool DatabaseManager::createSchema() {
     q.exec("CREATE INDEX IF NOT EXISTS idx_messages_provider_id ON messages(provider_id)");
     q.exec("CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at)");
     q.exec("CREATE INDEX IF NOT EXISTS idx_chats_updated_at ON chats(updated_at)");
+
+    return true;
+}
+
+bool DatabaseManager::seed() {
+    QSqlQuery q(m_db);
+
+    // проверяем, есть ли openrouter
+    q.prepare("SELECT id FROM providers WHERE name = ?");
+    q.addBindValue("openrouter");
+
+    if (!q.exec()) {
+        qWarning() << q.lastError();
+        return false;
+    }
+
+    QString providerId;
+
+    if (q.next()) {
+        providerId = q.value(0).toString();
+    } else {
+        providerId = "openrouter";
+
+        QSqlQuery insertProvider(m_db);
+        insertProvider.prepare(R"(
+            INSERT INTO providers (
+                id, name, base_url, api_key, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        )");
+
+        const qint64 now = QDateTime::currentSecsSinceEpoch();
+
+        insertProvider.addBindValue(providerId);
+        insertProvider.addBindValue("openrouter");
+        insertProvider.addBindValue("https://openrouter.ai/api/v1/chat/completions");
+        insertProvider.addBindValue("paste");
+        insertProvider.addBindValue(now);
+        insertProvider.addBindValue(now);
+
+        if (!insertProvider.exec()) {
+            qWarning() << insertProvider.lastError();
+            return false;
+        }
+    }
+
+    // helper lambda для моделей
+    auto insertModel = [&](const QString& id,
+                           const QString& modelKey,
+                           const QString& displayName) {
+
+        QSqlQuery m(m_db);
+        m.prepare(R"(
+            INSERT OR IGNORE INTO models (
+                id,
+                provider_id,
+                model_key,
+                display_name,
+                created_at,
+                updated_at,
+                enabled
+            ) VALUES (?, ?, ?, ?, ?, ?, 1)
+        )");
+
+        const qint64 now = QDateTime::currentSecsSinceEpoch();
+
+        m.addBindValue(id);
+        m.addBindValue(providerId);
+        m.addBindValue(modelKey);
+        m.addBindValue(displayName);
+        m.addBindValue(now);
+        m.addBindValue(now);
+
+        if (!m.exec()) {
+            qWarning() << m.lastError();
+        }
+    };
+
+    insertModel(
+        "openrouter-gpt-oss-20b",
+        "openai/gpt-oss-20b:free",
+        "GPT OSS 20B (Free)"
+        );
+
+    insertModel(
+        "openrouter-nemotron-3-nano",
+        "nvidia/nemotron-3-nano-30b-a3b:free",
+        "Nemotron 3 Nano 30B (Free)"
+        );
 
     return true;
 }

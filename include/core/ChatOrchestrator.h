@@ -5,11 +5,13 @@
 
 #include <QObject>
 #include <memory>
+#include <QSqlDatabase>
 
-#include "network/LLMClient.h"
-#include "core/Message.h"
-#include "database/MessageRepository.h"
+#include "LLMClient.h"
+#include "Message.h"
+#include "MessageRepository.h"
 #include "MessageModel.h"
+#include "SettingsService.h"
 
 class ChatOrchestrator : public QObject
 {
@@ -18,6 +20,7 @@ class ChatOrchestrator : public QObject
 public:
     explicit ChatOrchestrator(
         QSqlDatabase db,
+        SettingsService* settings,
         QObject* parent = nullptr
         );
 
@@ -40,6 +43,7 @@ private:
 private:
     std::unique_ptr<LLMClient> m_client;
     MessageRepository m_messageRepo;
+    SettingsService* m_settings;
 
     QString m_currentChatId;
 };
