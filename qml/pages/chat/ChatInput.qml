@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 
 import "../../theme"
 import ChatGPT 1.0
+import NeuroClient
 
 Rectangle {
     id: root
@@ -70,11 +71,11 @@ Rectangle {
                 width: 42
                 height: 42
                 radius: 21
-                color: (chatVM && loading) ? Theme.disabledColor : Theme.accentColor
+                color: (App.chat && loading) ? Theme.disabledColor : Theme.accentColor
 
                 MouseArea {
                     anchors.fill: parent
-                    enabled: !(chatVM && loading)
+                    enabled: !(App.chat && loading)
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.send()
                 }

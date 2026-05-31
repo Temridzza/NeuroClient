@@ -26,8 +26,8 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
 
         onClicked: {
-            console.log("open chat:", chatId, chatTitle)
-            App.chats.openChat(chatId)
+            // console.log("open chat:", chatId, chatTitle)
+            App.chat.loadChat(chatId)
         }
     }
 

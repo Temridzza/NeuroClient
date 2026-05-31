@@ -9,19 +9,31 @@ import NeuroClient 1.0
 
 Rectangle {
     id: sidebar
+    signal animationStateChanged(bool animating)
+
+    property bool animating: false
 
     color: Theme.bgColor
     radius: 22
 
     width: root.sidebarOpened ? 320 : 0
-    Behavior on width { NumberAnimation { duration: 200 } }
-    visible: root.sidebarOpened
-    layer.enabled: true
+    visible: width > 0
 
+    layer.enabled: true
     layer.effect: MultiEffect {
         shadowEnabled: true
         shadowOpacity: Theme.shadowOpacity
         shadowBlur: 0.8
+    }
+
+    Behavior on width {
+        NumberAnimation {
+            duration: 200
+
+            onRunningChanged: {
+                sidebar.animationStateChanged(running)
+            }
+        }
     }
 
     ColumnLayout {
@@ -29,18 +41,9 @@ Rectangle {
         anchors.margins: 14
         spacing: 12
 
-        SidebarHeader {
-            Layout.fillWidth: true
-        }
-
-        SidebarNewChatButton {
-            Layout.fillWidth: true
-        }
-
-        SidebarSearch {
-            Layout.fillWidth: true
-        }
-
+        SidebarHeader { Layout.fillWidth: true }
+        SidebarNewChatButton { Layout.fillWidth: true }
+        SidebarSearch { Layout.fillWidth: true }
         SidebarChatList {
             Layout.fillWidth: true
             Layout.fillHeight: true

@@ -103,6 +103,9 @@ qt_add_qml_module(chatgpt_app
         QML_FILES qml/pages/chat/chatsSideBar/SidebarChatList.qml
         QML_FILES qml/pages/chat/chatsSideBar/SidebarChatDelegate.qml
         QML_FILES qml/pages/chat/chatsSideBar/SidebarNewChatButton.qml
+        QML_FILES qml/pages/chat/ChatHeader.qml
+        QML_FILES qml/pages/chat/ChatList.qml
+        QML_FILES qml/pages/chat/ChatStatusBar.qml
 )
 
 # ==========================================
