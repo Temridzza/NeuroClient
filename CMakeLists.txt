@@ -83,7 +83,7 @@ qt_add_qml_module(chatgpt_app
 
     QML_FILES
         qml/Main.qml
-        qml/components/ChatsSideBar.qml
+
         qml/components/ContextSideBar.qml
         qml/theme/qmldir
 
@@ -95,6 +95,8 @@ qt_add_qml_module(chatgpt_app
         QML_FILES qml/pages/ChatPage.qml
         QML_FILES qml/settings/pages/ProviderPage.qml
         QML_FILES qml/settings/pages/ProviderEditPage.qml
+
+        QML_FILES qml/components/chatsSideBar/ChatsSideBar.qml
         QML_FILES qml/components/chatsSideBar/SidebarHeader.qml
         QML_FILES qml/components/chatsSideBar/SidebarSearch.qml
         QML_FILES qml/components/chatsSideBar/SidebarChatList.qml

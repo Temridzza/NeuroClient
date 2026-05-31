@@ -13,12 +13,24 @@ Rectangle {
 
     property bool sidebarOpened: true
     property var chatVM
+    property bool sidebarAnimating: false
 
     radius: 24
     color: Theme.chatBgColor
     border.color: Theme.borderColor
 
     signal requestSettings()
+
+    Timer {
+        id: animationTimer
+        interval: 220
+        repeat: false
+        running: false
+
+        onTriggered: {
+            root.sidebarAnimating = false
+        }
+    }
 
     Connections {
         target: App.chats
@@ -76,7 +88,11 @@ Rectangle {
 
                 ToolButton {
                     text: "☰"
-                    onClicked: root.sidebarOpened = !root.sidebarOpened
+                    onClicked: {
+                        root.sidebarAnimating = true
+                        root.sidebarOpened = !root.sidebarOpened
+                        animationTimer.running = true
+                    }
                 }
 
                 Rectangle {
@@ -213,7 +229,8 @@ Rectangle {
                         anchors.fill: parent
                         anchors.margins: 14
 
-                        text: htmlReady ? html : message
+                        // показываем placeholder только если анимация реально идет
+                        text: sidebarAnimating ? "…" : (htmlReady ? html : message)
                         textFormat: htmlReady ? Text.RichText : Text.PlainText
 
                         color: Theme.textColor
