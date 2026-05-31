@@ -18,19 +18,19 @@ ListView {
     model: App.messages
 
     onContentYChanged: scrollTimer.restart()
-    onHeightChanged: ensureVisible()
-    onCountChanged: ensureVisible()
+    onHeightChanged: tickVisibleRange()
+    onCountChanged: tickVisibleRange()
 
     Timer {
         id: scrollTimer
         interval: 50
         repeat: false
-        onTriggered: chatView.ensureVisible()
+        onTriggered: chatView.tickVisibleRange()
     }
 
-    function ensureVisible() {
-        var first = indexAt(0, contentY)
-        var last = indexAt(0, contentY + height)
+    function tickVisibleRange() {
+        var first = indexAt(10, contentY)
+        var last = indexAt(10, contentY + height)
 
         if (first < 0) first = 0
         if (last < 0) last = count - 1
@@ -40,7 +40,7 @@ ListView {
         }
     }
 
-    Component.onCompleted: ensureVisible()
+    Component.onCompleted: tickVisibleRange()
 
     delegate: Item {
         width: chatView.width
@@ -79,18 +79,6 @@ ListView {
                 lineHeight: 1.25
             }
         }
-
-        function checkVisibility() {
-            var first = chatView.indexAt(10, chatView.contentY)
-            var last = chatView.indexAt(10, chatView.contentY + chatView.height)
-
-            if (first < 0) first = 0
-            if (last < 0) last = chatView.count - 1
-
-            for (var i = first; i <= last; i++) {
-                App.messages.ensureRendered(i)
-            }
-        }
     }
 
     ScrollBar.vertical: ScrollBar {
@@ -101,33 +89,23 @@ ListView {
         target: App.messages
         function onRowsInserted() {
             chatView.positionViewAtEnd()
+            chatView.tickVisibleRange()
         }
     }
 
     Connections {
         target: App.chat
-
         function onMessagesChanged() {
             chatView.positionViewAtEnd()
+            chatView.tickVisibleRange()
         }
     }
 
     Connections {
         target: App.chatOrchestrator
-
         function onChatLoadingFinished(chatId) {
             chatView.positionViewAtEnd()
-            chatView.ensureVisible()
-
-            var first = chatView.indexAt(10, chatView.contentY)
-            var last = chatView.indexAt(10, chatView.contentY + chatView.height)
-
-            if (first < 0) first = 0
-            if (last < 0) last = chatView.count - 1
-
-            for (var i = first; i <= last; i++) {
-                App.messages.ensureRendered(i)
-            }
+            chatView.tickVisibleRange()
         }
     }
 }
