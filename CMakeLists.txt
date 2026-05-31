@@ -95,6 +95,11 @@ qt_add_qml_module(chatgpt_app
         QML_FILES qml/pages/ChatPage.qml
         QML_FILES qml/settings/pages/ProviderPage.qml
         QML_FILES qml/settings/pages/ProviderEditPage.qml
+        QML_FILES qml/components/chatsSideBar/SidebarHeader.qml
+        QML_FILES qml/components/chatsSideBar/SidebarSearch.qml
+        QML_FILES qml/components/chatsSideBar/SidebarChatList.qml
+        QML_FILES qml/components/chatsSideBar/SidebarChatDelegate.qml
+        QML_FILES qml/components/chatsSideBar/SidebarNewChatButton.qml
 )
 
 # ==========================================
