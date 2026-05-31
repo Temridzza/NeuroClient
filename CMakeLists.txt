@@ -83,25 +83,26 @@ qt_add_qml_module(chatgpt_app
 
     QML_FILES
         qml/Main.qml
-
-        qml/components/ContextSideBar.qml
         qml/theme/qmldir
 
     SOURCES
         include/ui/qml/QmlModule.h
-        QML_FILES qml/settings/SettingsPage.qml
-        QML_FILES qml/components/ChatInput.qml
         QML_FILES qml/theme/Theme.qml
-        QML_FILES qml/pages/ChatPage.qml
+
+        QML_FILES qml/settings/SettingsPage.qml
         QML_FILES qml/settings/pages/ProviderPage.qml
         QML_FILES qml/settings/pages/ProviderEditPage.qml
 
-        QML_FILES qml/components/chatsSideBar/ChatsSideBar.qml
-        QML_FILES qml/components/chatsSideBar/SidebarHeader.qml
-        QML_FILES qml/components/chatsSideBar/SidebarSearch.qml
-        QML_FILES qml/components/chatsSideBar/SidebarChatList.qml
-        QML_FILES qml/components/chatsSideBar/SidebarChatDelegate.qml
-        QML_FILES qml/components/chatsSideBar/SidebarNewChatButton.qml
+        QML_FILES qml/pages/chat/ChatInput.qml
+        QML_FILES qml/pages/chat/ChatPage.qml
+        QML_FILES qml/pages/chat/ContextSideBar.qml
+
+        QML_FILES qml/pages/chat/chatsSideBar/ChatsSideBar.qml
+        QML_FILES qml/pages/chat/chatsSideBar/SidebarHeader.qml
+        QML_FILES qml/pages/chat/chatsSideBar/SidebarSearch.qml
+        QML_FILES qml/pages/chat/chatsSideBar/SidebarChatList.qml
+        QML_FILES qml/pages/chat/chatsSideBar/SidebarChatDelegate.qml
+        QML_FILES qml/pages/chat/chatsSideBar/SidebarNewChatButton.qml
 )
 
 # ==========================================

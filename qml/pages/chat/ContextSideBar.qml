@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../theme"
+import "../../theme"
 import ChatGPT 1.0
 
 Rectangle {

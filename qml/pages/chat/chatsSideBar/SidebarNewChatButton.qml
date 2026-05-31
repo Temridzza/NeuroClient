@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import "../../theme"
+import "../../../theme"
 import ChatGPT 1.0
 import NeuroClient 1.0
 

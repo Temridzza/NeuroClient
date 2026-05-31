@@ -3,9 +3,12 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import "components"
 import "theme"
 import "pages"
+import "pages/chat"
+import "pages/chat"
+import "pages/chat/chatsSideBar"
+
 import "settings"
 
 import ChatGPT 1.0
