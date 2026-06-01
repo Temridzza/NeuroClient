@@ -22,4 +22,10 @@ QtObject {
     property color disabledColor: "#555555"
 
     property real shadowOpacity: 0.4
+
+    // ICONS (NEW)
+    property string iconCopy: "⧉"
+    property string iconCheck: "✔"
+    property string iconSend: "➤"
+    property string iconMenu: "⋮"
 }
