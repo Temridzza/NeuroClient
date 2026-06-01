@@ -23,6 +23,8 @@ QtObject {
 
     property real shadowOpacity: 0.4
 
+    property color selectionColor: Qt.rgba(124/255, 92/255, 255/255, 0.35)
+
     // ICONS (NEW)
     property string iconCopy: "⧉"
     property string iconCheck: "✔"

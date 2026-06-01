@@ -148,3 +148,47 @@ void MessageModel::ensureRendered(int row)
     const QModelIndex idx = index(row);
     emit dataChanged(idx, idx, {RoleHtml, RoleHtmlReady});
 }
+
+QString MessageModel::contentAt(int row) const
+{
+    if (row < 0 || row >= m_messages.size())
+        return {};
+
+    return m_messages[row].content;
+}
+
+void MessageModel::copyAt(int row, int mode)
+{
+    if (row < 0 || row >= m_messages.size())
+        return;
+
+    const Message &msg = m_messages[row];
+
+    QString result;
+
+    switch (mode) {
+    case RawMarkdown:
+        result = msg.content;
+        break;
+
+    case PlainText: {
+        // удаляем markdown грубо, но быстро
+        QTextDocument doc;
+        doc.setMarkdown(msg.content);
+        result = doc.toPlainText();
+        break;
+    }
+
+    case VisibleText:
+        // берём HTML → plain text (максимально "как видно")
+        {
+            QTextDocument doc;
+            doc.setHtml(msg.html);
+            result = doc.toPlainText();
+        }
+        break;
+    }
+
+    if (auto *cb = QGuiApplication::clipboard())
+        cb->setText(result);
+}

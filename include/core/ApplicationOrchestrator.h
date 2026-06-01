@@ -35,6 +35,12 @@ class ApplicationOrchestrator : public QObject {
 
 public:
     explicit ApplicationOrchestrator(QObject* parent = nullptr);
+    enum CopyMode {
+        RawMarkdown,
+        PlainText,
+        VisibleText
+    };
+    Q_ENUM(CopyMode)
 
     void init();
     ChatViewModel* chat();

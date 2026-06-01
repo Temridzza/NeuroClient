@@ -2,7 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
-import Qt.labs.platform 1.1
 
 import "../../theme"
 import ChatGPT 1.0
@@ -58,107 +57,151 @@ ListView {
     Component.onCompleted: tickVisibleRange()
 
     delegate: Item {
+        id: row
+
         width: chatView.width
-        height: bubble.implicitHeight
-        clip: true
+        implicitHeight: bubble.implicitHeight + 8
+
+        readonly property bool isUser: role === "user"
 
         Rectangle {
             id: bubble
 
             property int pad: 14
-            property int maxWidth: chatView.width * 0.82
-
+            property int maxBubbleWidth: Math.round(chatView.width * 0.82)
             property bool hovered: false
 
-            width: Math.min(maxWidth, textItem.implicitWidth + pad * 2)
+            anchors {
+                top: parent.top
+                right: isUser ? parent.right : undefined
+                left: !isUser ? parent.left : undefined
+                rightMargin: isUser ? 10 : 0
+                leftMargin: !isUser ? 10 : 0
+            }
+
+            width: Math.min(
+                maxBubbleWidth,
+                Math.max(120, metrics.boundingRect.width + pad * 2)
+            )
+
             implicitHeight: textItem.implicitHeight + pad * 2
 
             radius: 18
-            color: role === "user" ? Theme.accentColor : Theme.panelColor
+            color: isUser ? Theme.accentColor : Theme.panelColor
             border.color: Theme.borderColor
 
-            anchors {
-                right: role === "user" ? parent.right : undefined
-                left: role !== "user" ? parent.left : undefined
+            HoverHandler {
+                onHoveredChanged: bubble.hovered = hovered
             }
 
-            anchors.rightMargin: role === "user" ? 10 : 0
-            anchors.leftMargin: role !== "user" ? 10 : 0
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-
-                onEntered: bubble.hovered = true
-                onExited: bubble.hovered = false
-            }
-
-            MouseArea {
-                anchors.fill: parent
+            TapHandler {
                 acceptedButtons: Qt.RightButton
-
-                onClicked: function(mouse) {
-                    if (mouse.button === Qt.RightButton) {
-                        contextMenu.popup()
-                    }
-                }
+                onTapped: contextMenu.popup()
             }
 
-            Menu {
-                id: contextMenu
-
-                MenuItem {
-                    text: "Копировть"
-                    onTriggered: Qt.callLater(() => Qt.application.clipboard.setText(message))
-                }
-            }
-
-            Item {
+            // ======================
+            // COPY BUTTON
+            // ======================
+            ToolButton {
                 id: copyButton
+
                 width: 28
                 height: 28
 
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.margins: 6
+                anchors {
+                    right: parent.right
+                    top: parent.top
+                    margins: 6
+                }
 
-                opacity: bubble.hovered ? 1.0 : 0.0
-                scale: bubble.hovered ? 1.0 : 0.85
+                visible: bubble.hovered || textItem.selectedText.length > 0
+                opacity: visible ? 1.0 : 0.0
+                scale: visible ? 1.0 : 0.9
 
                 Behavior on opacity { NumberAnimation { duration: 120 } }
-                Behavior on scale { NumberAnimation { duration: 120 } }
+                Behavior on scale   { NumberAnimation { duration: 120 } }
+
+                background: Rectangle {
+                    radius: 14
+                    color: Qt.rgba(1, 1, 1, 0.08)
+                }
 
                 Text {
                     text: Theme.iconCopy
                     font.pixelSize: 25
-                    color: Theme.textColor
                 }
 
-                MouseArea {
-                    id: hoverArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-
-                    onContainsMouseChanged: {
-                        bubble.hovered = containsMouse
-                    }
-                }
+                // ✅ MAIN CHANGE HERE
+                onClicked: App.messages.copyAt(index, MessageModel.RawMarkdown)
             }
 
-            Text {
+            // ======================
+            // TEXT
+            // ======================
+            TextEdit {
                 id: textItem
 
                 anchors.fill: parent
                 anchors.margins: bubble.pad
 
-                text: chatView.sidebarAnimating ? "…" : (htmlReady ? html : message)
-                textFormat: htmlReady ? Text.RichText : Text.PlainText
+                text: sidebarAnimating ? "…" : (htmlReady ? html : message)
+                textFormat: htmlReady ? TextEdit.RichText : TextEdit.PlainText
 
-                wrapMode: Text.Wrap
+                readOnly: true
+                selectByMouse: true
+                persistentSelection: true
+                cursorVisible: false
+                wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
+                renderType: Text.NativeRendering
+
                 color: Theme.textColor
                 font.pixelSize: 15
-                lineHeight: 1.25
-                renderType: Text.NativeRendering
+
+                selectionColor: Theme.selectionColor
+                selectedTextColor: Theme.textColor
+
+                onLinkActivated: Qt.openUrlExternally(link)
+            }
+
+            // ======================
+            // CONTEXT MENU
+            // ======================
+            Menu {
+                id: contextMenu
+
+                MenuItem {
+                    text: "Копировать"
+                    onTriggered: App.messages.copyAt(index, App.RawMarkdown)
+                }
+
+                MenuItem {
+                    text: "Копировать как текст"
+                    onTriggered: App.messages.copyAt(index, App.PlainText)
+                }
+
+                MenuItem {
+                    text: "Копировать как видно"
+                    onTriggered: App.messages.copyAt(index, App.VisibleText)
+                }
+
+                MenuSeparator {}
+
+                MenuItem {
+                    text: "Копировать выделенное"
+                    enabled: textItem.selectedText.length > 0
+                    onTriggered: App.messages.copyAt(index, App.PlainText)
+                }
+
+                MenuItem {
+                    text: "Выделить всё"
+                    onTriggered: textItem.selectAll()
+                }
+            }
+
+            TextMetrics {
+                id: metrics
+                font: textItem.font
+                text: sidebarAnimating ? "…" : message
             }
         }
     }

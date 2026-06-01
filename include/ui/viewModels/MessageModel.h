@@ -3,6 +3,11 @@
 
 #include <QAbstractListModel>
 #include <QTimer>
+#include <QTextDocument>
+
+
+#include <QGuiApplication>
+#include <QClipboard>
 
 #include "Markdown.h"
 #include "Message.h"
@@ -17,6 +22,14 @@ public:
         RoleHtml,
         RoleHtmlReady
     };
+    Q_ENUM(Roles)
+
+    enum CopyMode {
+        RawMarkdown,
+        PlainText,
+        VisibleText
+    };
+    Q_ENUM(CopyMode)
 
     explicit MessageModel(QObject *parent = nullptr);
 
@@ -29,6 +42,8 @@ public:
 
     void addMessage(Message msg);
     Q_INVOKABLE void ensureRendered(int row);
+    Q_INVOKABLE QString contentAt(int row) const;
+    Q_INVOKABLE void copyAt(int row, int mode = RawMarkdown);
 
     // 🔥 STREAMING API
     void startStreaming(const QString &role);
