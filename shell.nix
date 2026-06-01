@@ -8,6 +8,7 @@ pkgs.mkShell {
     qt6.qtshadertools
     qt6.qttools
     qt6.qtwayland
+    kdePackages.qtdeclarative
 
 
     cmake

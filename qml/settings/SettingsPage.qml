@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "../theme"
+import Theme 1.0
 import "../pages"
 import "pages"
 

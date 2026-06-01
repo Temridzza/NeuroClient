@@ -59,7 +59,7 @@ set(SRC_FILES
     # QML
     # =========================
 
-    ui/qml/QmlModule.cpp
+
 )
 
 set(INCLUDE
@@ -124,7 +124,7 @@ set(INCLUDE
     # QML
     # =========================
 
-    ../include/ui/qml/QmlModule.h
+
 )
 
 add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE})

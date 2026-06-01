@@ -3,8 +3,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import "../../theme"
-import "../chat"
+import Theme 1.0
+import "../chat/chatsSideBar"
 import ChatGPT 1.0
 import NeuroClient
 
@@ -20,13 +20,13 @@ Rectangle {
     color: Theme.chatBgColor
     border.color: Theme.borderColor
 
-    ChatsSideBar {
-        id: sidebar
+    // ChatsSideBar {
+    //     id: sidebar
 
-        onAnimationStateChanged: function(animating) {
-            root.sidebarAnimating = animating
-        }
-    }
+    //     onAnimationStateChanged: function(animating) {
+    //         root.sidebarAnimating = animating
+    //     }
+    // }
 
     ColumnLayout {
         anchors.fill: parent

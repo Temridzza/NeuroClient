@@ -3,9 +3,9 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import "../../../theme"
 import ChatGPT 1.0
 import NeuroClient 1.0
+import Theme 1.0
 
 Rectangle {
     id: sidebar

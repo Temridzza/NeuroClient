@@ -143,7 +143,7 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             //          << chatId;
         }
         );
-
+    init();
 }
 
 void ApplicationOrchestrator::init() {

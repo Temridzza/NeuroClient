@@ -1,34 +1,40 @@
+// qml/Main.qml
 import QtQuick 2.15
-import QtQuick.Controls
-import QtQuick.Layouts
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 import QtQuick.Effects
-
-import "theme"
+// ── Ваши локальные модули ─────────────────────
 import "pages"
 import "pages/chat"
-import "pages/chat"
 import "pages/chat/chatsSideBar"
-
 import "settings"
 
-import ChatGPT 1.0
-import NeuroClient
+// ── Плагин, который мы собираем в CMake ───────
+import ChatGPT 1.0               // ← URI, объявленный в CMake
+import NeuroClient 1.0           // ← singleton‑provider, объявлен в QmlModule.cpp
+import Theme 1.0
 
-ApplicationWindow {
+/*-------------------------------------------------
+   Корневой элемент. В Quickshell‑скрипте это будет
+   вложено в окно, которое уже создано Quickshell.
+-------------------------------------------------*/
+Item {
     id: root
 
-    width: 1280
-    height: 820
-    visible: true
-    color: "transparent"
-    title: "NeuroClient"
+    implicitWidth: 1280
+    implicitHeight: 820
 
+    // -----------------------------------------------------------------
+    //  Свойства, которыми пользуется ваш UI (сайд‑бар, роутер страниц)
+    // -----------------------------------------------------------------
     property bool sidebarOpened: false
     property string currentPage: "chat"
 
+    // -----------------------------------------------------------------
+    //  Фоновый прямоугольник (стилизация, тень и пр.)
+    // -----------------------------------------------------------------
     Rectangle {
         anchors.fill: parent
-
         radius: 24
         color: Theme.bgColor
         border.color: Theme.borderColor
@@ -46,10 +52,11 @@ ApplicationWindow {
             anchors.margins: 14
             spacing: 14
 
-            // SIDEBAR
+            // ---------------------------------------------------------
+            //  Сайд‑бар
+            // ---------------------------------------------------------
             ChatsSideBar {
                 id: sideBar
-
                 Layout.fillHeight: true
                 Layout.preferredWidth: sidebarOpened ? 320 : 0
                 clip: true
@@ -63,44 +70,42 @@ ApplicationWindow {
                 }
             }
 
-            // MAIN AREA (ROUTER)
+            // ---------------------------------------------------------
+            //  Основная область – роутер между «чатом» и «настройками»
+            // ---------------------------------------------------------
             Loader {
                 id: pageLoader
-
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
                 sourceComponent: root.currentPage === "settings"
-                    ? settingsPage
-                    : chatPage
+                                 ? settingsPage
+                                 : chatPage
             }
         }
     }
 
-    // =========================
-    // CHAT PAGE
-    // =========================
+    // -----------------------------------------------------------------
+    //  Чат‑страница
+    // -----------------------------------------------------------------
     Component {
         id: chatPage
-
         ChatPage {
             sidebarOpened: root.sidebarOpened
 
+            // Прокидываем двунаправленную связь
             onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
-
             onRequestSettings: root.currentPage = "settings"
         }
     }
 
-    // =========================
-    // SETTINGS PAGE
-    // =========================
+    // // -----------------------------------------------------------------
+    // //  Страница настроек
+    // // -----------------------------------------------------------------
     Component {
         id: settingsPage
-
         SettingsPage {
             anchors.fill: parent
-
             onRequestBack: root.currentPage = "chat"
         }
     }
