@@ -30,9 +30,7 @@ Item {
             Layout.fillWidth: true
             loading: false
 
-            onSendRequested: function(text) {
-                root.sendRequested(text)
-            }
+            onSendRequested: App.chat.sendMessage(text)
         }
     }
 }

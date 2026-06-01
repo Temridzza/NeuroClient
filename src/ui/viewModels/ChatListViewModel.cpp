@@ -45,13 +45,13 @@ void ChatListViewModel::refresh() {
     endResetModel();
 }
 
-QString ChatListViewModel::createChat(const QString& title) {
-    QString id = m_chatOrchestrator->createChat(title);
-    if (!id.isEmpty()) {
-        refresh();
-    }
-    return id;
-}
+// QString ChatListViewModel::createChat(const QString& title) {
+//     QString id = m_chatOrchestrator->createChat(title);
+//     if (!id.isEmpty()) {
+//         refresh();
+//     }
+//     return id;
+// }
 
 void ChatListViewModel::renameChat(const QString& id, const QString& title) {
     if (m_chatOrchestrator->renameChat(id, title)) {

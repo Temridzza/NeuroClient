@@ -37,7 +37,7 @@ void ChatOrchestrator::loadChat(
     emit chatLoadingFinished(chatId);
 }
 
-void ChatOrchestrator::sendMessage(
+QString ChatOrchestrator::sendMessage(
     const QString& chatId,
     const QString& text,
     MessageModel* model,
@@ -46,20 +46,33 @@ void ChatOrchestrator::sendMessage(
 {
     Q_UNUSED(uiContext)
 
+    QString effectiveChatId = chatId;
+
+    if (effectiveChatId.isEmpty()) {
+        effectiveChatId = m_chatRepo->createChat(
+            text.left(50)
+            );
+
+        if (effectiveChatId.isEmpty()) {
+            qWarning() << "Failed to create chat";
+            return {};
+        }
+    }
+
     if (!model || !m_client)
-        return;
+        return {};
 
     const QString trimmed = text.trimmed();
     if (trimmed.isEmpty())
-        return;
-    emit requestStarted(chatId);
+        return {};
+    emit requestStarted(effectiveChatId);
 
     // 1) Берём tip ветки из БД, до вставки новых сообщений
-    const QString branchParentId = m_messageRepo->lastMessageId(chatId);
+    const QString branchParentId = m_messageRepo->lastMessageId(effectiveChatId);
 
     // 2) Сохраняем user в БД
     Message userMsg;
-    userMsg.chatId = chatId;
+    userMsg.chatId = effectiveChatId;
     userMsg.role = "user";
     userMsg.content = trimmed;
     userMsg.parentId = branchParentId;
@@ -67,18 +80,20 @@ void ChatOrchestrator::sendMessage(
     const QString userId = m_messageRepo->addMessage(userMsg);
     if (userId.isEmpty()) {
         qWarning() << "Failed to insert user message";
-        return;
+        return {};
     }
 
     userMsg.id = userId;
-    model->addMessage(userMsg);
+    model->startStreaming("user");
+    model->appendStream(trimmed);
+    model->finishStreaming();
 
     // 3) История для LLM — из БД, уже с user, но ещё без assistant placeholder
-    const QList<Message> history = m_messageRepo->getMessages(chatId);
+    const QList<Message> history = m_messageRepo->getMessages(effectiveChatId);
 
     // 4) Создаём assistant placeholder и сразу сохраняем его в БД
     Message assistantMsg;
-    assistantMsg.chatId = chatId;
+    assistantMsg.chatId = effectiveChatId;
     assistantMsg.role = "assistant";
     assistantMsg.parentId = userId;
     assistantMsg.content.clear();
@@ -87,7 +102,7 @@ void ChatOrchestrator::sendMessage(
     const QString assistantId = m_messageRepo->addMessage(assistantMsg);
     if (assistantId.isEmpty()) {
         qWarning() << "Failed to insert assistant placeholder";
-        return;
+        return {};
     }
 
     assistantMsg.id = assistantId;
@@ -108,11 +123,11 @@ void ChatOrchestrator::sendMessage(
             );
     };
 
-    m_client->onFinished = [this, model, buffer, assistantId, chatId]()
+    m_client->onFinished = [this, model, buffer, assistantId, effectiveChatId]()
     {
         QMetaObject::invokeMethod(
             model,
-            [this, model, buffer, assistantId, chatId]()
+            [this, model, buffer, assistantId, effectiveChatId]()
             {
                 model->finishStreaming();
 
@@ -120,17 +135,17 @@ void ChatOrchestrator::sendMessage(
                     m_messageRepo->updateMessageContent(assistantId, *buffer);
                 }
 
-                emit requestFinish(chatId);
+                emit requestFinish(effectiveChatId);
             },
             Qt::QueuedConnection
             );
     };
 
-    m_client->onError = [this, model, assistantId, chatId](const QString& err)
+    m_client->onError = [this, model, assistantId, effectiveChatId](const QString& err)
     {
         QMetaObject::invokeMethod(
             model,
-            [this, model, assistantId, chatId, err]()
+            [this, model, assistantId, effectiveChatId, err]()
             {
                 model->finishStreaming();
 
@@ -141,12 +156,12 @@ void ChatOrchestrator::sendMessage(
                     );
 
                 Message sysMsg;
-                sysMsg.chatId = chatId;
+                sysMsg.chatId = effectiveChatId;
                 sysMsg.role = "system";
                 sysMsg.content = err;
                 model->addMessage(sysMsg);
 
-                emit requestFinish(chatId);
+                emit requestFinish(effectiveChatId);
             },
             Qt::QueuedConnection
             );
@@ -156,6 +171,8 @@ void ChatOrchestrator::sendMessage(
                       {
                           m_client->ask(history);
                       });
+
+    return effectiveChatId;
 }
 
 bool ChatOrchestrator::renameChat(

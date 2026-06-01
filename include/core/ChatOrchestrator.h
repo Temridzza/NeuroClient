@@ -25,7 +25,7 @@ public:
         QObject* parent = nullptr
         );
 
-    void sendMessage(
+    QString sendMessage(
         const QString& chatId,
         const QString& text,
         MessageModel* model,

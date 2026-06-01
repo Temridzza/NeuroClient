@@ -169,9 +169,6 @@ void ApplicationOrchestrator::init() {
     m_modelSelector->setState(list, modelId);
 
     auto chatId = m_settingsService->currentChatId();
-    if (chatId == "-1" || chatId.isEmpty() || chatId.trimmed().isEmpty()) {
-        chatId = m_chatListVM->createChat("Новый чат");
-    }
     m_chatVM->loadChat(chatId);
 }
 

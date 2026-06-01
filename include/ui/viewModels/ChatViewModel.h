@@ -5,13 +5,14 @@
 
 #include <QObject>
 #include "MessageModel.h"
-
-class ChatOrchestrator;
+#include "ChatOrchestrator.h"
 
 class ChatViewModel : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool loading READ loading WRITE setLoading NOTIFY loadingChanged)
+    Q_PROPERTY(QString chatId READ chatId NOTIFY chatIdChanged)
+    Q_PROPERTY(bool hasChat READ hasChat NOTIFY chatIdChanged)
 
 public:
     explicit ChatViewModel(ChatOrchestrator* orchestrator,
@@ -28,9 +29,15 @@ public:
     Q_INVOKABLE void loadChat(const QString& chatId);
     Q_INVOKABLE void setCurrentChat(const QString& chatId);
 
+    Q_INVOKABLE void startNewChat();
+
+    QString chatId() const;
+    bool hasChat() const;
+
 signals:
     void messagesChanged();
     void loadingChanged();
+    void chatIdChanged();
 
 private:
     MessageModel* m_messages;

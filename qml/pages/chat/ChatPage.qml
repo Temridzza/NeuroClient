@@ -46,11 +46,21 @@ Rectangle {
             onSettings: root.requestSettings()
         }
 
-        ChatList {
+        Loader {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            sidebarAnimating: root.sidebarAnimating
+            sourceComponent: App.chat.hasChat
+                ? chatComponent
+                : emptyChatComponent
+
+            onLoaded: {
+                if (item && item.sendRequested) {
+                    item.sendRequested.connect(function(text) {
+                        App.chat.sendMessage(text)
+                    })
+                }
+            }
         }
 
         ChatStatusBar {
@@ -60,11 +70,29 @@ Rectangle {
 
         ChatInput {
             Layout.fillWidth: true
+
+            visible: App.chat.hasChat
+
             loading: App.chat.loading
 
             onSendRequested: function(text) {
                 App.chat.sendMessage(text)
             }
+        }
+    }
+
+    Component {
+        id: chatComponent
+
+        ChatList {
+            sidebarAnimating: root.sidebarAnimating
+        }
+    }
+
+    Component {
+        id: emptyChatComponent
+        EmptyChatView {
+
         }
     }
 }

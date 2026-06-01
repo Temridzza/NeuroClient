@@ -28,7 +28,7 @@ public:
 
     // API для QML
     Q_INVOKABLE void refresh();
-    Q_INVOKABLE QString createChat(const QString& title);
+    // Q_INVOKABLE QString createChat(const QString& title);
     Q_INVOKABLE void renameChat(const QString& id, const QString& title);
     Q_INVOKABLE void deleteChat(const QString& id);
     Q_INVOKABLE void openChat(const QString& id);

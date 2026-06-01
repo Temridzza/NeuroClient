@@ -44,12 +44,18 @@ void ChatViewModel::sendMessage(const QString& text)
     if (!m_orchestrator)
         return;
 
-    m_orchestrator->sendMessage(
+    QString newChatId = m_orchestrator->sendMessage(
         m_currentChatId,
         text,
         m_messages,
         this
-        );
+    );
+
+    if (m_currentChatId != newChatId) {
+        m_currentChatId = newChatId;
+
+        emit chatIdChanged();
+    }
 }
 
 void ChatViewModel::loadChat(const QString& chatId)
@@ -64,6 +70,9 @@ void ChatViewModel::loadChat(const QString& chatId)
         m_messages,
         this
         );
+
+    emit chatIdChanged();
+    emit messagesChanged();
 }
 
 void ChatViewModel::setCurrentChat(const QString& chatId)
@@ -73,4 +82,23 @@ void ChatViewModel::setCurrentChat(const QString& chatId)
 
     m_currentChatId = chatId;
     loadChat(chatId);
+}
+
+void ChatViewModel::startNewChat()
+{
+    m_currentChatId.clear();
+    m_messages->clear();
+
+    emit chatIdChanged();
+    emit messagesChanged();
+}
+
+QString ChatViewModel::chatId() const
+{
+    return m_currentChatId;
+}
+
+bool ChatViewModel::hasChat() const
+{
+    return !m_currentChatId.isEmpty();
 }

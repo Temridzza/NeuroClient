@@ -58,40 +58,45 @@ ListView {
 
     delegate: Item {
         width: chatView.width
-        height: bubble.height + 8
+        height: bubble.implicitHeight
 
         Rectangle {
             id: bubble
 
-            width: Math.min(parent.width * 0.82, textItem.implicitWidth + 32)
-            height: textItem.implicitHeight + 28
+            property int maxWidth: chatView.width * 0.82
+            property int padding: 14
 
-            radius: 18
+            // ключ: bubble сам вычисляет ширину от текста
+            width: Math.min(maxWidth, textItem.implicitWidth + padding * 2)
 
             anchors {
                 right: role === "user" ? parent.right : undefined
                 left: role === "assistant" ? parent.left : undefined
             }
 
-            color: role === "user"
-                ? Theme.accentColor
-                : Theme.panelColor
-
+            radius: 18
+            color: role === "user" ? Theme.accentColor : Theme.panelColor
             border.color: Theme.borderColor
 
-            Text {
+            clip: true
+
+            TextArea {
                 id: textItem
-                anchors.fill: parent
-                anchors.margins: 14
 
-                text: chatView.sidebarAnimating ? "…" : (htmlReady ? html : message)
-                textFormat: htmlReady ? Text.RichText : Text.PlainText
+                width: bubble.width - bubble.padding * 2
+                readOnly: true
+                wrapMode: TextArea.Wrap
 
+                textFormat: htmlReady ? TextEdit.RichText : TextEdit.PlainText
+                text: message
+
+                background: null
                 color: Theme.textColor
-                wrapMode: Text.Wrap
-                font.pixelSize: 15
-                lineHeight: 1.25
+
+                padding: 0
             }
+
+            implicitHeight: textItem.implicitHeight + padding * 2
         }
     }
 

@@ -50,12 +50,9 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
 
 void MessageModel::addMessage(Message msg)
 {
-    beginInsertRows(QModelIndex(),
-                    m_messages.size(),
-                    m_messages.size());
-
+    int row = m_messages.size();
+    beginInsertRows(QModelIndex(), row, row);
     m_messages.append(msg);
-
     endInsertRows();
 }
 
