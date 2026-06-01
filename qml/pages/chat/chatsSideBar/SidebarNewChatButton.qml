@@ -21,7 +21,8 @@ Rectangle {
 
         onClicked: {
             console.log("new chat")
-            App.chats.createChat("Новый чат")
+            const newId = App.chats.createChat("Новый чат")
+            App.chat.loadChat(newId)
         }
     }
 

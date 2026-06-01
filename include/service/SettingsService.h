@@ -26,6 +26,14 @@ public:
     QString currentChatId() const;
     Result setCurrentChatId(const QString& id);
 
+    Q_INVOKABLE QString inputSendHotkey() const;
+    Q_INVOKABLE QString inputNewlineHotkey() const;
+    Q_INVOKABLE QString inputClearHotkey() const;
+
+    Q_INVOKABLE Result setInputSendHotkey(const QString& value);
+    Q_INVOKABLE Result setInputNewlineHotkey(const QString& value);
+    Q_INVOKABLE Result setInputClearHotkey(const QString& value);
+
 signals:
     void currentProviderIdChanged(const QString& id);
     void currentModelIdChanged(const QString& id);

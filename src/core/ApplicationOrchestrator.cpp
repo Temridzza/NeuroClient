@@ -20,6 +20,10 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
         std::make_unique<ChatRepository>(
             m_database.db()
             );
+    m_messageRepo =
+        std::make_unique<MessageRepository>(
+            m_database.db()
+            );
 
     m_providerRepo =
         std::make_unique<ProviderRepository>(
@@ -59,7 +63,8 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
 
     m_orchestrator =
         std::make_unique<ChatOrchestrator>(
-            m_database.db(),
+            m_chatRepo.get(),
+            m_messageRepo.get(),
             m_llmClient.get()
             );
 
@@ -75,7 +80,7 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
 
     m_chatListVM =
         std::make_unique<ChatListViewModel>(
-            m_chatRepo.get()
+            m_orchestrator.get()
             );
 
     m_providerVM =
@@ -134,8 +139,8 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
         this, [this](const QString& chatId)
         {
             m_settingsService->setCurrentChatId(chatId);
-            qDebug() << "m_settingsService->setCurrentChatId(chatId)"
-                     << chatId;
+            // qDebug() << "m_settingsService->setCurrentChatId(chatId)"
+            //          << chatId;
         }
         );
 
@@ -227,4 +232,8 @@ MessageModel* ApplicationOrchestrator::messages() {
 
 ChatOrchestrator* ApplicationOrchestrator::chatOrchestrator() {
     return m_orchestrator.get();
+}
+
+SettingsService* ApplicationOrchestrator::settingsService() {
+    return m_settingsService.get();
 }

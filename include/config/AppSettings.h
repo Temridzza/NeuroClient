@@ -19,6 +19,15 @@ public:
     QString currentChatId() const;
     void setCurrentChatId(const QString& id);
 
+    QString inputSendHotkey() const;
+    QString inputNewlineHotkey() const;
+    QString inputClearHotkey() const;
+
+    void setInputSendHotkey(const QString &value);
+    void setInputNewlineHotkey(const QString &value);
+    void setInputClearHotkey(const QString &value);
+
+
 private:
     AppSettings(const AppSettings&) = delete;
     AppSettings& operator=(const AppSettings&) = delete;

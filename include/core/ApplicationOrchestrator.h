@@ -22,6 +22,7 @@ class ApplicationOrchestrator : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(ChatOrchestrator* chatOrchestrator READ chatOrchestrator CONSTANT)
+    Q_PROPERTY(SettingsService* settingsService READ settingsService CONSTANT)
 
     Q_PROPERTY(ChatViewModel* chat READ chat CONSTANT)
     Q_PROPERTY(MessageModel* messages READ messages CONSTANT)
@@ -45,6 +46,7 @@ public:
     ModelSelector* modelSelector();
     ProviderSelector* providerSelector();
     ChatOrchestrator* chatOrchestrator();
+    SettingsService* settingsService();
 
 private:
     void rebuildClient();
@@ -61,6 +63,7 @@ private:
     std::unique_ptr<LLMClient> m_llmClient;
 
     std::unique_ptr<ChatRepository> m_chatRepo;
+    std::unique_ptr<MessageRepository> m_messageRepo;
     std::unique_ptr<ProviderRepository> m_providerRepo;
     std::unique_ptr<ModelRepository> m_modelRepo;
 

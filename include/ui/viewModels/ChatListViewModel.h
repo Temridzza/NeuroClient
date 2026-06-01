@@ -6,7 +6,7 @@
 #include <QAbstractListModel>
 #include <QList>
 #include <QVariantMap>
-#include "ChatRepository.h"
+#include <ChatOrchestrator.h>
 
 class ChatListViewModel : public QAbstractListModel {
     Q_OBJECT
@@ -17,7 +17,9 @@ public:
         TitleRole
     };
 
-    explicit ChatListViewModel(ChatRepository* repo, QObject* parent = nullptr);
+    explicit ChatListViewModel(
+        ChatOrchestrator* ChatOrchestrator,
+        QObject* parent = nullptr);
 
     // QAbstractListModel
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -35,7 +37,7 @@ public:
     Q_INVOKABLE QVariantMap get(int index) const;
 
 private:
-    ChatRepository* m_repo = nullptr;
+    ChatOrchestrator* m_chatOrchestrator;
     QList<QVariantMap> m_chats;
 
 signals:

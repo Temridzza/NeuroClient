@@ -48,10 +48,47 @@ Rectangle {
                 topPadding: 0
                 bottomPadding: 0
 
-                Keys.onReturnPressed: function(event) {
-                    if (!(event.modifiers & Qt.ShiftModifier)) {
+                function isHotkey(event, binding) {
+                    if (binding === "Return") {
+                        return (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+                            && !(event.modifiers & Qt.ShiftModifier)
+                    }
+
+                    if (binding === "Shift+Return") {
+                        return (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+                            && (event.modifiers & Qt.ShiftModifier)
+                    }
+
+                    if (binding === "Escape") {
+                        return event.key === Qt.Key_Escape
+                    }
+
+                    return false
+                }
+
+                Keys.onPressed: function(event) {
+
+                    const sendKey = App.settingsService.inputSendHotkey()
+                    const newlineKey = App.settingsService.inputNewlineHotkey()
+                    const clearKey = App.settingsService.inputClearHotkey()
+
+                    // SEND
+                    if (isHotkey(event, sendKey)) {
                         event.accepted = true
                         root.send()
+                        return
+                    }
+
+                    // NEWLINE (разрешаем всегда)
+                    if (isHotkey(event, newlineKey)) {
+                        return
+                    }
+
+                    // CLEAR
+                    if (isHotkey(event, clearKey)) {
+                        inputField.clear()
+                        event.accepted = true
+                        return
                     }
                 }
             }

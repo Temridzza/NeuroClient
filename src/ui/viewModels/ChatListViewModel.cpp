@@ -1,7 +1,12 @@
 #include "ChatListViewModel.h"
 
-ChatListViewModel::ChatListViewModel(ChatRepository* repo, QObject* parent)
-    : QAbstractListModel(parent), m_repo(repo) {
+ChatListViewModel::ChatListViewModel(
+    ChatOrchestrator *chatOrchestrator,
+    QObject* parent
+    )
+    : QAbstractListModel(parent),
+    m_chatOrchestrator(chatOrchestrator)
+{
     refresh();
 }
 
@@ -36,12 +41,12 @@ QHash<int, QByteArray> ChatListViewModel::roleNames() const {
 
 void ChatListViewModel::refresh() {
     beginResetModel();
-    m_chats = m_repo->listChats();
+    m_chats = m_chatOrchestrator->chats();
     endResetModel();
 }
 
 QString ChatListViewModel::createChat(const QString& title) {
-    QString id = m_repo->createChat(title);
+    QString id = m_chatOrchestrator->createChat(title);
     if (!id.isEmpty()) {
         refresh();
     }
@@ -49,13 +54,13 @@ QString ChatListViewModel::createChat(const QString& title) {
 }
 
 void ChatListViewModel::renameChat(const QString& id, const QString& title) {
-    if (m_repo->renameChat(id, title)) {
+    if (m_chatOrchestrator->renameChat(id, title)) {
         refresh();
     }
 }
 
 void ChatListViewModel::deleteChat(const QString& id) {
-    if (m_repo->deleteChat(id)) {
+    if (m_chatOrchestrator->deleteChat(id)) {
         refresh();
     }
 }

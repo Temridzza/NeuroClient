@@ -1,40 +1,49 @@
 import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 
 import "../../../theme"
 import ChatGPT 1.0
 import NeuroClient 1.0
 
 Rectangle {
+    id: root
+
     width: ListView.view.width
     height: 44
     radius: 12
 
     property string chatTitle: title
     property string chatId: id
+    property bool hovered: false
 
-    color: mouse.containsMouse
-           ? Theme.hoverColor
-           : "transparent"
+    color: hovered ? Theme.hoverColor : "transparent"
+
+    signal renameRequested(string chatId, string currentTitle)
+    signal deleteRequested(string chatId)
 
     MouseArea {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-        onClicked: {
-            // console.log("open chat:", chatId, chatTitle)
-            App.chat.loadChat(chatId)
+        onEntered: root.hovered = true
+        onExited: root.hovered = false
+
+        onClicked: function(event) {
+            if (event.button === Qt.LeftButton) {
+                App.chat.loadChat(chatId)
+            } else if (event.button === Qt.RightButton) {
+                contextMenu.popup()
+            }
         }
     }
 
-    Row {
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
+    RowLayout {
+        anchors.fill: parent
         anchors.leftMargin: 12
+        anchors.rightMargin: 8
         spacing: 10
 
         Rectangle {
@@ -42,14 +51,39 @@ Rectangle {
             height: 8
             radius: 4
             color: Theme.accentColor
+            Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
+            Layout.fillWidth: true
             text: chatTitle
             color: Theme.textColor
             font.pixelSize: 14
             elide: Text.ElideRight
-            width: sidebar.width - 40
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        ToolButton {
+            id: moreButton
+            visible: root.hovered
+            text: "⋮"
+            Layout.alignment: Qt.AlignVCenter
+
+            onClicked: contextMenu.popup()
+        }
+    }
+
+    Menu {
+        id: contextMenu
+
+        MenuItem {
+            text: "Переименовать"
+            onTriggered: root.renameRequested(chatId, chatTitle)
+        }
+
+        MenuItem {
+            text: "Удалить"
+            onTriggered: root.deleteRequested(chatId)
         }
     }
 }

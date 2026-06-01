@@ -17,6 +17,20 @@ ListView {
 
     model: App.messages
 
+    maximumFlickVelocity: 12000
+    flickDeceleration: 8000
+
+    WheelHandler {
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+
+        onWheel: function(event) {
+            const factor = 2   // ← скорость прокрутки (главное число)
+
+            chatView.contentY -= event.angleDelta.y * factor
+            event.accepted = true
+        }
+    }
+
     onContentYChanged: scrollTimer.restart()
     onHeightChanged: tickVisibleRange()
     onCountChanged: tickVisibleRange()

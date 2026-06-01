@@ -2,12 +2,14 @@
 #include <QtConcurrent/QtConcurrent>
 
 ChatOrchestrator::ChatOrchestrator(
-    QSqlDatabase db,
+    ChatRepository *chatRepo,
+    MessageRepository *messageRepo,
     LLMClient *client,
     QObject* parent
     )
     : QObject(parent),
-    m_messageRepo(db),
+    m_chatRepo(chatRepo),
+    m_messageRepo(messageRepo),
     m_client(client)
 {
 }
@@ -25,7 +27,7 @@ void ChatOrchestrator::loadChat(
     model->clear();
 
     const QList<Message> messages =
-        m_messageRepo.getMessages(chatId);
+        m_messageRepo->getMessages(chatId);
 
     for (const auto& msg : messages)
     {
@@ -53,7 +55,7 @@ void ChatOrchestrator::sendMessage(
     emit requestStarted(chatId);
 
     // 1) Берём tip ветки из БД, до вставки новых сообщений
-    const QString branchParentId = m_messageRepo.lastMessageId(chatId);
+    const QString branchParentId = m_messageRepo->lastMessageId(chatId);
 
     // 2) Сохраняем user в БД
     Message userMsg;
@@ -62,7 +64,7 @@ void ChatOrchestrator::sendMessage(
     userMsg.content = trimmed;
     userMsg.parentId = branchParentId;
 
-    const QString userId = m_messageRepo.addMessage(userMsg);
+    const QString userId = m_messageRepo->addMessage(userMsg);
     if (userId.isEmpty()) {
         qWarning() << "Failed to insert user message";
         return;
@@ -72,7 +74,7 @@ void ChatOrchestrator::sendMessage(
     model->addMessage(userMsg);
 
     // 3) История для LLM — из БД, уже с user, но ещё без assistant placeholder
-    const QList<Message> history = m_messageRepo.getMessages(chatId);
+    const QList<Message> history = m_messageRepo->getMessages(chatId);
 
     // 4) Создаём assistant placeholder и сразу сохраняем его в БД
     Message assistantMsg;
@@ -82,7 +84,7 @@ void ChatOrchestrator::sendMessage(
     assistantMsg.content.clear();
     assistantMsg.streaming = true;
 
-    const QString assistantId = m_messageRepo.addMessage(assistantMsg);
+    const QString assistantId = m_messageRepo->addMessage(assistantMsg);
     if (assistantId.isEmpty()) {
         qWarning() << "Failed to insert assistant placeholder";
         return;
@@ -115,7 +117,7 @@ void ChatOrchestrator::sendMessage(
                 model->finishStreaming();
 
                 if (!buffer->isEmpty()) {
-                    m_messageRepo.updateMessageContent(assistantId, *buffer);
+                    m_messageRepo->updateMessageContent(assistantId, *buffer);
                 }
 
                 emit requestFinish(chatId);
@@ -133,7 +135,7 @@ void ChatOrchestrator::sendMessage(
                 model->finishStreaming();
 
                 // Можно оставить assistant-row как failed response
-                m_messageRepo.updateMessageContent(
+                m_messageRepo->updateMessageContent(
                     assistantId,
                     QString("[error] %1").arg(err)
                     );
@@ -154,4 +156,31 @@ void ChatOrchestrator::sendMessage(
                       {
                           m_client->ask(history);
                       });
+}
+
+bool ChatOrchestrator::renameChat(
+    const QString& chatId,
+    const QString& title
+    )
+{
+    return m_chatRepo->renameChat(chatId, title);
+}
+
+bool ChatOrchestrator::deleteChat(
+    const QString& chatId
+    )
+{
+    m_chatRepo->deleteChat(chatId);
+}
+
+QString ChatOrchestrator::createChat(
+    const QString& title
+    )
+{
+    return m_chatRepo->createChat(title);
+}
+
+QList<QVariantMap> ChatOrchestrator::chats()
+{
+    return m_chatRepo->listChats();
 }
