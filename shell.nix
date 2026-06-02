@@ -20,6 +20,14 @@ pkgs.mkShell {
     gtest
     lldb
     cmark-gfm
+
+     qt6.qtsvg
+     qt6.qttools
+     qt6.qtimageformats
+     kdePackages.qtmultimedia
+     kdePackages.qtshadertools
+     kdePackages.syntax-highlighting
+     qt6.qtmultimedia
   ];
 
   shellHook = ''

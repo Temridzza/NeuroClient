@@ -34,27 +34,5 @@ cp "$THEME_SRC/Theme.qml" "$THEME_DST/"
 export QT_QML_IMPORT_PATH="$HOME/.local/share/qtqml:${QT_QML_IMPORT_PATH:-}"
 export QML2_IMPORT_PATH="$QT_QML_IMPORT_PATH"
 
-# ── 7. Тестируем, что оба модуля видимы ───────────────────────────────
-#echo "🔎 Проверяем Theme…"
-#if ! qmlscene -I "$QT_QML_IMPORT_PATH" - <<'EOF'
-#import QtQuick 2.0
-#import Theme 1.0
-#Item { width: Theme.bgColor ? 10 : 0 }
-#EOF
-#then
-#    echo "❌ Theme не найден!"
-#    exit 1
-#fi
-
-#if ! qmlscene -I "$QT_QML_IMPORT_PATH" - <<'EOF'
-#import QtQuick 2.0
-#import ChatGPT 1.0
-#Item {}
-#EOF
-#then
-#    echo "❌ ChatGPT не найден!"
-#    exit 1
-#fi
-
 # ── 8. Запускаем приложение ───────────────────────────────────────
-qs -p $HOME/Documents/NeuroClient/shell.qml
+#qs -p $HOME/Documents/NeuroClient/shell.qml
