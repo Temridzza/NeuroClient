@@ -80,6 +80,8 @@ qt_add_qml_module(ChatGPT_QML
         qml/Main.qml
         qml/theme/Theme.qml
 
+        qml/components/StyledMenuItem.qml
+
         qml/settings/SettingsPage.qml
         qml/settings/pages/ProviderPage.qml
         qml/settings/pages/ProviderEditPage.qml

@@ -30,9 +30,9 @@ mkdir -p "$THEME_DST"
 cp "$THEME_SRC/qmldir"   "$THEME_DST/"
 cp "$THEME_SRC/Theme.qml" "$THEME_DST/"
 
-# ── 6. Добавляем путь к пользовательским модулям ───────────────────────
-export QT_QML_IMPORT_PATH="$HOME/.local/share/qtqml:${QT_QML_IMPORT_PATH:-}"
+# ── 6. Добавляем пути к пользовательским модулям ───────────────────────
+export QT_QML_IMPORT_PATH="$HOME/.local/share/qtqml:/etc/nixos/Ambxst:${QT_QML_IMPORT_PATH:-}"
 export QML2_IMPORT_PATH="$QT_QML_IMPORT_PATH"
 
-# ── 8. Запускаем приложение ───────────────────────────────────────
-#qs -p $HOME/Documents/NeuroClient/shell.qml
+# ── 7. Запускаем приложение ───────────────────────────────────────
+#qs -p $HOME/Documents/NeuroClient/qml/Main.qml

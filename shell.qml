@@ -2,7 +2,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import ChatGPT 1.0          // <-- наш модуль
-import NeuroClient 1.0     // <-- singleton (App)
+import "themeBridge" 1.0
 
 Window {
     id: win
@@ -11,8 +11,10 @@ Window {
     visible: true
     title: qsTr("Quickshell + NeuroClient")
 
-    // Подключаем главный UI‑компонент, объявленный в qml/Main.qml
-    Main {               // имя компонента = файл Main.qml
-        anchors.fill: parent
+    Component.onCompleted: {
+        ThemeBridge.init(Qt.application.engine)
+        if (ThemeBridge.theme) {
+            ThemeBridge.theme.parent = win
+        }
     }
 }

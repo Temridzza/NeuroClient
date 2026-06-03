@@ -6,14 +6,15 @@ import QtQuick.Effects
 import ChatGPT 1.0
 import NeuroClient 1.0
 import Theme 1.0
+import qs.modules.theme
 
 Rectangle {
     Layout.fillWidth: true
     Layout.preferredHeight: 42
 
     radius: 12
-    color: Theme.panelColor
-    border.color: Theme.borderColor
+    color: Colors.surfaceContainer
+    border.color: Colors.primary
 
     RowLayout {
         anchors.fill: parent
@@ -24,14 +25,14 @@ Rectangle {
         Text {
             text: "🔍"
             font.pixelSize: 14
-            color: Theme.secondaryText
+            color: Colors.overBackground
         }
 
         TextField {
             Layout.fillWidth: true
 
             placeholderText: "Поиск в чатах"
-            color: Theme.textColor
+            color: Colors.overBackground
             selectedTextColor: "white"
 
             background: Rectangle {

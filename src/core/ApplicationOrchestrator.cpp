@@ -5,7 +5,16 @@
 ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
     : QObject(parent)
 {
-    if (!m_database.init("chat_database.db")) {
+    // Получаем путь к директории для данных приложения
+    QString dbDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir dir(dbDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");  // создаем директорию если нет
+    }
+
+    QString dbPath = dir.filePath("chat_database.db");
+
+    if (!m_database.init(dbPath)) {
         qFatal("DB init failed");
     }
 

@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import Theme 1.0
+import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient 1.0
 
@@ -13,7 +13,7 @@ RowLayout {
 
     Text {
         text: "Чаты"
-        color: Theme.textColor
+        color: Colors.overBackground
         font.pixelSize: 22
         font.bold: true
     }
@@ -21,7 +21,10 @@ RowLayout {
     Item { Layout.fillWidth: true }
 
     ToolButton {
-        text: "✕"
+        Text {
+            text: "✕"
+            color: Colors.overBackground
+        }
         onClicked: root.sidebarOpened = !root.sidebarOpened
     }
 }

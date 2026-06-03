@@ -4,6 +4,8 @@
 #pragma once
 
 #include <QObject>
+#include <QStandardPaths>
+#include <QDir>
 
 #include "ChatViewModel.h"
 #include "ChatListViewModel.h"

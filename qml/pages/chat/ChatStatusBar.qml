@@ -3,12 +3,12 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import Theme 1.0
+import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient
 
 Text {
     text: "Assistant is typing..."
-    color: Theme.secondaryText
+    color: Colors.primary
     font.pixelSize: 13
 }

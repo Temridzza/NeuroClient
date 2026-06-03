@@ -3,34 +3,36 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import Theme 1.0
 import ChatGPT 1.0
 import NeuroClient
+import qs.modules.theme
+import "../../components"
 
 ListView {
     id: chatView
-
     property bool sidebarAnimating: false
 
     spacing: 12
     clip: true
-
     model: App.messages
-
     maximumFlickVelocity: 12000
     flickDeceleration: 8000
 
+    // --------------------------------------------------------------
+    //  Прокрутка мышью / тачпадом (скорость можно менять)
+    // --------------------------------------------------------------
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-
-        onWheel: function(event) {
-            const factor = 2   // ← скорость прокрутки (главное число)
-
+        onWheel: {
+            const factor = 2               // <-- скорость прокрутки
             chatView.contentY -= event.angleDelta.y * factor
             event.accepted = true
         }
     }
 
+    // --------------------------------------------------------------
+    //  Таймеры и вспомогательные функции
+    // --------------------------------------------------------------
     onContentYChanged: scrollTimer.restart()
     onHeightChanged: tickVisibleRange()
     onCountChanged: tickVisibleRange()
@@ -44,103 +46,102 @@ ListView {
 
     function tickVisibleRange() {
         var first = indexAt(10, contentY)
-        var last = indexAt(10, contentY + height)
+        var last  = indexAt(10, contentY + height)
 
         if (first < 0) first = 0
-        if (last < 0) last = count - 1
+        if (last  < 0) last  = count - 1
 
-        for (var i = first; i <= last; i++) {
+        for (var i = first; i <= last; ++i)
             App.messages.ensureRendered(i)
-        }
     }
 
     Component.onCompleted: tickVisibleRange()
 
+    // --------------------------------------------------------------
+    //  Делегат сообщения
+    // --------------------------------------------------------------
     delegate: Item {
         id: row
-
         width: chatView.width
         implicitHeight: bubble.implicitHeight + 8
-
         readonly property bool isUser: role === "user"
 
         Rectangle {
             id: bubble
-
             property int pad: 14
             property int maxBubbleWidth: Math.round(chatView.width * 0.82)
             property bool hovered: false
 
+            // Позиционирование «речевого пузыря» слева/справа
             anchors {
                 top: parent.top
                 right: isUser ? parent.right : undefined
-                left: !isUser ? parent.left : undefined
+                left:  !isUser ? parent.left  : undefined
                 rightMargin: isUser ? 10 : 0
-                leftMargin: !isUser ? 10 : 0
+                leftMargin:  !isUser ? 10 : 0
             }
 
+            // Размеры
             width: Math.min(
-                maxBubbleWidth,
-                Math.max(120, metrics.boundingRect.width + pad * 2)
-            )
-
+                       maxBubbleWidth,
+                       Math.max(120, metrics.boundingRect.width + pad * 2)
+                   )
             implicitHeight: textItem.implicitHeight + pad * 2
-
             radius: 18
-            color: isUser ? Theme.accentColor : Theme.panelColor
-            border.color: Theme.borderColor
+
+            color: isUser ? Colors.primary : Colors.inverseOnSurface
+            // граница – нейтральный «outline», а не Theme.borderColor
+            border.color: isUser ? Colors.overBackground : Colors.primary
 
             HoverHandler {
                 onHoveredChanged: bubble.hovered = hovered
             }
 
+            // Кнопка‑контекст‑меню (правый клик)
             TapHandler {
                 acceptedButtons: Qt.RightButton
                 onTapped: contextMenu.popup()
             }
 
-            // ======================
-            // COPY BUTTON
-            // ======================
+            // ------------------------------------------------------
+            //  Кнопка копирования (правый‑верхний угол)
+            // ------------------------------------------------------
             ToolButton {
                 id: copyButton
-
-                width: 28
-                height: 28
-
+                width: 28; height: 28
                 anchors {
                     right: parent.right
                     top: parent.top
                     margins: 6
                 }
-
                 visible: bubble.hovered || textItem.selectedText.length > 0
                 opacity: visible ? 1.0 : 0.0
-                scale: visible ? 1.0 : 0.9
+                scale:   visible ? 1.0 : 0.9
 
                 Behavior on opacity { NumberAnimation { duration: 120 } }
                 Behavior on scale   { NumberAnimation { duration: 120 } }
 
                 background: Rectangle {
                     radius: 14
-                    color: Qt.rgba(1, 1, 1, 0.08)
+                    color: Qt.rgba(Colors.surfaceVariant.r,
+                                   Colors.surfaceVariant.g,
+                                   Colors.surfaceVariant.b, 0.08)
                 }
 
                 Text {
                     text: Theme.iconCopy
                     font.pixelSize: 25
+                    color: Colors.onPrimary
                 }
 
-                // ✅ MAIN CHANGE HERE
                 onClicked: App.messages.copyAt(index, MessageModel.RawMarkdown)
             }
 
-            // ======================
-            // TEXT
-            // ======================
+            // ------------------------------------------------------
+            //  Текст сообщения
+            // ------------------------------------------------------
             TextEdit {
                 id: textItem
-
                 anchors.fill: parent
                 anchors.margins: bubble.pad
 
@@ -154,50 +155,58 @@ ListView {
                 wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
                 renderType: Text.NativeRendering
 
-                color: Theme.textColor
+                color: isUser
+                           ? Colors.background
+                           : Colors.overSurface
                 font.pixelSize: 15
 
-                selectionColor: Theme.selectionColor
-                selectedTextColor: Theme.textColor
+
+                selectionColor: Qt.rgba(Colors.surfaceTint.r,
+                                        Colors.surfaceTint.g,
+                                        Colors.surfaceTint.b, 0.2)
+                selectedTextColor: Colors.overSurface
 
                 onLinkActivated: Qt.openUrlExternally(link)
             }
 
-            // ======================
-            // CONTEXT MENU
-            // ======================
+            // ------------------------------------------------------
+            //  Контекстное меню
+            // ------------------------------------------------------
             Menu {
                 id: contextMenu
 
-                MenuItem {
-                    text: "Копировать"
+                StyledMenuItem {
+                    text: qsTr("Копировать")
                     onTriggered: App.messages.copyAt(index, App.RawMarkdown)
                 }
 
-                MenuItem {
-                    text: "Копировать как текст"
+                StyledMenuItem {
+                    text: qsTr("Копировать как текст")
                     onTriggered: App.messages.copyAt(index, App.PlainText)
                 }
 
-                MenuItem {
-                    text: "Копировать как видно"
+                StyledMenuItem {
+                    text: qsTr("Копировать как видно")
                     onTriggered: App.messages.copyAt(index, App.VisibleText)
                 }
 
                 MenuSeparator {}
 
-                MenuItem {
-                    text: "Копировать выделенное"
+                StyledMenuItem {
+                    text: qsTr("Копировать выделенное")
                     enabled: textItem.selectedText.length > 0
                     onTriggered: App.messages.copyAt(index, App.PlainText)
                 }
 
-                MenuItem {
-                    text: "Выделить всё"
+                StyledMenuItem {
+                    text: qsTr("Выделить всё")
                     onTriggered: textItem.selectAll()
                 }
             }
 
+            // ------------------------------------------------------
+            //  Помощник измерения ширины текста (не меняем)
+            // ------------------------------------------------------
             TextMetrics {
                 id: metrics
                 font: textItem.font
@@ -206,10 +215,16 @@ ListView {
         }
     }
 
+    // --------------------------------------------------------------
+    //  Скролл‑бар
+    // --------------------------------------------------------------
     ScrollBar.vertical: ScrollBar {
         policy: ScrollBar.AsNeeded
     }
 
+    // --------------------------------------------------------------
+    //  Синхронизация с изменениями в модели
+    // --------------------------------------------------------------
     Connections {
         target: App.messages
         function onRowsInserted() {
@@ -217,7 +232,6 @@ ListView {
             chatView.tickVisibleRange()
         }
     }
-
     Connections {
         target: App.chat
         function onMessagesChanged() {
@@ -225,7 +239,6 @@ ListView {
             chatView.tickVisibleRange()
         }
     }
-
     Connections {
         target: App.chatOrchestrator
         function onChatLoadingFinished(chatId) {

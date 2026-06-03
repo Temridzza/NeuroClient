@@ -1,135 +1,95 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-
-#include "QmlModule.h"
-
-#include <QDateTime>
-#include <QDir>
-#include <QFile>
-#include <QFileSystemWatcher>
-#include <QLockFile>
 #include <QQmlContext>
+#include <QDebug>
+#include <QLoggingCategory>
 
-#include "DatabaseManager.h"
-#include "ChatRepository.h"
-#include "ChatListViewModel.h"
-#include "ModelsModel.h"
-#include "ChatOrchestrator.h"
-#include "ApplicationOrchestrator.h"
+int main(int argc, char *argv[])
+{
+    // Включаем все возможные логи Qt/QML
+    qSetMessagePattern(
+        "[%{time hh:mm:ss.zzz}] "
+        "%{if-debug}DEBUG%{endif}"
+        "%{if-info}INFO%{endif}"
+        "%{if-warning}WARNING%{endif}"
+        "%{if-critical}CRITICAL%{endif}"
+        "%{if-fatal}FATAL%{endif}"
+        " %{category}: %{message}"
+        );
 
-void messageHandler(
-    QtMsgType type,
-    const QMessageLogContext &context,
-    const QString &msg
-    ) {
-    QString level;
+    QLoggingCategory::setFilterRules(QStringLiteral(
+        "*.debug=true\n"
+        "qt.qml.debug=true\n"
+        "qt.qml.binding.removal.info=true\n"
+        "qt.qml.connections=true\n"
+        "qt.qml.gc=true\n"
+        "qt.qml.imports=true\n"
+        "qt.qml.loading=true\n"
+        "qt.qml.memory=true\n"
+        "qt.qml.objectcreation=true\n"
+        "qt.qml.translation=true\n"
+        "qt.quick.*=true\n"
+        "qt.scenegraph.*=true\n"
+        "qt.qpa.*=true\n"
+        ));
 
-    switch (type) {
-    case QtDebugMsg:
-        level = "DEBUG";
-        break;
-
-    case QtInfoMsg:
-        level = "INFO";
-        break;
-
-    case QtWarningMsg:
-        level = "WARNING";
-        break;
-
-    case QtCriticalMsg:
-        level = "CRITICAL";
-        break;
-
-    case QtFatalMsg:
-        level = "FATAL";
-        break;
-    }
-
-    QString output = QString("[%1] [%2] %3")
-                         .arg(
-                             QDateTime::currentDateTime()
-                                 .toString("hh:mm:ss")
-                             )
-                         .arg(level)
-                         .arg(msg);
-
-    if (context.file) {
-        output += QString("\n -> %1:%2")
-        .arg(context.file)
-            .arg(context.line);
-    }
-
-    fprintf(stderr, "%s\n",
-            output.toLocal8Bit().constData());
-
-    fflush(stderr);
-
-    if (type == QtFatalMsg) {
-        abort();
-    }
-}
-
-int main(int argc, char *argv[]) {
-
-    qInstallMessageHandler(messageHandler);
+    qputenv("QML_IMPORT_TRACE", "1");
+    qputenv("QML_DISABLE_DISK_CACHE", "1");
 
     QGuiApplication app(argc, argv);
 
-    QString lockFilePath =
-        QDir::temp().absoluteFilePath("myapp.lock");
-
-    QLockFile lockFile(lockFilePath);
-
-    if (!lockFile.tryLock(100)) {
-        QFile msgFile(QDir::temp().absoluteFilePath("myapp.msg"));
-
-        msgFile.open(QIODevice::WriteOnly);
-        msgFile.write("raise");
-        msgFile.close();
-
-        return 0;
-    }
-
     QQmlApplicationEngine engine;
 
-    // DB
-    // auto& db = DatabaseManager::instance().db();
+    qDebug() << "Import paths BEFORE:";
+    for (const auto &path : engine.importPathList())
+        qDebug() << " " << path;
 
-    // CHAT
-    // auto orchestrator = new ChatOrchestrator();
-    // auto chatVM = new ChatViewModel(orchestrator);
+    engine.addImportPath("/etc/nixos/Ambxst/modules");
+    engine.addImportPath("/home/temridzza/Documents/NeuroClient/qml");
 
-    // auto* chatRepo = new ChatRepository(db);
-    // auto* chatModel = new ChatListViewModel(chatRepo);
-    // auto* providerVM = new ProviderModel(db);
-    // auto* modelsVM = new ModelsModel(db);
-    auto* appOrchestrator = new ApplicationOrchestrator();
-    appOrchestrator->init();
+    qDebug() << "Import paths AFTER:";
+    for (const auto &path : engine.importPathList())
+        qDebug() << " " << path;
 
-    // REGISTRATION
-    registerQmlTypes(appOrchestrator);
-
-    // ================================
+    const QUrl url(QStringLiteral(
+        "file:///home/temridzza/Documents/NeuroClient/shell.qml"));
 
     QObject::connect(
         &engine,
-        &QQmlApplicationEngine::objectCreationFailed,
+        &QQmlApplicationEngine::warnings,
+        [](const QList<QQmlError> &warnings) {
+            qCritical() << "========== QML WARNINGS ==========";
+            for (const auto &warning : warnings)
+                qCritical().noquote() << warning.toString();
+            qCritical() << "==================================";
+        });
+
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreated,
         &app,
-        []() {
-            qCritical() << "QML object creation failed";
-            QCoreApplication::exit(-1);
+        [url](QObject *obj, const QUrl &objUrl) {
+            qDebug() << "objectCreated:" << objUrl;
+
+            if (!obj && objUrl == url) {
+                qCritical() << "Failed to load root QML object!";
+                QCoreApplication::exit(-1);
+            }
+
+            if (obj)
+                qDebug() << "Root object created:" << obj;
         },
-        Qt::QueuedConnection
-        );
+        Qt::QueuedConnection);
 
-    engine.addImportPath("qrc:/");
-    engine.loadFromModule("ChatGPT", "Main");
+    qDebug() << "Loading:" << url;
 
-    if (engine.rootObjects().isEmpty()) {
-        qCritical() << "Root objects are empty";
-        return -1;
-    }
+    engine.load(url);
+
+    qDebug() << "Root objects count:"
+             << engine.rootObjects().size();
+
+    for (QObject *obj : engine.rootObjects())
+        qDebug() << "Root object:" << obj;
 
     return app.exec();
 }

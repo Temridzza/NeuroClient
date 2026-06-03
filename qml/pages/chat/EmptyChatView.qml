@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import Theme 1.0
+import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient
 
@@ -20,7 +20,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
 
             text: "Чем могу помочь?"
-            color: Theme.textColor
+            color: Colors.overBackground
 
             font.pixelSize: 32
             font.bold: true

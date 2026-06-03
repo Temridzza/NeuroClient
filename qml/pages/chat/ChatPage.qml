@@ -7,6 +7,7 @@ import Theme 1.0
 import "../chat/chatsSideBar"
 import ChatGPT 1.0
 import NeuroClient
+import qs.modules.theme
 
 Rectangle {
     id: root
@@ -17,16 +18,17 @@ Rectangle {
     signal requestSettings()
 
     radius: 24
-    color: Theme.chatBgColor
-    border.color: Theme.borderColor
+    color: Colors.surfaceContainer
+    border.width: 0
+    border.color: "transparent"
 
-    // ChatsSideBar {
-    //     id: sidebar
+    ChatsSideBar {
+        id: sidebar
 
-    //     onAnimationStateChanged: function(animating) {
-    //         root.sidebarAnimating = animating
-    //     }
-    // }
+        onAnimationStateChanged: function(animating) {
+            root.sidebarAnimating = animating
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent

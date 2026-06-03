@@ -5,7 +5,7 @@ import QtQuick.Effects
 
 import ChatGPT 1.0
 import NeuroClient 1.0
-import Theme 1.0
+import qs.modules.theme
 
 Rectangle {
     id: sidebar
@@ -13,7 +13,7 @@ Rectangle {
 
     property bool animating: false
 
-    color: Theme.bgColor
+    color: Colors.surfaceContainer
     radius: 22
 
     width: root.sidebarOpened ? 320 : 0

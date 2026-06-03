@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 
-import Theme 1.0
+import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient 1.0
 
@@ -12,7 +12,7 @@ Rectangle {
     Layout.preferredHeight: 48
 
     radius: 14
-    color: Theme.accentColor
+    color: Colors.primary
 
     MouseArea {
         anchors.fill: parent
@@ -33,14 +33,14 @@ Rectangle {
 
         Text {
             text: "+"
-            color: Theme.textColor
+            color: Colors.overBackground
             font.pixelSize: 20
             font.bold: true
         }
 
         Text {
             text: "Новый чат"
-            color: Theme.textColor
+            color: Colors.overBackground
             font.pixelSize: 15
             font.bold: true
         }

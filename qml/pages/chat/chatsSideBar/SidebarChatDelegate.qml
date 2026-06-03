@@ -1,43 +1,36 @@
 import QtQuick 2.15
-import QtQuick.Controls
+import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
-import Theme 1.0
+import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient 1.0
 
 Rectangle {
     id: root
 
-    width: ListView.view.width
+    width: ListView.view ? ListView.view.width : implicitWidth
     height: 44
     radius: 12
 
     property string chatTitle: title
     property string chatId: id
-    property bool hovered: false
 
-    color: hovered ? Theme.hoverColor : "transparent"
+    // hover у всей строки + hover у кнопки + открытое меню
+    property bool hovered: rowMouse.containsMouse || moreButton.hovered || contextMenu.visible
+
+    color: hovered ? Colors.primary : Colors.surfaceContainer
 
     signal renameRequested(string chatId, string currentTitle)
     signal deleteRequested(string chatId)
 
     MouseArea {
-        id: mouse
+        id: rowMouse
         anchors.fill: parent
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton
 
-        onEntered: root.hovered = true
-        onExited: root.hovered = false
-
-        onClicked: function(event) {
-            if (event.button === Qt.LeftButton) {
-                App.chat.loadChat(chatId)
-            } else if (event.button === Qt.RightButton) {
-                contextMenu.popup()
-            }
-        }
+        onClicked: App.chat.loadChat(chatId)
     }
 
     RowLayout {
@@ -50,14 +43,14 @@ Rectangle {
             width: 8
             height: 8
             radius: 4
-            color: Theme.accentColor
+            color: Colors.overBackground
             Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
             Layout.fillWidth: true
             text: chatTitle
-            color: Theme.textColor
+            color: hovered ? Colors.background : Colors.overBackground
             font.pixelSize: 14
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
@@ -66,8 +59,26 @@ Rectangle {
         ToolButton {
             id: moreButton
             visible: root.hovered
-            text: "⋮"
+            hoverEnabled: true
+            padding: 0
             Layout.alignment: Qt.AlignVCenter
+
+            contentItem: Text {
+                text: "⋮"
+                color: Colors.overBackground
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 18
+            }
+
+            background: Rectangle {
+                anchors.fill: parent
+                anchors.margins: -10
+
+                radius: 13
+
+                color: moreButton.hovered ? Colors.background : "transparent"
+            }
 
             onClicked: contextMenu.popup()
         }
@@ -77,12 +88,26 @@ Rectangle {
         id: contextMenu
 
         MenuItem {
-            text: "Переименовать"
+            id: renameItem
+
+            contentItem: Text {
+                text: "Переименовать"
+                color: renameItem.hovered ? Colors.background : Colors.overBackground
+                verticalAlignment: Text.AlignVCenter
+            }
+
             onTriggered: root.renameRequested(chatId, chatTitle)
         }
 
         MenuItem {
-            text: "Удалить"
+            id: deleteItem
+
+            contentItem: Text {
+                text: "Удалить"
+                color: deleteItem.hovered ? Colors.background : Colors.overBackground
+                verticalAlignment: Text.AlignVCenter
+            }
+
             onTriggered: root.deleteRequested(chatId)
         }
     }
