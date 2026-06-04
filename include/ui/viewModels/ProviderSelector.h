@@ -5,9 +5,8 @@
 
 #include <QObject>
 #include <QVariantList>
-#include <QDebug>
-
 #include "ProviderService.h"
+#include "Provider.h"
 
 class ProviderSelector : public QObject {
     Q_OBJECT
@@ -20,33 +19,31 @@ class ProviderSelector : public QObject {
                    READ currentProvider
                        WRITE setCurrentProvider
                            NOTIFY currentProviderChanged)
+
     Q_PROPERTY(int currentProviderIndex
                    READ currentProviderIndex
                        NOTIFY currentProviderChanged)
 
 public:
-    explicit ProviderSelector(
-        ProviderService* service,
-        QObject *parent = nullptr
-        );
+    explicit ProviderSelector(ProviderService* service,
+                              QObject *parent = nullptr);
 
     QVariantList providers() const;
     QString currentProvider() const;
 
     void setCurrentProvider(const QString &provider);
     QString currentProviderDisplayName() const;
-
     int currentProviderIndex() const;
 
 signals:
     void providersChanged();
-    void currentProviderChanged();
+    void currentProviderChanged(const QString &provider);
 
 private:
-    QVariantList m_providers;
+    QList<Provider> m_providerList;  // внутреннее хранение
     QString m_currentProvider;
 
-    ProviderService* m_service;
+    ProviderService* m_service = nullptr;
 
     void reload();
 };

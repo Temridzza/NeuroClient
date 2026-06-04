@@ -9,12 +9,12 @@ ModelService::ModelService(
 {
 }
 
-QList<QVariantMap> ModelService::models() const
+QList<Model> ModelService::models() const
 {
     return m_repo->listModels();
 }
 
-QList<QVariantMap> ModelService::modelsByProvider(const QString& providerId) const
+QList<Model> ModelService::modelsByProvider(const QString& providerId) const
 {
     return m_repo->listModelsByProvider(providerId);
 }
@@ -24,13 +24,9 @@ QString ModelService::currentModelId() const
     return m_settings->currentModelId();
 }
 
-QVariantMap ModelService::currentModel() const
+Model ModelService::currentModel(const QString modelId) const
 {
-    const QString id = m_settings->currentModelId();
-    if (id.isEmpty())
-        return {};
-
-    return m_repo->getModel(id);
+    return m_repo->getModel(modelId);
 }
 
 void ModelService::setCurrentModel(const QString& modelId)
@@ -48,12 +44,26 @@ QString ModelService::defaultModelForProvider(const QString& providerId) const
     if (models.isEmpty())
         return {};
 
-    return models.first().value("id").toString();
+    return models.first().id;
 }
 
-QString ModelService::currentModelKey() const
+QString ModelService::currentModelKey(const QString modelId) const
 {
-    const auto model = currentModel();
+    const auto model = currentModel(modelId);
 
-    return model.value("model_key").toString();
+    return model.modelKey;
+}
+
+bool ModelService::updateModel(const Model& model)
+{
+    return m_repo->updateModel(model);
+}
+QString ModelService::createModel(const Model& model)
+{
+    return m_repo->createModel(model);
+}
+
+bool ModelService::deleteModel(const QString &id)
+{
+    return m_repo->deleteModel(id);
 }

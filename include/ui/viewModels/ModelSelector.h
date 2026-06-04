@@ -25,21 +25,22 @@ public:
         QObject *parent = nullptr
         );
 
+    // Для QML
     QVariantList models();
     QString currentModel() const;
 
+    // Логика
     void setCurrentModel(const QString &model);
-    void setState(const QVariantList& models,
-                  const QString& current);
+    void setState(const QList<Model> &models, const QString &current);
     int currentModelIndex() const;
 
 
 signals:
     void modelsChanged();
-    void currentModelChanged();
+    void currentModelChanged(const QString &model);
 
 private:
-    QVariantList m_models;
+    QList<Model> m_modelList;
     QString m_currentModel;
 
     ModelService* m_service;

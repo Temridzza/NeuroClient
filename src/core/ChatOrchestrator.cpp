@@ -2,14 +2,20 @@
 #include <QtConcurrent/QtConcurrent>
 
 ChatOrchestrator::ChatOrchestrator(
-    ChatRepository *chatRepo,
-    MessageRepository *messageRepo,
+    ChatService *chat,
+    MessageService *message,
+    ChatContextService *chatContextService,
+
+    PromptBuilder *builder,
     LLMClient *client,
     QObject* parent
     )
     : QObject(parent),
-    m_chatRepo(chatRepo),
-    m_messageRepo(messageRepo),
+    m_chatService(chat),
+    m_messageService(message),
+    m_chatContextService(chatContextService),
+
+    m_promptBuilder(builder),
     m_client(client)
 {
 }
@@ -27,7 +33,7 @@ void ChatOrchestrator::loadChat(
     model->clear();
 
     const QList<Message> messages =
-        m_messageRepo->getMessages(chatId);
+        m_messageService->getMessages(chatId);
 
     for (const auto& msg : messages)
     {
@@ -46,18 +52,9 @@ QString ChatOrchestrator::sendMessage(
 {
     Q_UNUSED(uiContext)
 
-    QString effectiveChatId = chatId;
+    QString effectiveChatId =
+        m_chatContextService->resolveChatId(chatId, text);
 
-    if (effectiveChatId.isEmpty()) {
-        effectiveChatId = m_chatRepo->createChat(
-            text.left(50)
-            );
-
-        if (effectiveChatId.isEmpty()) {
-            qWarning() << "Failed to create chat";
-            return {};
-        }
-    }
 
     if (!model || !m_client)
         return {};
@@ -67,17 +64,17 @@ QString ChatOrchestrator::sendMessage(
         return {};
     emit requestStarted(effectiveChatId);
 
-    // 1) Берём tip ветки из БД, до вставки новых сообщений
-    const QString branchParentId = m_messageRepo->lastMessageId(effectiveChatId);
+    // Берём tip ветки из БД, до вставки новых сообщений
+    const QString branchParentId = m_messageService->lastMessageId(effectiveChatId);
 
-    // 2) Сохраняем user в БД
+    // Сохраняем user в БД
     Message userMsg;
     userMsg.chatId = effectiveChatId;
     userMsg.role = "user";
     userMsg.content = trimmed;
     userMsg.parentId = branchParentId;
 
-    const QString userId = m_messageRepo->addMessage(userMsg);
+    const QString userId = m_messageService->addMessage(userMsg);
     if (userId.isEmpty()) {
         qWarning() << "Failed to insert user message";
         return {};
@@ -88,10 +85,7 @@ QString ChatOrchestrator::sendMessage(
     model->appendStream(trimmed);
     model->finishStreaming();
 
-    // 3) История для LLM — из БД, уже с user, но ещё без assistant placeholder
-    const QList<Message> history = m_messageRepo->getMessages(effectiveChatId);
-
-    // 4) Создаём assistant placeholder и сразу сохраняем его в БД
+    // Создаём assistant placeholder и сразу сохраняем его в БД
     Message assistantMsg;
     assistantMsg.chatId = effectiveChatId;
     assistantMsg.role = "assistant";
@@ -99,7 +93,7 @@ QString ChatOrchestrator::sendMessage(
     assistantMsg.content.clear();
     assistantMsg.streaming = true;
 
-    const QString assistantId = m_messageRepo->addMessage(assistantMsg);
+    const QString assistantId = m_messageService->addMessage(assistantMsg);
     if (assistantId.isEmpty()) {
         qWarning() << "Failed to insert assistant placeholder";
         return {};
@@ -132,7 +126,7 @@ QString ChatOrchestrator::sendMessage(
                 model->finishStreaming();
 
                 if (!buffer->isEmpty()) {
-                    m_messageRepo->updateMessageContent(assistantId, *buffer);
+                    m_messageService->updateMessageContent(assistantId, *buffer);
                 }
 
                 emit requestFinish(effectiveChatId);
@@ -149,8 +143,7 @@ QString ChatOrchestrator::sendMessage(
             {
                 model->finishStreaming();
 
-                // Можно оставить assistant-row как failed response
-                m_messageRepo->updateMessageContent(
+                m_messageService->updateMessageContent(
                     assistantId,
                     QString("[error] %1").arg(err)
                     );
@@ -167,10 +160,19 @@ QString ChatOrchestrator::sendMessage(
             );
     };
 
-    QtConcurrent::run([this, history]()
-                      {
-                          m_client->ask(history);
-                      });
+    QtConcurrent::run([this, effectiveChatId, text, model, userId, assistantId]()
+      {
+        PromptContext ctx =
+            m_chatContextService->buildPromptContext(
+                effectiveChatId,
+                text
+                );
+
+        QList<Message> messages =
+            m_promptBuilder->build(ctx);
+
+        m_client->ask(messages);
+      });
 
     return effectiveChatId;
 }
@@ -180,24 +182,17 @@ bool ChatOrchestrator::renameChat(
     const QString& title
     )
 {
-    return m_chatRepo->renameChat(chatId, title);
+    return m_chatService->renameChat(chatId, title);
 }
 
 bool ChatOrchestrator::deleteChat(
     const QString& chatId
     )
 {
-    m_chatRepo->deleteChat(chatId);
+    m_chatService->deleteChat(chatId);
 }
 
-QString ChatOrchestrator::createChat(
-    const QString& title
-    )
+QList<Chat> ChatOrchestrator::chats()
 {
-    return m_chatRepo->createChat(title);
-}
-
-QList<QVariantMap> ChatOrchestrator::chats()
-{
-    return m_chatRepo->listChats();
+    return m_chatService->listChats();
 }

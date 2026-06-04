@@ -20,11 +20,8 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
 
     m_appSettings = std::make_unique<AppSettings>();
 
-    m_settingsService =
-        std::make_unique<SettingsService>(
-            m_appSettings.get()
-            );
 
+    //---------- Repository ---------
     m_chatRepo =
         std::make_unique<ChatRepository>(
             m_database.db()
@@ -44,19 +41,45 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_database.db()
             );
 
-    m_modelService =
-        std::make_unique<ModelService>(
-            m_modelRepo.get(),
-            m_settingsService.get()
+    //---------- Services ---------
+    m_settingsService =
+        std::make_unique<SettingsService>(
+            m_appSettings.get()
             );
-    m_modelSelector =
-        std::make_unique<ModelSelector>();
+    m_chatService =
+        std::make_unique<ChatService>(
+            m_chatRepo.get()
+            );
 
     m_providerService =
         std::make_unique<ProviderService>(
             m_providerRepo.get(),
             m_settingsService.get()
             );
+    m_modelService =
+        std::make_unique<ModelService>(
+            m_modelRepo.get(),
+            m_settingsService.get()
+            );
+    m_messageService =
+        std::make_unique<MessageService>(
+            m_messageRepo.get(),
+            m_settingsService.get()
+            );
+    m_chatContextService =
+        std::make_unique<ChatContextService>(
+            m_chatService.get(),
+            m_modelService.get(),
+            m_providerService.get(),
+            m_messageService.get(),
+            m_settingsService.get()
+            );
+
+    //---------- Selectors ---------
+    m_modelSelector =
+        std::make_unique<ModelSelector>();
+
+
     m_providerSelector =
         std::make_unique<ProviderSelector>(
             m_providerService.get()
@@ -64,19 +87,39 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
 
     m_llmClient = std::make_unique<LLMClient>(
         LLMConfig{
-            .apiKey = m_providerService->currentApiKey(),
-            .model = m_modelService->currentModelKey(),
-            .baseUrl = m_providerService->currentBaseUrl()
+            .apiKey = m_providerService->currentApiKey(
+                m_chatService->getChat(
+                                 m_settingsService->currentChatId()
+                                 ).providerId
+                ),
+            .model = m_modelService->currentModelKey(
+                m_chatService->getChat(
+                        m_settingsService->currentChatId()
+                    ).modelId
+                ),
+            .baseUrl = m_providerService->currentBaseUrl(
+                m_chatService->getChat(
+                                 m_settingsService->currentChatId()
+                                 ).providerId
+                )
         }
         );
 
+    m_promptBuilder =
+        std::make_unique<PromptBuilder>();
+
+
+
     m_orchestrator =
         std::make_unique<ChatOrchestrator>(
-            m_chatRepo.get(),
-            m_messageRepo.get(),
+            m_chatService.get(),
+            m_messageService.get(),
+            m_chatContextService.get(),
+            m_promptBuilder.get(),
             m_llmClient.get()
             );
 
+    //---------- View Models ---------
     m_messagesVM =
         std::make_unique<MessageModel>();
 
@@ -94,53 +137,87 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
 
     m_providerVM =
         std::make_unique<ProviderModel>(
-            m_providerRepo.get()
+            m_providerService.get()
             );
 
     m_modelsVM =
         std::make_unique<ModelsModel>(
-            m_modelRepo.get()
+            m_modelService.get()
             );
 
-    connect(
-        m_settingsService.get(),
-        &SettingsService::currentModelIdChanged,
-        this,
-        [this](const QString&)
-        {
-            auto modelKey = m_modelService->currentModelKey();
-            m_llmClient->setModel(modelKey);
-        }
-        );
-    connect(
-        m_settingsService.get(),
-        &SettingsService::currentProviderIdChanged,
-        this,
-        [this](const QString&)
-        {
-            auto providerId = m_settingsService->currentProviderId();
-            auto models = m_modelService->modelsByProvider(providerId);
+    // connect(
+    //     m_settingsService.get(),
+    //     &SettingsService::currentModelIdChanged,
+    //     this,
+    //     [this](const QString&)
+    //     {
+    //         auto modelKey = m_modelService->currentModelKey();
+    //         m_llmClient->setModel(modelKey);
+    //     }
+    //     );
+    // connect(
+    //     m_settingsService.get(),
+    //     &SettingsService::currentProviderIdChanged,
+    //     this,
+    //     [this](const QString&)
+    //     {
+    //         auto providerId = m_settingsService->currentProviderId();
+    //         auto models = m_modelService->modelsByProvider(providerId);
 
-            m_modelSelector->setState(
-                buildModelList(models),
-                m_modelService->currentModelId()
-                );
+    //         m_modelSelector->setState(
+    //             buildModelList(models),
+    //             m_modelService->currentModelId()
+    //             );
 
-            rebuildClient();
-        }
-    );
+    //         rebuildClient();
+    //     }
+    // );
 
-    connect(
-        m_modelSelector.get(),
-        &ModelSelector::currentModelChanged,
-        this,
-        [this]()
-        {
-            m_modelService->setCurrentModel(
-                m_modelSelector->currentModel()
-                );
-        }
-    );
+    // connect(
+    //     m_modelSelector.get(),
+    //     &ModelSelector::currentModelChanged,
+    //     this,
+    //     [this](const QString &model)
+    //     {
+    //         const auto chatId = m_settingsService->currentChatId();
+    //         Chat chat = m_chatService->getChat(chatId);
+    //         chat.modelId = model;
+    //         m_chatService->updateChat(chat);
+
+
+    //         auto providerId = m_settingsService->currentProviderId();
+    //         QList<Model> models = m_modelService->modelsByProvider(providerId);
+
+    //         m_modelSelector->setState(
+    //             buildModelList(models),
+    //             m_modelService->currentModelId()
+    //             );
+
+    //         rebuildClient();
+    //     }
+    // );
+
+
+    // connect(
+    //     m_providerSelector.get(),
+    //     &ProviderSelector::currentProviderChanged,
+    //     this,
+    //     [this](const QString &provider)
+    //     {
+    //         const auto chatId = m_settingsService->currentChatId();
+    //         Chat chat = m_chatService->getChat(chatId);
+    //         chat.providerId = provider;
+
+    //         auto models = m_modelService->modelsByProvider(chat.providerId);
+    //         auto modelId = m_modelService->defaultModelForProvider(chat.providerId);
+
+    //         chat.modelId = modelId;
+
+    //         m_modelSelector->setState(models, modelId);
+    //         m_chatService->updateChat(chat);
+    //     }
+    // );
+
 
     connect(
         m_orchestrator.get(),
@@ -181,14 +258,14 @@ void ApplicationOrchestrator::init() {
     m_chatVM->loadChat(chatId);
 }
 
-QVariantList ApplicationOrchestrator::buildModelList(const QList<QVariantMap>& models) const {
+QList<Model> ApplicationOrchestrator::buildModelList(const QList<Model>& models) const {
 
-    QVariantList list;
+    QList<Model> list;
 
     for (const auto& m : models) {
-        QVariantMap item;
-        item["id"] = m.value("id").toString();
-        item["display_name"] = m.value("display_name").toString();
+        Model item;
+        item.id = m.id;
+        item.displayName = m.displayName;
         list << item;
     }
 
@@ -200,9 +277,21 @@ void ApplicationOrchestrator::rebuildClient()
     // TODO: реализовать загрузку apikey из бд
 
     LLMConfig config{
-        .apiKey = m_providerService->currentApiKey(),
-        .model = m_modelService->currentModelKey(),
-        .baseUrl = m_providerService->currentBaseUrl()
+        .apiKey = m_providerService->currentApiKey(
+            m_chatService->getChat(
+                             m_settingsService->currentChatId()
+                             ).providerId
+            ),
+        .model = m_modelService->currentModelKey(
+            m_chatService->getChat(
+                             m_settingsService->currentChatId()
+                             ).modelId
+            ),
+        .baseUrl = m_providerService->currentBaseUrl(
+            m_chatService->getChat(
+                             m_settingsService->currentChatId()
+                             ).providerId
+            )
     };
 
     m_llmClient = std::make_unique<LLMClient>(config);

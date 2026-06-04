@@ -33,57 +33,57 @@ Item {
         // ---------------------------------------------------------
         //  Сайд‑бар
         // ---------------------------------------------------------
-        // ChatsSideBar {
-        //     id: sideBar
-        //     Layout.fillHeight: true
-        //     Layout.preferredWidth: sidebarOpened ? 320 : 0
-        //     clip: true
-        //     visible: width > 0
+        ChatsSideBar {
+            id: sideBar
+            Layout.fillHeight: true
+            Layout.preferredWidth: sidebarOpened ? 320 : 0
+            clip: true
+            visible: width > 0
 
-        //     Behavior on Layout.preferredWidth {
-        //         NumberAnimation {
-        //             duration: 180
-        //             easing.type: Easing.OutCubic
-        //         }
-        //     }
-        // }
+            Behavior on Layout.preferredWidth {
+                NumberAnimation {
+                    duration: 180
+                    easing.type: Easing.OutCubic
+                }
+            }
+        }
 
         // ---------------------------------------------------------
         //  Основная область – роутер между «чатом» и «настройками»
         // ---------------------------------------------------------
-        // Loader {
-        //     id: pageLoader
-        //     Layout.fillWidth: true
-        //     Layout.fillHeight: true
+        Loader {
+            id: pageLoader
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-        //     sourceComponent: root.currentPage === "settings"
-        //                      ? settingsPage
-        //                      : chatPage
-        // }
+            sourceComponent: root.currentPage === "settings"
+                             ? settingsPage
+                             : chatPage
+        }
     }
 
     // -----------------------------------------------------------------
     //  Чат‑страница
     // -----------------------------------------------------------------
-    // Component {
-    //     id: chatPage
-    //     ChatPage {
-    //         sidebarOpened: root.sidebarOpened
+    Component {
+        id: chatPage
+        ChatPage {
+            sidebarOpened: root.sidebarOpened
 
-    //         // Прокидываем двунаправленную связь
-    //         onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
-    //         onRequestSettings: root.currentPage = "settings"
-    //     }
-    // }
+            // Прокидываем двунаправленную связь
+            onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
+            onRequestSettings: root.currentPage = "settings"
+        }
+    }
 
     // // -----------------------------------------------------------------
     // //  Страница настроек
     // // -----------------------------------------------------------------
-    // Component {
-    //     id: settingsPage
-    //     SettingsPage {
-    //         anchors.fill: parent
-    //         onRequestBack: root.currentPage = "chat"
-    //     }
-    // }
+    Component {
+        id: settingsPage
+        SettingsPage {
+            anchors.fill: parent
+            onRequestBack: root.currentPage = "chat"
+        }
+    }
 }

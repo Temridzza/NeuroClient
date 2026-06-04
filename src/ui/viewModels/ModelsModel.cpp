@@ -1,9 +1,26 @@
 #include "ModelsModel.h"
 
-ModelsModel::ModelsModel(ModelRepository *repo, QObject* parent)
+ModelsModel::ModelsModel(ModelService *service, QObject* parent)
     : QObject(parent),
-    m_repo(*repo)
+    m_service(service)
 {
+}
+
+static QVariantMap toVariant(const Model& model)
+{
+    return {
+        {"id", model.id},
+        {"providerId", model.providerId},
+        {"modelKey", model.modelKey},
+        {"display_name", model.displayName},
+        {"apiKeyOverride", model.apiKeyOverride},
+        {"prompt", model.prompt},
+        {"contextWindow", model.contextWindow},
+        {"maxOutputTokens", model.maxOutputTokens},
+        {"enabled", model.enabled},
+        {"createdAt", model.createdAt},
+        {"updatedAt", model.updatedAt}
+    };
 }
 
 QVariantList ModelsModel::models() const {
@@ -11,11 +28,11 @@ QVariantList ModelsModel::models() const {
 }
 
 void ModelsModel::loadModels() {
-    setModels(m_repo.listModels());
+    setModels(m_service->models());
 }
 
 void ModelsModel::loadModelsByProvider(const QString& providerId) {
-    setModels(m_repo.listModelsByProvider(providerId));
+    setModels(m_service->modelsByProvider(providerId));
 }
 
 QString ModelsModel::createModel(
@@ -27,15 +44,16 @@ QString ModelsModel::createModel(
     int maxOutputTokens,
     bool enabled
     ) {
-    const QString id = m_repo.createModel(
-        providerId,
-        modelKey,
-        displayName,
-        apiKeyOverride,
-        contextWindow,
-        maxOutputTokens,
-        enabled
-        );
+
+    Model model;
+    model.providerId = providerId;
+    model.modelKey = modelKey;
+    model.displayName = displayName;
+    model.contextWindow = contextWindow;
+    model.maxOutputTokens = maxOutputTokens;
+    model.enabled = enabled;
+
+    const QString id = m_service->createModel(model);
 
     if (!id.isEmpty()) {
         loadModelsByProvider(providerId);
@@ -52,14 +70,15 @@ bool ModelsModel::updateModel(
     int maxOutputTokens,
     bool enabled
     ) {
-    const bool ok = m_repo.updateModel(
-        id,
-        displayName,
-        apiKeyOverride,
-        contextWindow,
-        maxOutputTokens,
-        enabled
-        );
+    Model model;
+    model.id = id;
+    model.displayName = displayName;
+    model.apiKeyOverride = apiKeyOverride;
+    model.contextWindow = contextWindow;
+    model.maxOutputTokens = maxOutputTokens;
+    model.enabled = enabled;
+
+    const bool ok = m_service->updateModel(model);
 
     if (ok) {
         loadModels();
@@ -69,8 +88,7 @@ bool ModelsModel::updateModel(
 }
 
 bool ModelsModel::deleteModel(const QString& id) {
-    const bool ok = m_repo.deleteModel(id);
-
+    const bool ok = m_service->deleteModel(id);
     if (ok) {
         loadModels();
     }
@@ -78,11 +96,13 @@ bool ModelsModel::deleteModel(const QString& id) {
     return ok;
 }
 
-void ModelsModel::setModels(const QList<QVariantMap>& list) {
+void ModelsModel::setModels(const QList<Model>& list)
+{
     m_models.clear();
 
-    for (const auto& item : list) {
-        m_models.append(item);
+    for (const auto& model : list)
+    {
+        m_models.append(toVariant(model));
     }
 
     emit modelsChanged();

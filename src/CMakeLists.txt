@@ -9,6 +9,7 @@ set(SRC_FILES
     core/ApplicationOrchestrator.cpp
     core/ChatOrchestrator.cpp
     core/Markdown.cpp
+    core/PromptBuilder.cpp
 
     # =========================
     # Services
@@ -17,6 +18,9 @@ set(SRC_FILES
     service/SettingsService.cpp
     service/ModelService.cpp
     service/ProviderService.cpp
+    service/MessageService.cpp
+    service/ChatService.cpp
+    service/ChatContextService.cpp
 
     # =========================
     # Network
@@ -70,10 +74,16 @@ set(INCLUDE
 
     ../include/core/ApplicationOrchestrator.h
     ../include/core/ChatOrchestrator.h
+    ../include/core/PromptBuilder.h
 
     ../include/core/Markdown.h
     ../include/core/Message.h
     ../include/core/Result.h
+    ../include/core/PromptContext.h
+    ../include/core/Chat.h
+    ../include/core/Model.h
+    ../include/core/Provider.h
+    ../include/core/ChatSession.h
 
     # =========================
     # Services
@@ -82,6 +92,9 @@ set(INCLUDE
     ../include/service/SettingsService.h
     ../include/service/ModelService.h
     ../include/service/ProviderService.h
+    ../include/service/ChatService.h
+    ../include/service/MessageService.h
+    ../include/service/ChatContextService.h
 
     # =========================
     # Network

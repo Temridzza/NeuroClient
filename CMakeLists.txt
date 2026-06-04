@@ -131,6 +131,21 @@ target_compile_options(ChatGPT_QML PRIVATE
     ${CMARK_GFM_CFLAGS_OTHER}
 )
 
+# qt_add_executable(ChatGPTApp
+#     main.cpp
+# )
+# target_link_libraries(ChatGPTApp PRIVATE
+#     Qt6::Quick
+#     Qt6::Qml
+#     ChatGPT_QML
+# )
+# install(TARGETS ChatGPT_QML
+#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/qt6/qml/ChatGPT
+# )
+# set_target_properties(ChatGPTApp PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+# )
+
 # ------------------- Политики Qt (если нужны) ----------
 qt_policy(SET QTP0001 NEW)   # включаем новые возможности
 qt_policy(SET QTP0004 NEW)

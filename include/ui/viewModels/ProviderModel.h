@@ -7,7 +7,8 @@
 #include <QVariantMap>
 #include <QSqlDatabase>
 
-#include "ProviderRepository.h"
+#include "ProviderService.h"
+#include "Provider.h"
 
 class ProviderModel : public QAbstractListModel {
     Q_OBJECT
@@ -23,7 +24,7 @@ public:
     };
 
     explicit ProviderModel(
-        ProviderRepository* repo,
+        ProviderService* m_service,
         QObject* parent = nullptr
         );
 
@@ -44,11 +45,11 @@ public:
     Q_INVOKABLE bool deleteProvider(const QString& id);
     Q_INVOKABLE QVariantMap getProviderById(const QString& id) const;
 
-    Q_INVOKABLE QVariantMap getProvider(int row) const;
+    // Q_INVOKABLE QVariantMap getProvider(int row) const;
 
 private:
-    ProviderRepository m_repo;
-    QList<QVariantMap> m_items;
+    ProviderService* m_service;
+    QList<Provider> m_items;
 
     void reloadFromDb();
 };

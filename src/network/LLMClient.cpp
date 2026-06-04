@@ -91,13 +91,13 @@ void LLMClient::ask(
     const QList<Message>& messages
     ) {
 
-    if (m_apiKey.trimmed().isEmpty()) {
+    // if (m_apiKey.trimmed().isEmpty()) {
 
-        if (onError)
-            onError("API key is empty");
+    //     if (onError)
+    //         onError("API key is empty");
 
-        return;
-    }
+    //     return;
+    // }
 
     if (m_model.trimmed().isEmpty()) {
 

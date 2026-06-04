@@ -2,19 +2,19 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import ChatGPT 1.0          // <-- наш модуль
-import "themeBridge" 1.0
+import "qml/themeBridge" 1.0
+import "qml"
 
 Window {
-    id: win
-    width: 1280
-    height: 820
+    width: 400
+    height: 400
     visible: true
-    title: qsTr("Quickshell + NeuroClient")
 
     Component.onCompleted: {
         ThemeBridge.init(Qt.application.engine)
-        if (ThemeBridge.theme) {
-            ThemeBridge.theme.parent = win
-        }
+    }
+
+    Main {
+        visible: true
     }
 }

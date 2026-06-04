@@ -9,7 +9,7 @@ ProviderService::ProviderService(
 {
 }
 
-QList<QVariantMap> ProviderService::providers() const
+QList<Provider> ProviderService::providers() const
 {
     return m_repo->listProviders();
 }
@@ -19,13 +19,9 @@ QString ProviderService::currentProviderId() const
     return m_settings->currentProviderId();
 }
 
-QVariantMap ProviderService::currentProvider() const
+Provider ProviderService::currentProvider(const QString &providerId) const
 {
-    const QString id = m_settings->currentProviderId();
-    if (id.isEmpty())
-        return {};
-
-    return m_repo->getProvider(id);
+    return m_repo->getProvider(providerId);
 }
 
 void ProviderService::setCurrentProvider(const QString& providerId)
@@ -43,17 +39,34 @@ QString ProviderService::defaultProvider() const
     if (providers.isEmpty())
         return {};
 
-    return providers.first().value("id").toString();
+    return providers.first().id;
 }
 
-QString ProviderService::currentApiKey() const
+QString ProviderService::currentApiKey(const QString& providerId) const
 {
-    const auto provider = currentProvider();
-    return provider.value("api_key").toString();
+    const auto provider = currentProvider(providerId);
+    return provider.apiKey;
 }
 
-QString ProviderService::currentBaseUrl() const
+QString ProviderService::currentBaseUrl(const QString& providerId) const
 {
-    const auto provider = currentProvider();
-    return provider.value("base_url").toString();
+    const auto provider = currentProvider(providerId);
+    return provider.baseUrl;
+}
+
+bool ProviderService::updateProvider(const Provider& provider)
+{
+    if (provider.id.isEmpty())
+        return false;
+
+    return m_repo->updateProvider(provider);
+}
+
+bool ProviderService::deleteProvider(const QString& id)
+{
+    return m_repo->deleteProvider(id);
+}
+
+QString ProviderService::createProvider(const Provider& provider) {
+    return m_repo->createProvider(provider);
 }

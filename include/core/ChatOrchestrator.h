@@ -9,9 +9,18 @@
 
 #include "LLMClient.h"
 #include "Message.h"
-#include "MessageRepository.h"
 #include "MessageModel.h"
-#include "ChatRepository.h"
+#include "PromptBuilder.h"
+
+#include "ChatService.h"
+#include "ProviderService.h"
+#include "ModelService.h"
+#include "MessageService.h"
+#include "ChatContextService.h"
+
+#include "Chat.h"
+#include "Model.h"
+#include "Provider.h"
 
 class ChatOrchestrator : public QObject
 {
@@ -19,8 +28,11 @@ class ChatOrchestrator : public QObject
 
 public:
     explicit ChatOrchestrator(
-        ChatRepository* chatRepo,
-        MessageRepository* messageRepo,
+        ChatService* chatService,
+        MessageService* messageService,
+        ChatContextService* ChatContextService,
+
+        PromptBuilder* builder,
         LLMClient* client,
         QObject* parent = nullptr
         );
@@ -44,8 +56,7 @@ public:
         );
 
     bool deleteChat(const QString& chatId);
-    QString createChat(const QString& title);
-    QList<QVariantMap> chats();
+    QList<Chat> chats();
 
 signals:
     void chatLoadingStarted(const QString& chatId);
@@ -58,10 +69,14 @@ private:
     void rebuildClient();
 
 private:
-    LLMClient* m_client;
+    ChatService* m_chatService;
+    MessageService* m_messageService;
 
-    MessageRepository* m_messageRepo;
-    ChatRepository* m_chatRepo;
+    ChatContextService* m_chatContextService;
+
+    PromptBuilder* m_promptBuilder;
+
+    LLMClient* m_client;
 
     QString m_currentChatId;
 };

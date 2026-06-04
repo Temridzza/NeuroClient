@@ -19,9 +19,13 @@
 #include "ProviderSelector.h"
 #include "ProviderService.h"
 #include "LLMClient.h"
+#include "ChatService.h"
+#include "MessageService.h"
+#include "ChatContextService.h"
 
 class ApplicationOrchestrator : public QObject {
     Q_OBJECT
+    Q_PROPERTY(bool ready READ ready NOTIFY readyChanged)
 
     Q_PROPERTY(ChatOrchestrator* chatOrchestrator READ chatOrchestrator CONSTANT)
     Q_PROPERTY(SettingsService* settingsService READ settingsService CONSTANT)
@@ -56,17 +60,39 @@ public:
     ChatOrchestrator* chatOrchestrator();
     SettingsService* settingsService();
 
+    bool ready() const { return m_ready; }
+
+signals:
+    void readyChanged();
 private:
     void rebuildClient();
-    QVariantList buildModelList(const QList<QVariantMap>& models) const;
+    QList<Model> buildModelList(const QList<Model>& models) const;
+    bool m_ready = false;
+
+private:
+    void initDatabase();
+    void initRepositories();
+    void initServices();
+    void initSelectors();
+    void initClient();
+    void initOrchestrator();
+    void initViewModels();
+    void initConnections();
+    void initState();
 
 private:
     DatabaseManager m_database;
 
     std::unique_ptr<AppSettings> m_appSettings;
+
     std::unique_ptr<SettingsService> m_settingsService;
-    std::unique_ptr<ModelService> m_modelService;
+    std::unique_ptr<ChatService> m_chatService;
     std::unique_ptr<ProviderService> m_providerService;
+    std::unique_ptr<ModelService> m_modelService;
+    std::unique_ptr<MessageService> m_messageService;
+    std::unique_ptr<ChatContextService> m_chatContextService;
+
+
 
     std::unique_ptr<LLMClient> m_llmClient;
 
@@ -74,6 +100,8 @@ private:
     std::unique_ptr<MessageRepository> m_messageRepo;
     std::unique_ptr<ProviderRepository> m_providerRepo;
     std::unique_ptr<ModelRepository> m_modelRepo;
+
+    std::unique_ptr<PromptBuilder> m_promptBuilder;
 
     std::unique_ptr<ChatOrchestrator> m_orchestrator;
 

@@ -5,7 +5,6 @@
 
 #include <QString>
 #include <QList>
-#include <QVariantMap>
 #include <QDateTime>
 #include <QUuid>
 #include <QtSql/QSqlDatabase>
@@ -13,38 +12,38 @@
 #include <QtSql/QSqlError>
 #include <QDebug>
 
+#include "Model.h"
+
 class ModelRepository {
 public:
     explicit ModelRepository(QSqlDatabase db);
 
     QString createModel(
-        const QString& providerId,
-        const QString& modelKey,
-        const QString& displayName,
-        const QString& apiKeyOverride = QString(),
-        int contextWindow = 0,
-        int maxOutputTokens = 0,
-        bool enabled = true
+        const Model& model
         );
 
-    QList<QVariantMap> listModels() const;
-    QList<QVariantMap> listModelsByProvider(const QString& providerId) const;
+    QList<Model> listModels() const;
+    QList<Model> listModelsByProvider(const QString& providerId) const;
 
-    QVariantMap getModel(const QString& id) const;
+    Model getModel(const QString& id) const;
 
     bool updateModel(
-        const QString& id,
-        const QString& displayName,
-        const QString& apiKeyOverride,
-        int contextWindow,
-        int maxOutputTokens,
-        bool enabled
+        const Model& model
         );
 
     bool deleteModel(const QString& id);
 
+    bool ensureModel(const QString& id,
+                     const QString& providerId,
+                     const QString& modelKey,
+                     const QString& displayName,
+                     bool enabled = true);
+
 private:
     QSqlDatabase m_db;
+    static Model readModel(
+        const QSqlQuery& q
+        );
 };
 
 #endif // MODELREPOSITORY_H

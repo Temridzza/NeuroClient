@@ -4,7 +4,6 @@
 #pragma once
 #include <QString>
 #include <QList>
-#include <QVariantMap>
 #include <QUuid>
 #include <QDateTime>
 #include <QtSql/QSqlQuery>
@@ -12,17 +11,30 @@
 #include <QDebug>
 
 #include "DatabaseManager.h"
+#include "Chat.h"
 
 class ChatRepository {
 public:
     explicit ChatRepository(QSqlDatabase db);
-    QString createChat(const QString& title);
-    QList<QVariantMap> listChats();
+    QString createChat(
+        const QString& title,
+        const QString& providerId,
+        const QString& modelId
+        );
+
+    QList<Chat> listChats();
     bool renameChat(const QString& id, const QString& newTitle);
     bool deleteChat(const QString& id);
+    Chat getChat(const QString& id);
+    bool updateChat(const Chat& chat);
+
 
 private:
     QSqlDatabase m_db;
+
+    static Chat readChat(
+        const QSqlQuery& q
+        );
 };
 
 

@@ -14,6 +14,7 @@ pkgs.mkShell {
     cmake
     ninja
     clang
+    clazy
     gdb
     curl
     nlohmann_json

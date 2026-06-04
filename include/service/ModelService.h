@@ -5,10 +5,10 @@
 
 #include <QString>
 #include <QList>
-#include <QVariantMap>
 
 #include "ModelRepository.h"
 #include "SettingsService.h"
+#include "Model.h"
 
 class ModelService
 {
@@ -19,17 +19,20 @@ public:
         );
 
     // --- queries ---
-    QList<QVariantMap> models() const;
-    QList<QVariantMap> modelsByProvider(const QString& providerId) const;
+    QList<Model> models() const;
+    QList<Model> modelsByProvider(const QString& providerId) const;
 
-    QVariantMap currentModel() const;
+    Model currentModel(const QString modelId) const;
     QString currentModelId() const;
-    QString currentModelKey() const;
+    QString currentModelKey(const QString modelId) const;
 
     // --- commands ---
     void setCurrentModel(const QString& modelId);
 
     QString defaultModelForProvider(const QString& providerId) const;
+    bool updateModel(const Model& model);
+    QString createModel(const Model &model);
+    bool deleteModel(const QString& id);
 
 private:
     ModelRepository* m_repo;

@@ -5,8 +5,9 @@
 
 #include <QAbstractListModel>
 #include <QList>
-#include <QVariantMap>
-#include <ChatOrchestrator.h>
+
+#include "ChatOrchestrator.h"
+#include "Chat.h"
 
 class ChatListViewModel : public QAbstractListModel {
     Q_OBJECT
@@ -34,11 +35,11 @@ public:
     Q_INVOKABLE void openChat(const QString& id);
 
 
-    Q_INVOKABLE QVariantMap get(int index) const;
+    // Q_INVOKABLE QVariantMap get(int index) const;
 
 private:
     ChatOrchestrator* m_chatOrchestrator;
-    QList<QVariantMap> m_chats;
+    QList<Chat> m_chats;
 
 signals:
     void chatOpened(const QString& chatId);

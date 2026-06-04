@@ -6,7 +6,7 @@
 #include <QObject>
 #include <QVariantList>
 
-#include "ModelRepository.h"
+#include "ModelService.h"
 
 class ModelsModel : public QObject {
     Q_OBJECT
@@ -16,7 +16,7 @@ class ModelsModel : public QObject {
                        NOTIFY modelsChanged)
 
 public:
-    explicit ModelsModel(ModelRepository* repo,
+    explicit ModelsModel(ModelService* service,
                          QObject* parent = nullptr);
 
     QVariantList models() const;
@@ -50,10 +50,10 @@ signals:
     void modelsChanged();
 
 private:
-    void setModels(const QList<QVariantMap>& list);
+    void setModels(const QList<Model>& list);
 
 private:
-    ModelRepository m_repo;
+    ModelService* m_service;
     QVariantList m_models;
 };
 

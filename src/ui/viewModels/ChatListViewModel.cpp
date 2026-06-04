@@ -17,19 +17,22 @@ int ChatListViewModel::rowCount(const QModelIndex& parent) const {
     return m_chats.size();
 }
 
-QVariant ChatListViewModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || index.row() >= m_chats.size())
-        return {};
+QVariant ChatListViewModel::data(
+    const QModelIndex& index,
+    int role
+    ) const
+{
+    const Chat& chat = m_chats[index.row()];
 
-    const auto& chat = m_chats.at(index.row());
     switch (role) {
     case IdRole:
-        return chat.value("id");
+        return chat.id;
+
     case TitleRole:
-        return chat.value("title");
-    default:
-        return {};
+        return chat.title;
     }
+
+    return {};
 }
 
 QHash<int, QByteArray> ChatListViewModel::roleNames() const {
@@ -65,12 +68,20 @@ void ChatListViewModel::deleteChat(const QString& id) {
     }
 }
 
-QVariantMap ChatListViewModel::get(int index) const {
-    if (index < 0 || index >= m_chats.size())
-        return {};
+// QVariantMap ChatListViewModel::get(int index) const
+// {
+//     if (index < 0 || index >= m_chats.size())
+//         return {};
 
-    return m_chats.at(index);
-}
+//     const auto& chat = m_chats.at(index);
+
+//     return {
+//         {"id", chat.id},
+//         {"title", chat.title},
+//         {"providerId", chat.providerId},
+//         {"modelId", chat.modelId}
+//     };
+// }
 
 void ChatListViewModel::openChat(const QString& id)
 {

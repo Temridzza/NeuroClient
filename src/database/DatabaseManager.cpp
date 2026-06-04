@@ -8,24 +8,36 @@
 
 DatabaseManager::DatabaseManager() {}
 
-bool DatabaseManager::init(const QString& path) {
+bool DatabaseManager::init(const QString& path)
+{
+    qDebug() << "DB path:" << path;
+
     if (QSqlDatabase::contains("main")) {
+        qDebug() << "Using existing connection";
         m_db = QSqlDatabase::database("main");
     } else {
+        qDebug() << "Creating new connection";
         m_db = QSqlDatabase::addDatabase("QSQLITE", "main");
         m_db.setDatabaseName(path);
     }
 
     if (!m_db.open()) {
-        qWarning() << "Failed to open database:" << m_db.lastError().text();
+        qWarning() << "Failed to open database:"
+                   << m_db.lastError().text();
         return false;
     }
+
+    qDebug() << "Database opened";
 
     if (!createSchema()) {
+        qWarning() << "createSchema failed";
         return false;
     }
 
+    qDebug() << "Schema created";
+
     seed();
+
     return true;
 }
 
@@ -44,6 +56,9 @@ bool DatabaseManager::createSchema() {
             name TEXT NOT NULL,
             base_url TEXT NOT NULL,
             api_key TEXT,
+
+            prompt TEXT,
+
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL
         )
@@ -61,6 +76,9 @@ bool DatabaseManager::createSchema() {
             api_key_override TEXT,
             context_window INTEGER,
             max_output_tokens INTEGER,
+
+            prompt TEXT,
+
             enabled INTEGER NOT NULL DEFAULT 1,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL,
@@ -78,9 +96,23 @@ bool DatabaseManager::createSchema() {
         CREATE TABLE IF NOT EXISTS chats (
             id TEXT PRIMARY KEY,
             title TEXT,
+
+            provider_id TEXT,
+            model_id TEXT,
+
+            prompt TEXT,
+
             root_message_id TEXT,
             created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL
+            updated_at INTEGER NOT NULL,
+
+            FOREIGN KEY(provider_id)
+                REFERENCES providers(id)
+                ON DELETE SET NULL,
+
+            FOREIGN KEY(model_id)
+                REFERENCES models(id)
+                ON DELETE SET NULL
         )
     )")) {
         qWarning() << q.lastError();
@@ -131,7 +163,9 @@ bool DatabaseManager::createSchema() {
 bool DatabaseManager::seed() {
     QSqlQuery q(m_db);
 
-    // проверяем, есть ли openrouter
+    // ===============================
+    // OpenRouter provider
+    // ===============================
     q.prepare("SELECT id FROM providers WHERE name = ?");
     q.addBindValue("openrouter");
 
@@ -140,12 +174,12 @@ bool DatabaseManager::seed() {
         return false;
     }
 
-    QString providerId;
+    QString openrouterId;
 
     if (q.next()) {
-        providerId = q.value(0).toString();
+        openrouterId = q.value(0).toString();
     } else {
-        providerId = "openrouter";
+        openrouterId = "openrouter";
 
         QSqlQuery insertProvider(m_db);
         insertProvider.prepare(R"(
@@ -156,7 +190,7 @@ bool DatabaseManager::seed() {
 
         const qint64 now = QDateTime::currentSecsSinceEpoch();
 
-        insertProvider.addBindValue(providerId);
+        insertProvider.addBindValue(openrouterId);
         insertProvider.addBindValue("openrouter");
         insertProvider.addBindValue("https://openrouter.ai/api/v1/chat/completions");
         insertProvider.addBindValue("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");
@@ -169,7 +203,6 @@ bool DatabaseManager::seed() {
         }
     }
 
-    // helper lambda для моделей
     auto insertModel = [&](const QString& id,
                            const QString& modelKey,
                            const QString& displayName) {
@@ -190,7 +223,7 @@ bool DatabaseManager::seed() {
         const qint64 now = QDateTime::currentSecsSinceEpoch();
 
         m.addBindValue(id);
-        m.addBindValue(providerId);
+        m.addBindValue(openrouterId);
         m.addBindValue(modelKey);
         m.addBindValue(displayName);
         m.addBindValue(now);
@@ -212,84 +245,78 @@ bool DatabaseManager::seed() {
         "nvidia/nemotron-3-nano-30b-a3b:free",
         "Nemotron 3 Nano 30B (Free)"
         );
+
     // ===============================
+    // Local provider (LM Studio / OpenAI-compatible)
+    // ===============================
+    QString localProviderId;
 
-    // второй провайдер для тестов
-    QSqlQuery testProvider(m_db);
-    testProvider.prepare("SELECT id FROM providers WHERE name = ?");
-    testProvider.addBindValue("test-provider");
+    QSqlQuery localCheck(m_db);
+    localCheck.prepare("SELECT id FROM providers WHERE name = ?");
+    localCheck.addBindValue("local");
 
-    QString testProviderId = "test-provider";
+    if (localCheck.exec() && localCheck.next()) {
+        localProviderId = localCheck.value(0).toString();
+    } else {
+        localProviderId = "local";
 
-    if (testProvider.exec() && !testProvider.next()) {
         QSqlQuery insertProvider(m_db);
-
         insertProvider.prepare(R"(
-        INSERT INTO providers (
-            id, name, base_url, api_key, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?)
-    )");
+            INSERT INTO providers (
+                id, name, base_url, api_key, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+        )");
 
         const qint64 now = QDateTime::currentSecsSinceEpoch();
 
-        insertProvider.addBindValue(testProviderId);
-        insertProvider.addBindValue("test-provider");
-        insertProvider.addBindValue("https://example.com");
-        insertProvider.addBindValue("paste");
+        insertProvider.addBindValue(localProviderId);
+        insertProvider.addBindValue("local");
+        insertProvider.addBindValue("http://localhost:1234/v1/chat/completions");
+        insertProvider.addBindValue(""); // LM Studio обычно без ключа
         insertProvider.addBindValue(now);
         insertProvider.addBindValue(now);
 
-        insertProvider.exec();
+        if (!insertProvider.exec()) {
+            qWarning() << insertProvider.lastError();
+            return false;
+        }
     }
-    auto insertModelForProvider = [&](const QString& providerId,
-                                      const QString& id,
-                                      const QString& modelKey,
-                                      const QString& displayName) {
+
+    auto insertLocalModel = [&](const QString& id,
+                                const QString& modelKey,
+                                const QString& displayName) {
 
         QSqlQuery m(m_db);
-
         m.prepare(R"(
-        INSERT OR IGNORE INTO models (
-            id,
-            provider_id,
-            model_key,
-            display_name,
-            created_at,
-            updated_at,
-            enabled
-        ) VALUES (?, ?, ?, ?, ?, ?, 1)
-    )");
+            INSERT OR IGNORE INTO models (
+                id,
+                provider_id,
+                model_key,
+                display_name,
+                created_at,
+                updated_at,
+                enabled
+            ) VALUES (?, ?, ?, ?, ?, ?, 1)
+        )");
 
         const qint64 now = QDateTime::currentSecsSinceEpoch();
 
         m.addBindValue(id);
-        m.addBindValue(providerId);
+        m.addBindValue(localProviderId);
         m.addBindValue(modelKey);
         m.addBindValue(displayName);
         m.addBindValue(now);
         m.addBindValue(now);
 
-        m.exec();
+        if (!m.exec()) {
+            qWarning() << m.lastError();
+        }
     };
-    insertModelForProvider(
-        testProviderId,
-        "test-model-1",
-        "test/model-1",
-        "Test Model 1"
-        );
 
-    insertModelForProvider(
-        testProviderId,
-        "test-model-2",
-        "test/model-2",
-        "Test Model 2"
-        );
-
-    insertModelForProvider(
-        testProviderId,
-        "test-model-3",
-        "test/model-3",
-        "Test Model 3"
+    insertLocalModel(
+        "local-qwen2.5-coder",
+        "qwen2.5-coder-1.5b-instruct",
+        "Qwen2.5 Coder 1.5B (Local)"
         );
 
     return true;

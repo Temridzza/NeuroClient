@@ -11,9 +11,7 @@ QString ProviderRepository::generateId() const {
     return QUuid::createUuid().toString(QUuid::WithoutBraces);
 }
 
-QString ProviderRepository::createProvider(const QString& name,
-                                           const QString& baseUrl,
-                                           const QString& apiKey) {
+QString ProviderRepository::createProvider(const Provider& provider) {
     QString id = generateId();
     qint64 ts = now();
 
@@ -26,10 +24,10 @@ QString ProviderRepository::createProvider(const QString& name,
         VALUES (?, ?, ?, ?, ?, ?)
     )");
 
-    q.addBindValue(id);
-    q.addBindValue(name);
-    q.addBindValue(baseUrl);
-    q.addBindValue(apiKey);
+    q.addBindValue(provider.id);
+    q.addBindValue(provider.name);
+    q.addBindValue(provider.baseUrl);
+    q.addBindValue(provider.apiKey);
     q.addBindValue(ts);
     q.addBindValue(ts);
 
@@ -41,39 +39,35 @@ QString ProviderRepository::createProvider(const QString& name,
     return id;
 }
 
-bool ProviderRepository::updateProvider(const QString& id,
-                                        const QVariantMap& fields) {
-    if (fields.isEmpty())
-        return false;
-
-    QStringList sets;
-    QList<QVariant> values;
-
-    for (auto it = fields.begin(); it != fields.end(); ++it) {
-        if (it.key() == "id")
-            continue;
-
-        sets << QString("%1 = ?").arg(it.key());
-        values << it.value();
-    }
-
-    sets << "updated_at = ?";
-    values << now();
-
+bool ProviderRepository::updateProvider(
+    const Provider& provider
+    )
+{
     QSqlQuery q(m_db);
 
-    QString sql = QString("UPDATE providers SET %1 WHERE id = ?")
-                      .arg(sets.join(", "));
+    q.prepare(R"(
+        UPDATE providers
+        SET
+            name = ?,
+            base_url = ?,
+            api_key = ?,
+            prompt = ?,
+            updated_at = ?
+        WHERE id = ?
+    )");
 
-    q.prepare(sql);
-
-    for (const auto& v : values)
-        q.addBindValue(v);
-
-    q.addBindValue(id);
+    q.addBindValue(provider.name);
+    q.addBindValue(provider.baseUrl);
+    q.addBindValue(provider.apiKey);
+    q.addBindValue(provider.prompt);
+    q.addBindValue(now());
+    q.addBindValue(provider.id);
 
     if (!q.exec()) {
-        qWarning() << "updateProvider failed:" << q.lastError().text();
+        qWarning()
+        << "updateProvider failed:"
+        << q.lastError().text();
+
         return false;
     }
 
@@ -93,11 +87,21 @@ bool ProviderRepository::deleteProvider(const QString& id) {
     return q.numRowsAffected() > 0;
 }
 
-QVariantMap ProviderRepository::getProvider(const QString& id) {
+Provider ProviderRepository::getProvider(
+    const QString& id
+    )
+{
     QSqlQuery q(m_db);
+
     q.prepare(R"(
-        SELECT id, name, base_url, api_key,
-               created_at, updated_at
+        SELECT
+            id,
+            name,
+            base_url,
+            api_key,
+            prompt,
+            created_at,
+            updated_at
         FROM providers
         WHERE id = ?
     )");
@@ -105,50 +109,96 @@ QVariantMap ProviderRepository::getProvider(const QString& id) {
     q.addBindValue(id);
 
     if (!q.exec()) {
-        qWarning() << "getProvider failed:" << q.lastError().text();
+        qWarning()
+        << "getProvider failed:"
+        << q.lastError().text();
+
         return {};
     }
 
     if (!q.next())
         return {};
 
-    QVariantMap m;
-    m["id"] = q.value("id");
-    m["name"] = q.value("name");
-    m["base_url"] = q.value("base_url");
-    m["api_key"] = q.value("api_key");
-    m["created_at"] = q.value("created_at");
-    m["updated_at"] = q.value("updated_at");
+    Provider provider;
 
-    return m;
+    provider.id =
+        q.value("id").toString();
+
+    provider.name =
+        q.value("name").toString();
+
+    provider.baseUrl =
+        q.value("base_url").toString();
+
+    provider.apiKey =
+        q.value("api_key").toString();
+
+    provider.prompt =
+        q.value("prompt").toString();
+
+    provider.createdAt =
+        q.value("created_at").toLongLong();
+
+    provider.updatedAt =
+        q.value("updated_at").toLongLong();
+
+    return provider;
 }
 
-QList<QVariantMap> ProviderRepository::listProviders() {
-    QList<QVariantMap> list;
+QList<Provider>
+ProviderRepository::listProviders()
+{
+    QList<Provider> providers;
 
     QSqlQuery q(m_db);
 
     if (!q.exec(R"(
-        SELECT id, name, base_url, api_key,
-               created_at, updated_at
+        SELECT
+            id,
+            name,
+            base_url,
+            api_key,
+            prompt,
+            created_at,
+            updated_at
         FROM providers
         ORDER BY created_at DESC
-    )")) {
-        qWarning() << "listProviders failed:" << q.lastError().text();
-        return list;
+    )"))
+    {
+        qWarning()
+        << "listProviders failed:"
+        << q.lastError().text();
+
+        return providers;
     }
 
-    while (q.next()) {
-        QVariantMap m;
-        m["id"] = q.value("id");
-        m["name"] = q.value("name");
-        m["base_url"] = q.value("base_url");
-        m["api_key"] = q.value("api_key");
-        m["created_at"] = q.value("created_at");
-        m["updated_at"] = q.value("updated_at");
+    while (q.next())
+    {
+        Provider provider;
 
-        list.push_back(m);
+        provider.id =
+            q.value("id").toString();
+
+        provider.name =
+            q.value("name").toString();
+
+        provider.baseUrl =
+            q.value("base_url").toString();
+
+        provider.apiKey =
+            q.value("api_key").toString();
+
+        provider.prompt =
+            q.value("prompt").toString();
+
+        provider.createdAt =
+            q.value("created_at").toLongLong();
+
+        provider.updatedAt =
+            q.value("updated_at").toLongLong();
+
+        providers.append(provider);
     }
 
-    return list;
+    return providers;
 }

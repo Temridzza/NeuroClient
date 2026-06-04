@@ -9,7 +9,23 @@ ModelSelector::ModelSelector(
 
 QVariantList ModelSelector::models()
 {
-    return m_models;
+    QVariantList list;
+    for (const auto &m : m_modelList) {
+        QVariantMap map;
+        map["id"] = m.id;
+        map["providerId"] = m.providerId;
+        map["modelKey"] = m.modelKey;
+        map["display_name"] = m.displayName;
+        map["apiKeyOverride"] = m.apiKeyOverride;
+        map["prompt"] = m.prompt;
+        map["contextWindow"] = m.contextWindow;
+        map["maxOutputTokens"] = m.maxOutputTokens;
+        map["enabled"] = m.enabled;
+        map["createdAt"] = m.createdAt;
+        map["updatedAt"] = m.updatedAt;
+        list.append(map);
+    }
+    return list;
 }
 
 QString ModelSelector::currentModel() const
@@ -24,36 +40,34 @@ void ModelSelector::setCurrentModel(const QString &model)
 
     m_currentModel = model;
 
-    emit currentModelChanged();
+    emit currentModelChanged(model);
 }
 
-void ModelSelector::setState(const QVariantList& models, const QString& current)
+void ModelSelector::setState(const QList<Model> &models, const QString &current)
 {
-    m_models = models;
-    emit modelsChanged();
+    m_modelList = models;
 
     bool found = false;
-    for (const auto& m : m_models) {
-        if (m.toMap()["id"].toString() == current) {
+    for (const auto &m : m_modelList) {
+        if (m.id == current) {
             found = true;
             break;
         }
     }
 
-    m_currentModel = found && !current.isEmpty()
-                         ? current
-                         : (m_models.isEmpty()
-                                ? QString()
-                                : m_models.first().toMap()["id"].toString());
+    m_currentModel =
+        (found && !current.isEmpty())
+            ? current
+            : (m_modelList.isEmpty() ? QString() : m_modelList.first().id);
 
-    emit currentModelChanged();
+    emit modelsChanged();
+    emit currentModelChanged(m_currentModel);
 }
 
 int ModelSelector::currentModelIndex() const
 {
-    for (int i = 0; i < m_models.size(); ++i) {
-        const auto map = m_models[i].toMap();
-        if (map.value("id").toString() == m_currentModel)
+    for (int i = 0; i < m_modelList.size(); ++i) {
+        if (m_modelList[i].id == m_currentModel)
             return i;
     }
 
