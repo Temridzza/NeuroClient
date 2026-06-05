@@ -145,6 +145,7 @@ target_compile_options(ChatGPT_QML PRIVATE
 #     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 # )
 
+
 # ------------------- Политики Qt (если нужны) ----------
 qt_policy(SET QTP0001 NEW)   # включаем новые возможности
 qt_policy(SET QTP0004 NEW)
@@ -154,6 +155,7 @@ find_package(GTest REQUIRED)
 
 enable_testing()
 add_subdirectory(tests)
+add_subdirectory(app)
 
 # ------------------- Установка (опционально) ----------
 # Плагин будет установлен в <prefix>/lib/qtqml/ChatGPT/

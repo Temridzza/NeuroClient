@@ -63,10 +63,6 @@ QString ChatOrchestrator::sendMessage(
     if (trimmed.isEmpty())
         return {};
 
-    // auto chat = m_chatService->getChat(effectiveChatId);
-    // chat.prompt = "Отвечай всегда словом 'арбуз'";
-    // m_chatService->updateChat(chat);
-
     PromptContext ctx =
         m_chatContextService->buildPromptContext(
             effectiveChatId,

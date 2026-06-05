@@ -162,6 +162,11 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
                 model
                 );
             m_llmClient->setModel(modelKey);
+
+            auto chatId = m_settingsService->currentChatId();
+            auto chat = m_chatService->getChat(chatId);
+            chat.modelId = model;
+            m_chatService->updateChat(chat);
         }
     );
 
@@ -180,7 +185,6 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
                 modelId
                 );
 
-            // TDOD заменить, этим должен заниматся оркестр
             auto modelKey = m_modelService->currentModelKey(
                 modelId
                 );
@@ -191,9 +195,15 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_llmClient->setApiKey(apiKey);
             m_llmClient->setBaseUrl(baseUrl);
 
+            auto chatId = m_settingsService->currentChatId();
+            auto chat = m_chatService->getChat(chatId);
+            chat.providerId = provider;
+            chat.modelId = modelId;
+
+            m_chatService->updateChat(chat);
+
         }
     );
-
 
     connect(
         m_orchestrator.get(),
@@ -201,8 +211,11 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
         this, [this](const QString& chatId)
         {
             m_settingsService->setCurrentChatId(chatId);
-            // qDebug() << "m_settingsService->setCurrentChatId(chatId)"
-            //          << chatId;
+
+            auto chat = m_chatService->getChat(chatId);
+            m_providerSelector->setCurrentProvider(chat.providerId);
+            auto models = m_modelService->modelsByProvider(chat.providerId);
+            m_modelSelector->setState(models, chat.modelId);
         }
         );
 
@@ -210,6 +223,15 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
         m_chatContextService.get(),
         &ChatContextService::chatCreate,
         this, [this](const QString& chatId)
+        {
+            m_chatListVM->refresh();
+        }
+        );
+
+    connect(
+        m_chatService.get(),
+        &ChatService::chatUpdated,
+        this, [this]()
         {
             m_chatListVM->refresh();
         }

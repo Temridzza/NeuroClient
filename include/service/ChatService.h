@@ -5,7 +5,9 @@
 
 #include "ChatRepository.h"
 
-class ChatService {
+class ChatService : public QObject
+{
+    Q_OBJECT
 public:
     explicit ChatService(ChatRepository* repository);
 
@@ -23,6 +25,8 @@ public:
     bool deleteChat(const QString& chatId);
 
     bool updateChat(const Chat& chat);
+signals:
+    void chatUpdated();
 
 private:
     ChatRepository* m_repository;

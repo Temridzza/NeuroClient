@@ -6,9 +6,12 @@ import QtQuick.Layouts 1.15
 import NeuroClient 1.0
 import ChatGPT 1.0
 import "../../../components"
+import qs.modules.theme
 
-Pane {
+Rectangle {
     id: root
+    color: "transparent"
+    anchors.fill: parent
 
     property var vm: App.chatSettings
     property string chatId: ""
@@ -29,13 +32,16 @@ Pane {
             text: "Настройки чата"
             font.pixelSize: 22
             font.bold: true
+            color: Colors.overBackground
         }
 
         // ─── Название ───────────────────────────
-        Label { text: "Название" }
+        Label { text: "Название"; color: Colors.overBackground }
         TextField {
             id: titleField
+            Layout.fillWidth: true
             text: vm.chatTitle
+            color: Colors.overBackground
             onTextChanged: vm.chatTitle = text
 
             Binding {
@@ -46,7 +52,7 @@ Pane {
         }
 
         // ─── Провайдер ─────────────────────────
-        Label { text: "Провайдер" }
+        Label { text: "Провайдер"; color: Colors.overBackground }
         ReusableComboBox {
             id: providerBox
             Layout.fillWidth: true
@@ -57,7 +63,7 @@ Pane {
         }
 
         // ─── Модель ───────────────────────────
-        Label { text: "Модель" }
+        Label { text: "Модель"; color: Colors.overBackground }
         ReusableComboBox {
             id: modelBox
             Layout.fillWidth: true
@@ -68,7 +74,7 @@ Pane {
         }
 
         // ─── Системный промпт ─────────────────
-        Label { text: "System Prompt" }
+        Label { text: "System Prompt"; color: Colors.overBackground }
         ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -77,8 +83,11 @@ Pane {
                 id: promptEdit
                 wrapMode: TextEdit.Wrap
                 text: vm.prompt
-                onTextChanged: vm.prompt = text
+                color: Colors.overBackground
                 placeholderText: "Введите системный промпт..."
+                placeholderTextColor: Colors.overBackground
+
+                onTextChanged: vm.prompt = text
 
                 Binding {
                     target: promptEdit
@@ -89,12 +98,32 @@ Pane {
         }
 
         RowLayout {
-            Layout.alignment: Qt.AlignRight
-
-            Button { text: "Отмена" }
+            anchors.right: parent.right
+            spacing: 8
 
             Button {
-                text: "Сохранить"
+                Layout.alignment: Qt.AlignRight
+                Layout.preferredWidth: textItem.implicitWidth + 20
+
+                Text {
+                    id: textItem
+                    text: "Отмена"
+                    color: Colors.overBackground
+                }
+
+                onClicked: backRequested()
+            }
+
+            Button {
+                Layout.alignment: Qt.AlignRight
+                Layout.preferredWidth: textItem2.implicitWidth + 20
+
+                Text {
+                    id: textItem2
+                    text: "Сохранить"
+                    color: Colors.overBackground
+                }
+
                 onClicked: vm.saveChat()
             }
         }

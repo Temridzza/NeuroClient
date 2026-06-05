@@ -31,11 +31,16 @@ Rectangle {
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-        onClicked: App.chat.loadChat(chatId)
+        onClicked: function(mouse) {
+            if (mouse.button === Qt.LeftButton) {
+                App.chat.loadChat(chatId)
+            }
+        }
 
         onPressed: function(mouse) {
-            if (mouse.button === Qt.RightButton)
+            if (mouse.button === Qt.RightButton) {
                 contextMenu.popup(mouse.x, mouse.y)
+            }
         }
     }
 

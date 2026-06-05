@@ -62,6 +62,8 @@ bool ChatService::updateChat(
 {
     if (chat.id.isEmpty())
         return false;
+    auto result = m_repository->updateChat(chat);
+    if(result)  emit chatUpdated();
 
-    return m_repository->updateChat(chat);
+    return result;
 }

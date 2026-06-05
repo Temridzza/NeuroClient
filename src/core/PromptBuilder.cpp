@@ -35,24 +35,16 @@ QList<Message> PromptBuilder::build(
 
 QString PromptBuilder::buildSystem(const PromptContext& ctx)
 {
-    QStringList layers;
-
-    // 1. default prompt (hardcoded)
-    layers << ctx.defaultSystemPrompt;
-
-    // 2. provider override
-    if (!ctx.providerPrompt.isEmpty())
-        layers << ctx.providerPrompt;
-
-    // 3. model override
-    if (!ctx.modelPrompt.isEmpty())
-        layers << ctx.modelPrompt;
-
-    // 4. chat override (strongest)
+    // Сначала проверяем самый сильный уровень
     if (!ctx.chatPrompt.isEmpty())
-        layers << ctx.chatPrompt;
+        return ctx.chatPrompt;
+    if (!ctx.modelPrompt.isEmpty())
+        return ctx.modelPrompt;
+    if (!ctx.providerPrompt.isEmpty())
+        return ctx.providerPrompt;
 
-    return layers.join("\n\n");
+    // fallback на дефолт
+    return ctx.defaultSystemPrompt;
 }
 
 QList<Message> PromptBuilder::buildHistory(const QList<Message>& history)
