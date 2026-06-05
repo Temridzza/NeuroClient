@@ -17,18 +17,15 @@ Rectangle {
 
     signal requestSettings()
 
+    property string currentChatId: ""
+    property bool showChatSettings: false
+
+    signal openChatSettings(string chatId)
+
     radius: 24
     color: Colors.surfaceContainer
     border.width: 0
     border.color: "transparent"
-
-    ChatsSideBar {
-        id: sidebar
-
-        onAnimationStateChanged: function(animating) {
-            root.sidebarAnimating = animating
-        }
-    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -49,12 +46,13 @@ Rectangle {
         }
 
         Loader {
+            id: loader
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            sourceComponent: App.chat.hasChat
-                ? chatComponent
-                : emptyChatComponent
+            sourceComponent: root.showChatSettings
+                    ? chatSettingsComponent
+                    : (App.chat.hasChat ? chatComponent : emptyChatComponent)
 
             onLoaded: {
                 if (item && item.sendRequested) {
@@ -81,6 +79,18 @@ Rectangle {
                 App.chat.sendMessage(text)
             }
         }
+
+        ChatsSideBar {
+            id: sidebar
+
+            onSettingsRequested: {
+                root.openChatSettings(chatId)
+            }
+
+            onAnimationStateChanged: function(animating) {
+                root.sidebarAnimating = animating
+            }
+        }
     }
 
     Component {
@@ -95,6 +105,19 @@ Rectangle {
         id: emptyChatComponent
         EmptyChatView {
 
+        }
+    }
+
+    Component {
+        id: chatSettingsComponent
+
+        ChatSettingsPage {
+            chatId: root.currentChatId
+
+            onBackRequested: {
+                root.showChatSettings = false
+                loader.sourceComponent = App.chat.hasChat ? chatComponent : emptyChatComponent
+            }
         }
     }
 }

@@ -125,6 +125,7 @@ set(INCLUDE
 
     ../include/ui/viewModels/ChatViewModel.h
     ../include/ui/viewModels/ChatListViewModel.h
+    ../include/ui/viewModels/ChatSettingsViewModel.h
 
     ../include/ui/viewModels/MessageModel.h
 

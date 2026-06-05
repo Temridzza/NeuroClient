@@ -22,6 +22,7 @@
 #include "ChatService.h"
 #include "MessageService.h"
 #include "ChatContextService.h"
+#include "ChatSettingsViewModel.h"
 
 class ApplicationOrchestrator : public QObject {
     Q_OBJECT
@@ -38,6 +39,9 @@ class ApplicationOrchestrator : public QObject {
     Q_PROPERTY(ModelsModel* models READ models CONSTANT)
     Q_PROPERTY(ModelSelector* modelSelector READ modelSelector CONSTANT)
     Q_PROPERTY(ProviderSelector* providerSelector READ providerSelector CONSTANT)
+
+    Q_PROPERTY(ChatSettingsViewModel* chatSettings  READ chatSettings CONSTANT)
+
 
 public:
     explicit ApplicationOrchestrator(QObject* parent = nullptr);
@@ -59,6 +63,7 @@ public:
     ProviderSelector* providerSelector();
     ChatOrchestrator* chatOrchestrator();
     SettingsService* settingsService();
+    ChatSettingsViewModel* chatSettings();
 
     bool ready() const { return m_ready; }
 
@@ -80,7 +85,7 @@ private:
     std::unique_ptr<ModelService> m_modelService;
     std::unique_ptr<MessageService> m_messageService;
     std::unique_ptr<ChatContextService> m_chatContextService;
-
+    std::unique_ptr<ChatSettingsViewModel> m_chatSettingsVM;
 
 
     std::unique_ptr<LLMClient> m_llmClient;

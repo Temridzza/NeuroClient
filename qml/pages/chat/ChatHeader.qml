@@ -6,6 +6,8 @@ import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient
 
+import "../../components"
+
 Rectangle {
     id: root
 
@@ -78,176 +80,18 @@ Rectangle {
                 font.pixelSize: 15
             }
         }
-
-        ComboBox {
+        ReusableComboBox {
             id: providerBox
-
-            Layout.fillWidth: true
-            Layout.minimumWidth: 100
-
-            Layout.preferredHeight: 36
-
-            model: App.providerSelector.providers
-            textRole: "display_name"
-            currentIndex: App.providerSelector.currentProviderIndex
-
-            background: Rectangle {
-                radius: 10
-                color: Qt.alpha(Colors.primary, 0.08)
-
-                border.width: 1
-                border.color: Qt.alpha(Colors.primary, 0.18)
-            }
-
-            contentItem: Text {
-                text: providerBox.displayText
-                color: Colors.overBackground
-                font.pixelSize: 14
-                verticalAlignment: Text.AlignVCenter
-
-                leftPadding: 12
-                rightPadding: 24
-
-                elide: Text.ElideRight
-            }
-
-            indicator: Text {
-                text: "⌄"
-                color: Colors.primary
-
-                anchors.right: parent.right
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            popup: Popup {
-                y: providerBox.height + 6
-                width: providerBox.width
-
-                background: Rectangle {
-                    radius: 12
-                    color: Colors.surfaceContainer
-
-                    border.width: 1
-                    border.color: Qt.alpha(Colors.primary, 0.15)
-                }
-
-                contentItem: ListView {
-                    clip: true
-                    implicitHeight: contentHeight
-
-                    model: providerBox.popup.visible
-                           ? providerBox.delegateModel
-                           : null
-                }
-            }
-
-            delegate: ItemDelegate {
-                width: providerBox.width
-                height: 36
-
-                background: Rectangle {
-                    color: highlighted
-                           ? Qt.alpha(Colors.primary, 0.12)
-                           : "transparent"
-                }
-
-                contentItem: Text {
-                    text: modelData.display_name
-                    color: highlighted ? Colors.primary : Colors.overBackground
-                    verticalAlignment: Text.AlignVCenter
-                }
-            }
-
-            onActivated: function(index) {
-                App.providerSelector.currentProvider = model[index].id
-            }
+            itemsModel: App.providerSelector.providers
+            selectedIndex: App.providerSelector.currentProviderIndex
+            onItemSelected: function(id) { App.providerSelector.currentProvider = id }
         }
 
-        ComboBox {
+        ReusableComboBox {
             id: modelBox
-
-            Layout.fillWidth: true
-            Layout.minimumWidth: 100
-
-            Layout.preferredHeight: 36
-
-            model: App.modelSelector.models
-            textRole: "display_name"
-            currentIndex: App.modelSelector.currentModelIndex
-
-            background: Rectangle {
-                radius: 10
-                color: Qt.alpha(Colors.primary, 0.08)
-
-                border.width: 1
-                border.color: Qt.alpha(Colors.primary, 0.18)
-            }
-
-            contentItem: Text {
-                text: modelBox.displayText
-                color: Colors.overBackground
-                font.pixelSize: 14
-
-                verticalAlignment: Text.AlignVCenter
-
-                leftPadding: 12
-                rightPadding: 24
-
-                elide: Text.ElideRight
-            }
-
-            indicator: Text {
-                text: "⌄"
-                color: Colors.primary
-
-                anchors.right: parent.right
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            popup: Popup {
-                y: modelBox.height + 6
-                width: modelBox.width
-
-                background: Rectangle {
-                    radius: 12
-                    color: Colors.surfaceContainer
-
-                    border.width: 1
-                    border.color: Qt.alpha(Colors.primary, 0.15)
-                }
-
-                contentItem: ListView {
-                    clip: true
-                    implicitHeight: contentHeight
-
-                    model: modelBox.popup.visible
-                           ? modelBox.delegateModel
-                           : null
-                }
-            }
-
-            delegate: ItemDelegate {
-                width: modelBox.width
-                height: 36
-
-                background: Rectangle {
-                    color: highlighted
-                           ? Qt.alpha(Colors.primary, 0.12)
-                           : "transparent"
-                }
-
-                contentItem: Text {
-                    text: modelData.display_name
-                    color: highlighted ? Colors.primary : Colors.overBackground
-                    verticalAlignment: Text.AlignVCenter
-                }
-            }
-
-            onActivated: function(index) {
-                App.modelSelector.currentModel = model[index].id
-            }
+            itemsModel: App.modelSelector.models
+            selectedIndex: App.modelSelector.currentModelIndex
+            onItemSelected: function(id) { App.modelSelector.currentModel = id }
         }
 
         Item {

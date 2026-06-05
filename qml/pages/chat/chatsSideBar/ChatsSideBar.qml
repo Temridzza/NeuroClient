@@ -10,8 +10,10 @@ import qs.modules.theme
 Rectangle {
     id: sidebar
     signal animationStateChanged(bool animating)
+    signal settingsRequested(string chatId)
 
     property bool animating: false
+
 
     color: Colors.surfaceContainer
     radius: 22
@@ -47,6 +49,11 @@ Rectangle {
         SidebarChatList {
             Layout.fillWidth: true
             Layout.fillHeight: true
+
+            onSettingsRequested: function(chatId) {
+                sidebar.settingsRequested(chatId)
+                console.log("sidebar onSettingsRequested " + chatId)
+            }
         }
     }
 }

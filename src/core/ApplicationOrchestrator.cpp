@@ -145,6 +145,11 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_modelService.get()
             );
 
+    m_chatSettingsVM =
+        std::make_unique<ChatSettingsViewModel>(
+            m_chatService.get()
+            );
+
     connect(
         m_modelSelector.get(),
         &ModelSelector::currentModelChanged,
@@ -311,4 +316,8 @@ ChatOrchestrator* ApplicationOrchestrator::chatOrchestrator() {
 
 SettingsService* ApplicationOrchestrator::settingsService() {
     return m_settingsService.get();
+}
+
+ChatSettingsViewModel* ApplicationOrchestrator::chatSettings() {
+    return m_chatSettingsVM.get();
 }

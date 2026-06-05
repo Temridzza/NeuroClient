@@ -100,10 +100,13 @@ qt_add_qml_module(ChatGPT_QML
         qml/pages/chat/ChatList.qml
         qml/pages/chat/ChatStatusBar.qml
         qml/pages/chat/EmptyChatView.qml
+        qml/pages/chat/chatsSideBar/ChatSettingsPage.qml
+
 
     # ---------- C++‑исходники, которые нужны плагину ----------
     SOURCES
         src/SingletonRegistration.cpp
+        QML_FILES qml/components/ReusableComboBox.qml
 )
 
 # ------------------- Include‑директории ----------

@@ -46,6 +46,22 @@ Item {
                     easing.type: Easing.OutCubic
                 }
             }
+
+            // onSettingsRequested: chatPage.openChatSettings(chatId)
+
+            // // Прокидываем двунаправленную связь
+            // onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
+            // onRequestSettings: root.currentPage = "settings"
+
+             // ← Слушаем сигнал ChatPage
+            onSettingsRequested: function(chatId) {
+                console.log("MAIN GOT openChatSettings:", chatId)
+
+                if (pageLoader.item) {
+                    pageLoader.item.currentChatId = chatId
+                    pageLoader.item.showChatSettings = true
+                }
+            }
         }
 
         // ---------------------------------------------------------
@@ -59,6 +75,14 @@ Item {
             sourceComponent: root.currentPage === "settings"
                              ? settingsPage
                              : chatPage
+
+            Component {
+                id: chatComponent
+                ChatPage {
+                    sidebarOpened: root.sidebarOpened
+                    currentChatId: pageLoader.currentChatId  // ← передаём сюда
+                }
+            }
         }
     }
 
@@ -77,7 +101,7 @@ Item {
     }
 
     // // -----------------------------------------------------------------
-    // //  Страница настроек
+    // //  Страница глобальный настроек
     // // -----------------------------------------------------------------
     Component {
         id: settingsPage
