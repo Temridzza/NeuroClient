@@ -31,7 +31,7 @@ TEST(ChatOrhestrator, sendMessage) {
     qDebug() << "Available drivers:" << QSqlDatabase::drivers();
     qDebug() << "SQLite available:" << QSqlDatabase::isDriverAvailable("QSQLITE");
 
-    QString dbPath = QDir::home().filePath("Downloads/chat_dbTest.db");
+    QString dbPath = QDir::temp().filePath("chat_dbTest.db");
 
     if (!m_db->init(dbPath)) {
         qFatal("DB init failed");
@@ -63,21 +63,9 @@ TEST(ChatOrhestrator, sendMessage) {
 
     auto m_client = new LLMClient(
         LLMConfig{
-            .apiKey = m_providerService->currentApiKey(
-                m_chatService->getChat(
-                                 m_settingsService->currentChatId()
-                                 ).providerId
-                ),
-            .model = m_modelService->currentModelKey(
-                m_chatService->getChat(
-                                 m_settingsService->currentChatId()
-                                 ).modelId
-                ),
-            .baseUrl = m_providerService->currentBaseUrl(
-                m_chatService->getChat(
-                                 m_settingsService->currentChatId()
-                                 ).providerId
-                )
+            .apiKey = "",
+            .model = "qwen2.5-coder-1.5b-instruct",
+            .baseUrl = "http://localhost:1234/v1/chat/completions"
         }
     );
 
@@ -86,7 +74,22 @@ TEST(ChatOrhestrator, sendMessage) {
         m_promptBuilder, m_client
         );
 
-    auto chatId = m_settingsService->currentChatId();
+    auto provider = new Provider();
+    provider->baseUrl = "testUrl";
+    provider->name = "testName";
+
+    auto providerId = m_providerRepo->createProvider(*provider);
+
+    auto model = new Model();
+    model->providerId = providerId;
+    model->modelKey = "testModelKey";
+    model->displayName = "testDisplayName";
+
+    auto modelId = m_modelRepo->createModel(*model);
+
+    auto chatId = m_chatRepo->createChat("TestChat", providerId, modelId);
+    auto chat = m_chatService->getChat(chatId);
+
     auto message = new MessageModel();
 
     auto obj = new QObject();

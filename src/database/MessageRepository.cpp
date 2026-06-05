@@ -83,9 +83,9 @@ QString MessageRepository::addMessage(Message& message)
         );
 
     if (!q.exec()) {
-        qWarning()
-        << "Failed to insert message:"
-        << q.lastError().text();
+        qWarning() << "SQL:" << q.lastQuery();
+        qWarning() << "Error:" << q.lastError();
+        qWarning() << "Database error:" << m_db.lastError();
 
         return {};
     }

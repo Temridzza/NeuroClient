@@ -125,6 +125,7 @@ void LLMClient::ask(
                 msg.content.toStdString()
             }
         });
+        qDebug() << msg.role << ":" << msg.content;
     }
 
     json payload = {

@@ -11,6 +11,7 @@ public:
     DatabaseManager();
 
     bool init(const QString& path = "chat.db");
+    bool removeDatabase();
 
     QSqlDatabase& db();
 

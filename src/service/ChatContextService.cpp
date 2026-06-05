@@ -33,6 +33,7 @@ QString ChatContextService::resolveChatId(
         qWarning() << "Failed to create chat";
         return {};
     }
+    m_settingsService->setCurrentChatId(newChatId);
     emit chatCreate(newChatId);
     return newChatId;
 }

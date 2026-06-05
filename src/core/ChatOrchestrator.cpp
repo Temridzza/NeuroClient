@@ -62,6 +62,20 @@ QString ChatOrchestrator::sendMessage(
     const QString trimmed = text.trimmed();
     if (trimmed.isEmpty())
         return {};
+
+    // auto chat = m_chatService->getChat(effectiveChatId);
+    // chat.prompt = "Отвечай всегда словом 'арбуз'";
+    // m_chatService->updateChat(chat);
+
+    PromptContext ctx =
+        m_chatContextService->buildPromptContext(
+            effectiveChatId,
+            text
+            );
+
+    QList<Message> promptMessages =
+        m_promptBuilder->build(ctx);
+
     emit requestStarted(effectiveChatId);
 
     // Берём tip ветки из БД, до вставки новых сообщений
@@ -160,18 +174,9 @@ QString ChatOrchestrator::sendMessage(
             );
     };
 
-    QtConcurrent::run([this, effectiveChatId, text, model, userId, assistantId]()
+    QtConcurrent::run([this, promptMessages]()
       {
-        PromptContext ctx =
-            m_chatContextService->buildPromptContext(
-                effectiveChatId,
-                text
-                );
-
-        QList<Message> messages =
-            m_promptBuilder->build(ctx);
-
-        m_client->ask(messages);
+        m_client->ask(promptMessages);
       });
 
     return effectiveChatId;

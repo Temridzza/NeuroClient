@@ -4,6 +4,7 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDateTime>
+#include <QFile>
 
 
 DatabaseManager::DatabaseManager() {}
@@ -318,6 +319,34 @@ bool DatabaseManager::seed() {
         "qwen2.5-coder-1.5b-instruct",
         "Qwen2.5 Coder 1.5B (Local)"
         );
+
+    return true;
+}
+
+bool DatabaseManager::removeDatabase()
+{
+    // Сохраняем имя файла базы данных
+    QString dbName = m_db.databaseName();
+
+    // Закрываем соединение
+    if (m_db.isOpen()) {
+        m_db.close();
+    }
+
+    // Удаляем соединение из QSqlDatabase
+    QSqlDatabase::removeDatabase("main");
+
+    // Удаляем сам файл
+    if (QFile::exists(dbName)) {
+        if (!QFile::remove(dbName)) {
+            qWarning() << "Failed to remove database file:" << dbName;
+            return false;
+        } else {
+            qDebug() << "Database file removed:" << dbName;
+        }
+    } else {
+        qDebug() << "Database file does not exist:" << dbName;
+    }
 
     return true;
 }
