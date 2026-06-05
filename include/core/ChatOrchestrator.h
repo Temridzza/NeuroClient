@@ -26,6 +26,7 @@ class ChatOrchestrator : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(bool hasChat READ hasChat NOTIFY hasChatChanged)
 public:
     explicit ChatOrchestrator(
         ChatService* chatService,
@@ -58,12 +59,16 @@ public:
     bool deleteChat(const QString& chatId);
     QList<Chat> chats();
 
+    bool hasChat() const;
+
 signals:
     void chatLoadingStarted(const QString& chatId);
     void chatLoadingFinished(const QString& chatId);
 
     void requestStarted(const QString& chatId);
     void requestFinish(const QString& chatId);
+
+    void hasChatChanged();
 
 private:
     void rebuildClient();

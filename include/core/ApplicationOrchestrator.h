@@ -70,17 +70,6 @@ private:
     bool m_ready = false;
 
 private:
-    void initDatabase();
-    void initRepositories();
-    void initServices();
-    void initSelectors();
-    void initClient();
-    void initOrchestrator();
-    void initViewModels();
-    void initConnections();
-    void initState();
-
-private:
     DatabaseManager m_database;
 
     std::unique_ptr<AppSettings> m_appSettings;

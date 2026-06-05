@@ -43,6 +43,7 @@ public:
 
     void setApiKey(QString &apiKey);
     void setModel(QString &model);
+    void setBaseUrl(QString& baseUrl);
 
 private:
     QString m_apiKey;

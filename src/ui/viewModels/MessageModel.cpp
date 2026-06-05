@@ -192,3 +192,8 @@ void MessageModel::copyAt(int row, int mode)
     if (auto *cb = QGuiApplication::clipboard())
         cb->setText(result);
 }
+
+void MessageModel::setMessages(const QList<Message> messages)
+{
+    m_messages = messages;
+}

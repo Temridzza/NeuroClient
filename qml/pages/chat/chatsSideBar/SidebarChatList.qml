@@ -22,6 +22,7 @@ ListView {
 
         onDeleteRequested: function(chatId) {
             App.chats.deleteChat(chatId)
+
         }
     }
 

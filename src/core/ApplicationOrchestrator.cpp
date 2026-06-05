@@ -145,78 +145,47 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_modelService.get()
             );
 
-    // connect(
-    //     m_settingsService.get(),
-    //     &SettingsService::currentModelIdChanged,
-    //     this,
-    //     [this](const QString&)
-    //     {
-    //         auto modelKey = m_modelService->currentModelKey();
-    //         m_llmClient->setModel(modelKey);
-    //     }
-    //     );
-    // connect(
-    //     m_settingsService.get(),
-    //     &SettingsService::currentProviderIdChanged,
-    //     this,
-    //     [this](const QString&)
-    //     {
-    //         auto providerId = m_settingsService->currentProviderId();
-    //         auto models = m_modelService->modelsByProvider(providerId);
-
-    //         m_modelSelector->setState(
-    //             buildModelList(models),
-    //             m_modelService->currentModelId()
-    //             );
-
-    //         rebuildClient();
-    //     }
-    // );
-
-    // connect(
-    //     m_modelSelector.get(),
-    //     &ModelSelector::currentModelChanged,
-    //     this,
-    //     [this](const QString &model)
-    //     {
-    //         const auto chatId = m_settingsService->currentChatId();
-    //         Chat chat = m_chatService->getChat(chatId);
-    //         chat.modelId = model;
-    //         m_chatService->updateChat(chat);
+    connect(
+        m_modelSelector.get(),
+        &ModelSelector::currentModelChanged,
+        this,
+        [this](const QString &model)
+        {
+            auto modelKey = m_modelService->currentModelKey(
+                model
+                );
+            m_llmClient->setModel(modelKey);
+        }
+    );
 
 
-    //         auto providerId = m_settingsService->currentProviderId();
-    //         QList<Model> models = m_modelService->modelsByProvider(providerId);
+    connect(
+        m_providerSelector.get(),
+        &ProviderSelector::currentProviderChanged,
+        this,
+        [this](const QString &provider)
+        {
+            auto models = m_modelService->modelsByProvider(provider);
 
-    //         m_modelSelector->setState(
-    //             buildModelList(models),
-    //             m_modelService->currentModelId()
-    //             );
+            auto modelId = m_modelService->defaultModelForProvider(provider);
+            m_modelSelector->setState(
+                models,
+                modelId
+                );
 
-    //         rebuildClient();
-    //     }
-    // );
+            // TDOD заменить, этим должен заниматся оркестр
+            auto modelKey = m_modelService->currentModelKey(
+                modelId
+                );
 
+            auto apiKey = m_providerService->currentApiKey(provider);
+            auto baseUrl = m_providerService->currentBaseUrl(provider);
+            m_llmClient->setModel(modelKey);
+            m_llmClient->setApiKey(apiKey);
+            m_llmClient->setBaseUrl(baseUrl);
 
-    // connect(
-    //     m_providerSelector.get(),
-    //     &ProviderSelector::currentProviderChanged,
-    //     this,
-    //     [this](const QString &provider)
-    //     {
-    //         const auto chatId = m_settingsService->currentChatId();
-    //         Chat chat = m_chatService->getChat(chatId);
-    //         chat.providerId = provider;
-
-    //         auto models = m_modelService->modelsByProvider(chat.providerId);
-    //         auto modelId = m_modelService->defaultModelForProvider(chat.providerId);
-
-    //         chat.modelId = modelId;
-
-    //         m_modelSelector->setState(models, modelId);
-    //         m_chatService->updateChat(chat);
-    //     }
-    // );
+        }
+    );
 
 
     connect(
@@ -229,6 +198,16 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             //          << chatId;
         }
         );
+
+    connect(
+        m_chatContextService.get(),
+        &ChatContextService::chatCreate,
+        this, [this](const QString& chatId)
+        {
+            m_chatListVM->refresh();
+        }
+        );
+
     init();
 }
 
@@ -255,6 +234,7 @@ void ApplicationOrchestrator::init() {
     m_modelSelector->setState(list, modelId);
 
     auto chatId = m_settingsService->currentChatId();
+
     m_chatVM->loadChat(chatId);
 }
 

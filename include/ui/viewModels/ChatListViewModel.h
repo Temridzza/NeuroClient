@@ -34,7 +34,6 @@ public:
     Q_INVOKABLE void deleteChat(const QString& id);
     Q_INVOKABLE void openChat(const QString& id);
 
-
     // Q_INVOKABLE QVariantMap get(int index) const;
 
 private:

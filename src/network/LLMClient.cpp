@@ -91,14 +91,6 @@ void LLMClient::ask(
     const QList<Message>& messages
     ) {
 
-    // if (m_apiKey.trimmed().isEmpty()) {
-
-    //     if (onError)
-    //         onError("API key is empty");
-
-    //     return;
-    // }
-
     if (m_model.trimmed().isEmpty()) {
 
         if (onError)
@@ -231,4 +223,8 @@ void LLMClient::setApiKey(QString& apiKey) {
 
 void LLMClient::setModel(QString& model) {
     m_model = model;
+}
+
+void LLMClient::setBaseUrl(QString& baseUrl) {
+    m_baseUrl = baseUrl;
 }

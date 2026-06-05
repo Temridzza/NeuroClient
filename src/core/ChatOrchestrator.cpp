@@ -189,10 +189,25 @@ bool ChatOrchestrator::deleteChat(
     const QString& chatId
     )
 {
-    m_chatService->deleteChat(chatId);
+    bool result = m_chatService->deleteChat(chatId);
+
+    if (result) {
+        if (m_currentChatId == chatId) {
+            m_currentChatId.clear();
+            emit hasChatChanged();
+        }
+    }
+
+    return result;
 }
 
 QList<Chat> ChatOrchestrator::chats()
 {
     return m_chatService->listChats();
 }
+
+bool ChatOrchestrator::hasChat() const
+{
+    return !m_currentChatId.isEmpty();
+}
+

@@ -1,5 +1,7 @@
 # tests/CmakeLists.txt
 add_executable(UnitTests
+        ChatOrhestrator_test.cpp
+        main.cpp
         # ChatGPTConfig_test.cpp
         # MainWindow_test.cpp
         # ChatGPTClient_test.cpp
@@ -18,6 +20,7 @@ target_link_libraries(UnitTests PRIVATE
         Qt6::Sql
 
         ${CURL_TARGET}
+        ${CMARK_GFM_LIBRARIES}
 
         chatgptlib
 )

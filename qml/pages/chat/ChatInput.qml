@@ -150,7 +150,7 @@ Rectangle {
                 Text {
                     anchors.centerIn: parent
                     text: "➤"
-                    color: Colors.white
+                    color: Colors.background
                     font.pixelSize: 18
                     font.bold: true
                 }

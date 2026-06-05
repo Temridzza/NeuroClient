@@ -20,7 +20,7 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
 
         onClicked: {
-            console.log("new chat")
+            // console.log("new chat")
             // const newId = App.chats.createChat("Новый чат")
             // App.chat.loadChat(newId)
             App.chat.startNewChat()
@@ -33,14 +33,14 @@ Rectangle {
 
         Text {
             text: "+"
-            color: Colors.overBackground
+            color: Colors.background
             font.pixelSize: 20
             font.bold: true
         }
 
         Text {
             text: "Новый чат"
-            color: Colors.overBackground
+            color: Colors.background
             font.pixelSize: 15
             font.bold: true
         }

@@ -82,7 +82,9 @@ Rectangle {
         ComboBox {
             id: providerBox
 
-            Layout.preferredWidth: 180
+            Layout.fillWidth: true
+            Layout.minimumWidth: 100
+
             Layout.preferredHeight: 36
 
             model: App.providerSelector.providers
@@ -165,7 +167,9 @@ Rectangle {
         ComboBox {
             id: modelBox
 
-            Layout.preferredWidth: 220
+            Layout.fillWidth: true
+            Layout.minimumWidth: 100
+
             Layout.preferredHeight: 36
 
             model: App.modelSelector.models

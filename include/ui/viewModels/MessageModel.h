@@ -53,6 +53,8 @@ public:
     void clear();
 
     const QList<Message>& messages() const;
+    void setMessages(const QList<Message> messages);
+
 
 private:
     void scheduleRender();

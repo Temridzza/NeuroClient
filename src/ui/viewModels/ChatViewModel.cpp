@@ -60,6 +60,7 @@ void ChatViewModel::sendMessage(const QString& text)
 
 void ChatViewModel::loadChat(const QString& chatId)
 {
+    // qDebug() << "LOAD CHAT" << chatId;
     if (!m_orchestrator)
         return;
 
@@ -70,7 +71,6 @@ void ChatViewModel::loadChat(const QString& chatId)
         m_messages,
         this
         );
-
     emit chatIdChanged();
     emit messagesChanged();
 }

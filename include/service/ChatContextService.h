@@ -18,8 +18,9 @@
 #include "SettingsService.h"
 #include "PromptContext.h"
 
-class ChatContextService
+class ChatContextService : public QObject
 {
+    Q_OBJECT
 public:
     ChatContextService(
         ChatService* chatService,
@@ -44,6 +45,9 @@ public:
     Provider getCurrentProvider(const QString& chatId) const;
 
     QList<Message> getHistory(const QString& chatId) const;
+
+signals:
+    void chatCreate(const QString& chatId);
 
 private:
     QString generateTitle(const QString& input) const;

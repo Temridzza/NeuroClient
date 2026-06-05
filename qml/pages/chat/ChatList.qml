@@ -45,6 +45,7 @@ ListView {
     }
 
     function tickVisibleRange() {
+        // console.log("tickVisibleRange", count)
         var first = indexAt(10, contentY)
         var last  = indexAt(10, contentY + height)
 
@@ -90,8 +91,8 @@ ListView {
             radius: 18
 
             color: isUser ? Colors.primary : Colors.inverseOnSurface
-            // граница – нейтральный «outline», а не Theme.borderColor
-            border.color: isUser ? Colors.overBackground : Colors.primary
+
+            border.color: isUser ? Colors.background : Colors.primary
 
             HoverHandler {
                 onHoveredChanged: bubble.hovered = hovered
@@ -131,7 +132,7 @@ ListView {
                 Text {
                     text: Theme.iconCopy
                     font.pixelSize: 25
-                    color: Colors.onPrimary
+                    color: Colors.background
                 }
 
                 onClicked: App.messages.copyAt(index, MessageModel.RawMarkdown)
@@ -175,27 +176,29 @@ ListView {
             Menu {
                 id: contextMenu
 
-                StyledMenuItem {
-                    text: qsTr("Копировать")
-                    onTriggered: App.messages.copyAt(index, App.RawMarkdown)
-                }
+                Menu {
+                    title: qsTr("Копировать")
 
-                StyledMenuItem {
-                    text: qsTr("Копировать как текст")
-                    onTriggered: App.messages.copyAt(index, App.PlainText)
-                }
+                    StyledMenuItem {
+                        text: qsTr("Markdown")
+                        onTriggered: App.messages.copyAt(index, App.RawMarkdown)
+                    }
 
-                StyledMenuItem {
-                    text: qsTr("Копировать как видно")
-                    onTriggered: App.messages.copyAt(index, App.VisibleText)
-                }
+                    StyledMenuItem {
+                        text: qsTr("Текст")
+                        onTriggered: App.messages.copyAt(index, App.PlainText)
+                    }
 
-                MenuSeparator {}
+                    StyledMenuItem {
+                        text: qsTr("Видимый текст")
+                        onTriggered: App.messages.copyAt(index, App.VisibleText)
+                    }
 
-                StyledMenuItem {
-                    text: qsTr("Копировать выделенное")
-                    enabled: textItem.selectedText.length > 0
-                    onTriggered: App.messages.copyAt(index, App.PlainText)
+                    StyledMenuItem {
+                        text: qsTr("Выделенное")
+                        enabled: textItem.selectedText.length > 0
+                        onTriggered: App.messages.copyAt(index, App.PlainText)
+                    }
                 }
 
                 StyledMenuItem {

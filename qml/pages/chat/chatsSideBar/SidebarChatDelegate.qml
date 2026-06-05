@@ -28,9 +28,14 @@ Rectangle {
         id: rowMouse
         anchors.fill: parent
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         onClicked: App.chat.loadChat(chatId)
+
+        onPressed: function(mouse) {
+            if (mouse.button === Qt.RightButton)
+                contextMenu.popup(mouse.x, mouse.y)
+        }
     }
 
     RowLayout {
@@ -108,7 +113,11 @@ Rectangle {
                 verticalAlignment: Text.AlignVCenter
             }
 
-            onTriggered: root.deleteRequested(chatId)
+            onTriggered: {
+                // Qt.callLater(function() {
+                    root.deleteRequested(chatId)
+                //})
+            }
         }
     }
 }

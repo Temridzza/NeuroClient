@@ -55,8 +55,8 @@ QHash<int, QByteArray> ProviderModel::roleNames() const {
     return {
         {IdRole, "id"},
         {NameRole, "name"},
-        {BaseUrlRole, "baseUrl"},
-        {ApiKeyRole, "apiKey"},
+        {BaseUrlRole, "base_url"},
+        {ApiKeyRole, "api_key"},
         {CreatedAtRole, "createdAt"},
         {UpdatedAtRole, "updatedAt"}
     };
@@ -97,8 +97,8 @@ bool ProviderModel::updateProvider(
 
     provider.id = id;
     provider.name = fields.value("name").toString();
-    provider.baseUrl = fields.value("baseUrl").toString();
-    provider.apiKey = fields.value("apiKey").toString();
+    provider.baseUrl = fields.value("base_url").toString();
+    provider.apiKey = fields.value("api_key").toString();
 
     bool ok = m_service->updateProvider(provider);
 
@@ -135,8 +135,8 @@ QVariantMap ProviderModel::getProviderById(
             return {
                 {"id", provider.id},
                 {"name", provider.name},
-                {"baseUrl", provider.baseUrl},
-                {"apiKey", provider.apiKey},
+                {"base_url", provider.baseUrl},
+                {"api_key", provider.apiKey},
                 {"createdAt", provider.createdAt},
                 {"updatedAt", provider.updatedAt}
             };
