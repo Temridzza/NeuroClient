@@ -5,11 +5,14 @@
 #include <QObject>
 #include "ChatService.h"
 #include "Chat.h"
+#include "ProviderSelector.h"
+#include "ModelSelector.h"
 
 class ChatSettingsViewModel : public QObject
 {
     Q_OBJECT
 
+    // ─── Основные свойства ─────────────────────
     Q_PROPERTY(QString chatId READ chatId NOTIFY chatIdChanged)
     Q_PROPERTY(QString chatTitle READ chatTitle WRITE setChatTitle NOTIFY chatTitleChanged)
     Q_PROPERTY(QString providerId READ providerId WRITE setProviderId NOTIFY providerIdChanged)
@@ -17,8 +20,17 @@ class ChatSettingsViewModel : public QObject
     Q_PROPERTY(QString prompt READ prompt WRITE setPrompt NOTIFY promptChanged)
 
 public:
-    explicit ChatSettingsViewModel(ChatService* service, QObject* parent = nullptr)
-        : QObject(parent), m_service(service) {}
+    explicit ChatSettingsViewModel(
+        ChatService* chatService,
+        ProviderSelector* providerSelector,
+        ModelSelector* modelSelector,
+        QObject* parent = nullptr
+        )
+        : QObject(parent),
+        m_chatService(chatService),
+        m_providerSelector(providerSelector),
+        m_modelSelector(modelSelector)
+    {}
 
     // ─── chatId ───────────────────────────────
     QString chatId() const { return m_chat.value("id").toString(); }
@@ -59,22 +71,29 @@ public:
         }
     }
 
+    // ─── Индексы для ComboBox ─────────────────
+    QVariantList providers() const { return m_providers; }
+    QVariantList models() const { return m_models; }
+
     // ─── загрузка чата ───────────────────────
-    Q_INVOKABLE void getChatInfo(const QString& id) {
-        Chat chat = m_service->getChat(id);
+    Q_INVOKABLE void getChatInfo(const QString& id)
+    {
+        Chat chat = m_chatService->getChat(id);
         m_chat = chatToMap(chat);
 
-        emit chatChanged();
-        emit chatIdChanged();
+        m_providerSelector->setCurrentProvider(chat.providerId);
+        m_modelSelector->setCurrentModel(chat.modelId);
+
         emit chatTitleChanged();
-        emit providerIdChanged();
-        emit modelIdChanged();
         emit promptChanged();
     }
 
     // ─── сохранение чата ─────────────────────
     Q_INVOKABLE void saveChat() {
-        m_service->updateChat(mapToChat(m_chat));
+        auto chat = mapToChat(m_chat);
+        chat.providerId = m_providerSelector->currentProvider();
+        chat.modelId = m_modelSelector->currentModel();
+        m_chatService->updateChat(chat);
     }
 
 signals:
@@ -84,10 +103,18 @@ signals:
     void providerIdChanged();
     void modelIdChanged();
     void promptChanged();
+    void providerIndexChanged();
+    void modelIndexChanged();
 
 private:
-    ChatService* m_service;
+    ChatService* m_chatService;
+    ProviderSelector* m_providerSelector;
+    ModelSelector* m_modelSelector;
+
     QVariantMap m_chat;
+
+    QVariantList m_providers;
+    QVariantList m_models;
 
     // ─── конвертеры ──────────────────────────
     QVariantMap chatToMap(const Chat& chat) {

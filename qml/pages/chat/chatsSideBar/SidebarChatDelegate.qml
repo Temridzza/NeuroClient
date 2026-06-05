@@ -6,6 +6,8 @@ import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient 1.0
 
+import "../../../components"
+
 Rectangle {
     id: root
 
@@ -75,27 +77,19 @@ Rectangle {
         }
     }
 
-    Menu {
+    StyledMenu {
         id: contextMenu
 
-        MenuItem {
-            contentItem: Text {
-                text: "Настройки"
-                color: hovered ? Colors.background : Colors.overBackground
-            }
-            onTriggered: {
+        StyledMenuItem {
+            text: "Настройки"
+            onItemTriggered: {
                 root.settingsRequested(chatId)
-                console.log("contextMenu MenuItem onTriggered " + chatId)
             }
         }
 
-        MenuItem {
-            contentItem: Text {
-                text: "Удалить"
-                color: hovered ? Colors.background : Colors.overBackground
-            }
-
-            onTriggered: root.deleteRequested(chatId)
+        StyledMenuItem {
+            text: "Удалить"
+            onItemTriggered: root.deleteRequested(chatId)
         }
     }
 }

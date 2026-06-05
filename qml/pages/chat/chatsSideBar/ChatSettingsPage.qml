@@ -37,6 +37,12 @@ Pane {
             id: titleField
             text: vm.chatTitle
             onTextChanged: vm.chatTitle = text
+
+            Binding {
+                target: titleField
+                property: "text"
+                value: vm.chatTitle
+            }
         }
 
         // ─── Провайдер ─────────────────────────
@@ -44,14 +50,10 @@ Pane {
         ReusableComboBox {
             id: providerBox
             Layout.fillWidth: true
+
             itemsModel: App.providerSelector.providers
-            selectedIndex: {
-                for (let i = 0; i < itemsModel.count; i++)
-                    if (itemsModel[i].id === vm.providerId)
-                        return i
-                return -1
-            }
-            onItemSelected: vm.providerId = id
+            selectedIndex: App.providerSelector.currentProviderIndex
+            onItemSelected: function(id) { App.providerSelector.currentProvider = id }
         }
 
         // ─── Модель ───────────────────────────
@@ -59,14 +61,10 @@ Pane {
         ReusableComboBox {
             id: modelBox
             Layout.fillWidth: true
+
             itemsModel: App.modelSelector.models
-            selectedIndex: {
-                for (let i = 0; i < itemsModel.count; i++)
-                    if (itemsModel[i].id === vm.modelId)
-                        return i
-                return -1
-            }
-            onItemSelected: vm.modelId = id
+            selectedIndex: App.modelSelector.currentModelIndex
+            onItemSelected: function(id) { App.modelSelector.currentModel = id }
         }
 
         // ─── Системный промпт ─────────────────
@@ -81,6 +79,12 @@ Pane {
                 text: vm.prompt
                 onTextChanged: vm.prompt = text
                 placeholderText: "Введите системный промпт..."
+
+                Binding {
+                    target: promptEdit
+                    property: "text"
+                    value: vm.prompt
+                }
             }
         }
 

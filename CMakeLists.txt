@@ -102,11 +102,12 @@ qt_add_qml_module(ChatGPT_QML
         qml/pages/chat/EmptyChatView.qml
         qml/pages/chat/chatsSideBar/ChatSettingsPage.qml
 
+        qml/components/ReusableComboBox.qml
+        qml/components/StyledMenu.qml
 
     # ---------- C++‑исходники, которые нужны плагину ----------
     SOURCES
         src/SingletonRegistration.cpp
-        QML_FILES qml/components/ReusableComboBox.qml
 )
 
 # ------------------- Include‑директории ----------
@@ -134,14 +135,9 @@ target_compile_options(ChatGPT_QML PRIVATE
     ${CMARK_GFM_CFLAGS_OTHER}
 )
 
-# qt_add_executable(ChatGPTApp
-#     main.cpp
-# )
-# target_link_libraries(ChatGPTApp PRIVATE
-#     Qt6::Quick
-#     Qt6::Qml
-#     ChatGPT_QML
-# )
+#qt_add_executable(ChatGPTApp main.cpp)
+#target_link_libraries(ChatGPTApp PRIVATE Qt6::Quick Qt6::Qml ChatGPT_QML)
+
 # install(TARGETS ChatGPT_QML
 #     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/qt6/qml/ChatGPT
 # )
