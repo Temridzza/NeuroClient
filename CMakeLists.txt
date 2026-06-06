@@ -108,6 +108,7 @@ qt_add_qml_module(ChatGPT_QML
     # ---------- C++‑исходники, которые нужны плагину ----------
     SOURCES
         src/SingletonRegistration.cpp
+        QML_FILES qml/components/StyledToolButton.qml
 )
 
 # ------------------- Include‑директории ----------

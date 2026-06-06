@@ -3,10 +3,12 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts
 
 import qs.modules.theme
+import qs.modules.components
 import ChatGPT 1.0
 import NeuroClient 1.0
 
 import "../../../components"
+
 
 Rectangle {
     id: root
@@ -23,7 +25,12 @@ Rectangle {
 
     property bool hovered: rowMouse.containsMouse || moreButton.hovered || contextMenu.visible
 
-    color: hovered ? Colors.primary : Colors.surfaceContainer
+    StyledRect {
+        id: bg
+        anchors.fill: parent
+        radius: 12
+        variant: rowMouse.containsMouse ? "primary" : "internalbg"
+    }
 
     MouseArea {
         id: rowMouse
@@ -54,30 +61,20 @@ Rectangle {
             width: 8
             height: 8
             radius: 4
-            color: Colors.overBackground
+            color: bg.item   // цвет из темы (overbackground/контрастный)
             Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
             Layout.fillWidth: true
             text: chatTitle
-            color: hovered ? Colors.background : Colors.overBackground
             font.pixelSize: 14
             elide: Text.ElideRight
+            color: bg.item   // автоматически меняется с variant
         }
 
-        ToolButton {
-            id: moreButton
-            visible: root.hovered
-            hoverEnabled: true
-            padding: 0
-
-            contentItem: Text {
-                text: "⋮"
-                color: Colors.overBackground
-                font.pixelSize: 18
-            }
-
+        StyledToolButton {
+            buttonText: "⋮"
             onClicked: contextMenu.popup()
         }
     }
@@ -87,9 +84,7 @@ Rectangle {
 
         StyledMenuItem {
             text: "Настройки"
-            onItemTriggered: {
-                root.settingsRequested(chatId)
-            }
+            onItemTriggered: root.settingsRequested(chatId)
         }
 
         StyledMenuItem {

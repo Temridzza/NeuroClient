@@ -7,14 +7,14 @@ import ChatGPT 1.0
 import NeuroClient 1.0
 import Theme 1.0
 import qs.modules.theme
+import qs.modules.components
 
-Rectangle {
+StyledRect {
     Layout.fillWidth: true
     Layout.preferredHeight: 42
 
     radius: 12
-    color: Colors.surfaceContainer
-    border.color: Colors.primary
+    variant: "internalbg"
 
     RowLayout {
         anchors.fill: parent
@@ -25,15 +25,15 @@ Rectangle {
         Text {
             text: "🔍"
             font.pixelSize: 14
-            color: Colors.overBackground
+            color: parent.item
         }
 
         TextField {
             Layout.fillWidth: true
 
             placeholderText: "Поиск в чатах"
-            color: Colors.overBackground
-            selectedTextColor: "white"
+            color: Styling.srItem("overpane")
+            selectedTextColor: parent.item
 
             background: Rectangle {
                 color: "transparent"

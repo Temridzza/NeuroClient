@@ -1,4 +1,3 @@
-// qml/Main.qml
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -8,103 +7,117 @@ import "pages/chat"
 import "pages/chat/chatsSideBar"
 import "settings"
 
-// ── Плагин, который мы собираем в CMake ───────
-import ChatGPT 1.0               // ← URI, объявленный в CMake
-import NeuroClient 1.0           // ← singleton‑provider, объявлен в QmlModule.cpp
+import ChatGPT 1.0
+import NeuroClient 1.0
 import Theme 1.0
 
-Item {
+import qs.modules.theme
+import qs.modules.components
+
+StyledRect {
     id: root
 
     implicitWidth: 1280
     implicitHeight: 820
 
-    // -----------------------------------------------------------------
-    //  Свойства, которыми пользуется ваш UI (сайд‑бар, роутер страниц)
-    // -----------------------------------------------------------------
+    variant: "transparent"
+
+    // -------------------------
+    // Общие свойства
+    // -------------------------
     property bool sidebarOpened: false
     property string currentPage: "chat"
+    property string currentChatId: ""
+    property bool showChatSettings: false
 
-    RowLayout {
+    // -------------------------
+    // Основной контент
+    // -------------------------
+    Loader {
+        id: pageLoader
         anchors.fill: parent
-        anchors.margins: 14
-        spacing: 14
 
-        // ---------------------------------------------------------
-        //  Сайд‑бар
-        // ---------------------------------------------------------
-        ChatsSideBar {
-            id: sideBar
-            Layout.fillHeight: true
-            Layout.preferredWidth: sidebarOpened ? 320 : 0
-            clip: true
-            visible: width > 0
+        sourceComponent: root.currentPage === "settings"
+                         ? settingsPage
+                         : chatPage
+    }
 
-            Behavior on Layout.preferredWidth {
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.OutCubic
-                }
-            }
+    // -------------------------
+    // SIDEBAR OVERLAY (surface layer)
+    // -------------------------
+    StyledRect {
+        id: sideBarContainer
 
-            // onSettingsRequested: chatPage.openChatSettings(chatId)
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
 
-            // // Прокидываем двунаправленную связь
-            // onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
-            // onRequestSettings: root.currentPage = "settings"
+        variant: "internalbg"
 
-             // ← Слушаем сигнал ChatPage
-            onSettingsRequested: function(chatId) {
-                console.log("MAIN GOT openChatSettings:", chatId)
+        width: sidebarOpened ? 320 : 0
+        z: 1000
+        clip: true
+        visible: width > 0
 
-                if (pageLoader.item) {
-                    pageLoader.item.currentChatId = chatId
-                    pageLoader.item.showChatSettings = true
-                }
-            }
+        Behavior on width {
+            NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
         }
 
-        // ---------------------------------------------------------
-        //  Основная область – роутер между «чатом» и «настройками»
-        // ---------------------------------------------------------
-        Loader {
-            id: pageLoader
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+        ChatsSideBar {
+            anchors.fill: parent
 
-            sourceComponent: root.currentPage === "settings"
-                             ? settingsPage
-                             : chatPage
-
-            Component {
-                id: chatComponent
-                ChatPage {
-                    sidebarOpened: root.sidebarOpened
-                    currentChatId: pageLoader.currentChatId  // ← передаём сюда
-                }
+            onSettingsRequested: function(chatId) {
+                console.log("MAIN GOT openChatSettings:", chatId)
+                root.currentChatId = chatId
+                root.showChatSettings = true
             }
         }
     }
 
-    // -----------------------------------------------------------------
-    //  Чат‑страница
-    // -----------------------------------------------------------------
+    // -------------------------
+    // SCRIM (затемнение)
+    // -------------------------
+    StyledRect {
+        anchors.fill: parent
+
+        variant: "pane"
+        color: "black"
+        opacity: sidebarOpened ? 0.35 : 0
+        visible: opacity > 0
+        z: 900
+
+        Behavior on opacity {
+            NumberAnimation { duration: 180 }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.sidebarOpened = false
+        }
+    }
+
+    // -------------------------
+    // ChatPage Component
+    // -------------------------
     Component {
         id: chatPage
+
         ChatPage {
             sidebarOpened: root.sidebarOpened
+            currentChatId: root.currentChatId
+            showChatSettings: root.showChatSettings
 
-            // Прокидываем двунаправленную связь
             onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
             onRequestSettings: root.currentPage = "settings"
         }
     }
 
-    // // -----------------------------------------------------------------
-    // //  Страница глобальный настроек
-    // // -----------------------------------------------------------------
+    // -------------------------
+    // SettingsPage Component
+    // -------------------------
     Component {
         id: settingsPage
+
         SettingsPage {
             anchors.fill: parent
             onRequestBack: root.currentPage = "chat"

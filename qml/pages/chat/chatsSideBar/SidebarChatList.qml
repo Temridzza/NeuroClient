@@ -12,12 +12,13 @@ ListView {
     signal settingsRequested(string chatId)
 
     model: App.chats
+    spacing: 6
 
     delegate: SidebarChatDelegate {
 
         onSettingsRequested: function(chatId) {
             list.settingsRequested(chatId)
-            console.log("list delegate SidebarChatDelegate " + chatId)
+            // console.log("list delegate SidebarChatDelegate " + chatId)
         }
 
         onDeleteRequested: function(chatId) {

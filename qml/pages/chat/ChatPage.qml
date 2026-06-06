@@ -1,48 +1,44 @@
 import QtQuick 2.15
-import QtQuick.Controls
-import QtQuick.Layouts
-import QtQuick.Effects
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
-import Theme 1.0
-import "../chat/chatsSideBar"
 import ChatGPT 1.0
-import NeuroClient
+import NeuroClient 1.0
+import Theme 1.0
 import qs.modules.theme
+import qs.modules.components
 
-Rectangle {
+StyledRect {
     id: root
+    anchors.fill: parent
+    radius: 50
+    variant: "transparent"
+    clip: true
 
-    property bool sidebarOpened: true
-    property bool sidebarAnimating: false
+    property bool sidebarOpened: false
+    property bool showChatSettings: false
+    property string currentChatId: ""
 
     signal requestSettings()
-
-    property string currentChatId: ""
-    property bool showChatSettings: false
-
-    signal openChatSettings(string chatId)
-
-    radius: 24
-    color: Colors.surfaceContainer
-    border.width: 0
-    border.color: "transparent"
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 14
         spacing: 12
 
-        ChatHeader {
+        Item {
             Layout.fillWidth: true
+            height: header.height
 
-            sidebarOpened: root.sidebarOpened
+            ChatHeader {
+                id: header
+                anchors.fill: parent
 
-            onToggleSidebar: {
-                root.sidebarAnimating = true
-                root.sidebarOpened = !root.sidebarOpened
+                sidebarOpened: root.sidebarOpened
+
+                onToggleSidebar: root.sidebarOpened = !root.sidebarOpened
+                onSettings: root.requestSettings()
             }
-
-            onSettings: root.requestSettings()
         }
 
         Loader {
@@ -51,8 +47,8 @@ Rectangle {
             Layout.fillHeight: true
 
             sourceComponent: root.showChatSettings
-                    ? chatSettingsComponent
-                    : (App.chat.hasChat ? chatComponent : emptyChatComponent)
+                             ? chatSettingsComponent
+                             : (App.chat.hasChat ? chatComponent : emptyChatComponent)
 
             onLoaded: {
                 if (item && item.sendRequested) {
@@ -70,54 +66,33 @@ Rectangle {
 
         ChatInput {
             Layout.fillWidth: true
-
             visible: App.chat.hasChat
-
             loading: App.chat.loading
 
             onSendRequested: function(text) {
                 App.chat.sendMessage(text)
             }
         }
-
-        ChatsSideBar {
-            id: sidebar
-
-            onSettingsRequested: {
-                root.openChatSettings(chatId)
-            }
-
-            onAnimationStateChanged: function(animating) {
-                root.sidebarAnimating = animating
-            }
-        }
     }
 
+    // -------------------------
+    // Компоненты Chat
+    // -------------------------
     Component {
         id: chatComponent
-
-        ChatList {
-            sidebarAnimating: root.sidebarAnimating
-        }
+        ChatList {}
     }
 
     Component {
         id: emptyChatComponent
-        EmptyChatView {
-
-        }
+        EmptyChatView {}
     }
 
     Component {
         id: chatSettingsComponent
-
         ChatSettingsPage {
             chatId: root.currentChatId
-
-            onBackRequested: {
-                root.showChatSettings = false
-                loader.sourceComponent = App.chat.hasChat ? chatComponent : emptyChatComponent
-            }
+            onBackRequested: root.showChatSettings = false
         }
     }
 }

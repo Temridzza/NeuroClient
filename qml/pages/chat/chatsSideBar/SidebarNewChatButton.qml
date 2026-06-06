@@ -4,27 +4,28 @@ import QtQuick.Layouts
 import QtQuick.Effects
 
 import qs.modules.theme
+import qs.modules.components
 import ChatGPT 1.0
 import NeuroClient 1.0
 
-Rectangle {
+StyledRect {
     Layout.fillWidth: true
     Layout.preferredHeight: 48
 
     radius: 14
-    color: Colors.primary
+    variant: "primary"   // основной фон кнопки
 
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
 
-        onClicked: {
-            // console.log("new chat")
-            // const newId = App.chats.createChat("Новый чат")
-            // App.chat.loadChat(newId)
-            App.chat.startNewChat()
-        }
+        onEntered: parent.variant = "focus"      // hover
+        onExited: parent.variant = "primary"     // обычное
+        onPressed: parent.variant = "primary"    // нажатие
+        onReleased: parent.variant = containsMouse ? "focus" : "primary"
+
+        onClicked: App.chat.startNewChat()
     }
 
     Row {
@@ -33,14 +34,14 @@ Rectangle {
 
         Text {
             text: "+"
-            color: Colors.background
+            color: parent.item   // цвет текста из темы
             font.pixelSize: 20
             font.bold: true
         }
 
         Text {
             text: "Новый чат"
-            color: Colors.background
+            color: parent.item   // цвет текста из темы
             font.pixelSize: 15
             font.bold: true
         }

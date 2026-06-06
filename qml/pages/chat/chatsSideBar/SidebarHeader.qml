@@ -7,6 +7,8 @@ import qs.modules.theme
 import ChatGPT 1.0
 import NeuroClient 1.0
 
+import "../../../components"
+
 RowLayout {
     Layout.fillWidth: true
     spacing: 10
@@ -20,11 +22,8 @@ RowLayout {
 
     Item { Layout.fillWidth: true }
 
-    ToolButton {
-        Text {
-            text: "✕"
-            color: Colors.overBackground
-        }
+    StyledToolButton {
+        buttonText: "✕"
         onClicked: root.sidebarOpened = !root.sidebarOpened
     }
 }

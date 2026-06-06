@@ -6,20 +6,23 @@ import QtQuick.Effects
 import ChatGPT 1.0
 import NeuroClient 1.0
 import qs.modules.theme
+import qs.modules.components
 
-Rectangle {
+StyledRect {
     id: sidebar
     signal animationStateChanged(bool animating)
     signal settingsRequested(string chatId)
 
     property bool animating: false
 
-
-    color: Colors.surfaceContainer
     radius: 22
+    variant: "pane"   // фон берётся из темы Ambxst
 
     width: root.sidebarOpened ? 320 : 0
     visible: width > 0
+
+    border.width: 10
+    border.color: Colors.background
 
     layer.enabled: true
     layer.effect: MultiEffect {
@@ -31,10 +34,7 @@ Rectangle {
     Behavior on width {
         NumberAnimation {
             duration: 200
-
-            onRunningChanged: {
-                sidebar.animationStateChanged(running)
-            }
+            onRunningChanged: sidebar.animationStateChanged(running)
         }
     }
 

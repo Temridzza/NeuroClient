@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import qs.modules.theme
+import qs.modules.components
 import ChatGPT 1.0
 import NeuroClient
 
@@ -11,26 +12,31 @@ Item {
 
     signal sendRequested(string text)
 
-    ColumnLayout {
-        anchors.centerIn: parent
-        width: Math.min(parent.width * 0.8, 900)
-        spacing: 24
+    StyledRect {
+        anchors.fill: parent
+        variant: "transparent"
 
-        Label {
-            Layout.alignment: Qt.AlignHCenter
+        ColumnLayout {
+            anchors.centerIn: parent
+            width: Math.min(parent.width * 0.8, 900)
+            spacing: 24
 
-            text: "Чем могу помочь?"
-            color: Colors.overBackground
+            Label {
+                Layout.alignment: Qt.AlignHCenter
+                text: "Чем могу помочь?"
 
-            font.pixelSize: 32
-            font.bold: true
-        }
+                // Берём контрастный цвет для поверхностей pane / internalbg
+                color: Styling.srItem("overBackground")  // как в Ambxst
+                font.pixelSize: 32
+                font.bold: true
+            }
 
-        ChatInput {
-            Layout.fillWidth: true
-            loading: false
+            ChatInput {
+                Layout.fillWidth: true
+                loading: false
 
-            onSendRequested: App.chat.sendMessage(text)
+                onSendRequested: App.chat.sendMessage(text)
+            }
         }
     }
 }

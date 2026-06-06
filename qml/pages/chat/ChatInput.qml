@@ -1,25 +1,20 @@
-// --------------------------------------------------------------------------
-//  InputBox.qml – поле ввода сообщения
-//  Все цвета берутся из синглтона Colors (colors.qml)
-// --------------------------------------------------------------------------
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
-// Убираем импорт Theme → вместо него импортируем Colors
 import qs.modules.theme
-import Theme 1.0
+import qs.modules.components
 import ChatGPT 1.0
 import NeuroClient
+import "../../components"
 
-Rectangle {
+StyledRect {
     id: root
     property bool loading: false
     signal sendRequested(string text)
 
     radius: 20
-    color: Colors.surface
-    border.color: Colors.primary
+    variant: "pane" // основной фон контейнера
 
     implicitHeight: editorHeight + 70
 
@@ -45,13 +40,16 @@ Rectangle {
                 width: editorScroll.availableWidth
 
                 placeholderText: qsTr("Напишите сообщение...")
-                color: Colors.overSurface
+                color: Styling.srItem("overpane") // цвет текста по теме
                 wrapMode: TextEdit.Wrap
 
-                background: Rectangle { color: "transparent" }
+                background: StyledRect {
+                    variant: "pane"
+                    radius: 16
+                }
 
                 leftPadding: 0; rightPadding: 0
-                topPadding: 0;  bottomPadding: 0
+                topPadding: 0; bottomPadding: 0
 
                 // --------------------------------------------------
                 //  Обработка горячих клавиш
@@ -84,7 +82,7 @@ Rectangle {
                         return
                     }
 
-                    // ---------------- NEWLINE (always allowed) ----------------
+                    // ---------------- NEWLINE ----------------
                     if (isHotkey(event, newlineKey))
                         return
 
@@ -103,57 +101,15 @@ Rectangle {
             Layout.fillWidth: true
             spacing: 10
 
-            ToolButton {
-                Layout.preferredWidth: 36
-                Layout.preferredHeight: 36
-
-                background: Rectangle {
-                    radius: 18
-                    color: Qt.alpha(Colors.primary, 0.12)
-
-                    border.width: 1
-                    border.color: Qt.alpha(Colors.primary, 0.25)
-                }
-
-                contentItem: Text {
-                    text: "📎"
-                    color: Colors.primary
-                    font.pixelSize: 16
-
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                onClicked: root.settings()
+            StyledToolButton {
+                buttonText: "📎"
             }
-            // ToolButton { text: "🌐" }
-            // ToolButton { text: "🧠" }
 
             Item { Layout.fillWidth: true }
 
-            // ---------- Кнопка отправки ----------
-            Rectangle {
-                width: 42
-                height: 42
-                radius: 21
-
-                color: (App.chat && loading) ? Colors.surfaceDim
-                                            : Colors.primary
-
-                MouseArea {
-                    anchors.fill: parent
-                    enabled: !(App.chat && loading)
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.send()
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "➤"
-                    color: Colors.background
-                    font.pixelSize: 18
-                    font.bold: true
-                }
+            StyledToolButton {
+                buttonText: "➤"
+                onClicked: root.send()
             }
         }
     }

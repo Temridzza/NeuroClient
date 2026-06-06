@@ -6,7 +6,9 @@ import QtQuick.Effects
 import ChatGPT 1.0
 import NeuroClient
 import qs.modules.theme
+import qs.modules.components
 import "../../components"
+import "../../theme"
 
 ListView {
     id: chatView
@@ -104,39 +106,10 @@ ListView {
                 onTapped: contextMenu.popup()
             }
 
-            // ------------------------------------------------------
-            //  Кнопка копирования (правый‑верхний угол)
-            // ------------------------------------------------------
-            ToolButton {
-                id: copyButton
-                width: 28; height: 28
-                anchors {
-                    right: parent.right
-                    top: parent.top
-                    margins: 6
-                }
-                visible: bubble.hovered || textItem.selectedText.length > 0
-                opacity: visible ? 1.0 : 0.0
-                scale:   visible ? 1.0 : 0.9
-
-                Behavior on opacity { NumberAnimation { duration: 120 } }
-                Behavior on scale   { NumberAnimation { duration: 120 } }
-
-                background: Rectangle {
-                    radius: 14
-                    color: Qt.rgba(Colors.surfaceVariant.r,
-                                   Colors.surfaceVariant.g,
-                                   Colors.surfaceVariant.b, 0.08)
-                }
-
-                Text {
-                    text: Theme.iconCopy
-                    font.pixelSize: 25
-                    color: Colors.background
-                }
-
-                onClicked: App.messages.copyAt(index, MessageModel.RawMarkdown)
-            }
+            // StyledToolButton {
+            //     buttonText: Theme.iconCopy
+            //     onClicked: App.messages.copyAt(index, MessageModel.RawMarkdown)
+            // }
 
             // ------------------------------------------------------
             //  Текст сообщения
