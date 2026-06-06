@@ -59,6 +59,9 @@ set(SRC_FILES
     ui/viewModels/ModelSelector.cpp
     ui/viewModels/ProviderSelector.cpp
 
+    ui/viewModels/ProjectTreeModel.cpp
+    ui/viewModels/ProjectTreeItem.cpp
+
     # =========================
     # QML
     # =========================
@@ -133,12 +136,8 @@ set(INCLUDE
     ../include/ui/viewModels/ModelsModel.h
     ../include/ui/viewModels/ModelSelector.h
     ../include/ui/viewModels/ProviderSelector.h
-
-    # =========================
-    # QML
-    # =========================
-
-
+    ../include/ui/viewModels/ProjectTreeItem.h
+    ../include/ui/viewModels/ProjectTreeModel.h
 )
 
 add_library(chatgptlib STATIC ${SRC_FILES} ${INCLUDE})

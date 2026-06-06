@@ -88,7 +88,6 @@ qt_add_qml_module(ChatGPT_QML
 
         qml/pages/chat/ChatInput.qml
         qml/pages/chat/ChatPage.qml
-        qml/pages/chat/ContextSideBar.qml
 
         qml/pages/chat/chatsSideBar/ChatsSideBar.qml
         qml/pages/chat/chatsSideBar/SidebarHeader.qml
@@ -105,10 +104,18 @@ qt_add_qml_module(ChatGPT_QML
         qml/components/ReusableComboBox.qml
         qml/components/StyledMenu.qml
 
+        qml/components/StyledToolButton.qml
+
+        qml/pages/chat/sideBarContext/ProjectContextSidebar.qml
+        qml/pages/chat/sideBarContext/ProjectPathHeader.qml
+        qml/pages/chat/sideBarContext/QuickActionsBar.qml
+        # qml/pages/chat/sideBarContext/AiContextPanel.qml
+
+        qml/pages/chat/sideBarContext/ProjectTreePanel.qml
+
     # ---------- C++‑исходники, которые нужны плагину ----------
     SOURCES
         src/SingletonRegistration.cpp
-        QML_FILES qml/components/StyledToolButton.qml
 )
 
 # ------------------- Include‑директории ----------

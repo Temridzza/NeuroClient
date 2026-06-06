@@ -16,6 +16,8 @@ StyledRect {
     clip: true
 
     property bool sidebarOpened: false
+    property bool rightSidebarOpened: false
+
     property bool showChatSettings: false
     property string currentChatId: ""
 
@@ -35,8 +37,11 @@ StyledRect {
                 anchors.fill: parent
 
                 sidebarOpened: root.sidebarOpened
+                rightSidebarOpened: root.rightSidebarOpened
 
                 onToggleSidebar: root.sidebarOpened = !root.sidebarOpened
+                onToggleRightSidebar: root.rightSidebarOpened = !root.rightSidebarOpened
+
                 onSettings: root.requestSettings()
             }
         }
@@ -66,7 +71,7 @@ StyledRect {
 
         ChatInput {
             Layout.fillWidth: true
-            visible: App.chat.hasChat
+            visible: App.chat.hasChat && !root.showChatSettings
             loading: App.chat.loading
 
             onSendRequested: function(text) {

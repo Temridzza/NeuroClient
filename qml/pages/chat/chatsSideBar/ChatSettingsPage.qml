@@ -7,10 +7,12 @@ import NeuroClient 1.0
 import ChatGPT 1.0
 import "../../../components"
 import qs.modules.theme
+import qs.modules.components
 
-Rectangle {
+StyledRect {
     id: root
-    color: "transparent"
+
+    variant: "pane"
     anchors.fill: parent
 
     property var vm: App.chatSettings
@@ -26,105 +28,194 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 20
-        spacing: 16
+        spacing: 12
 
-        Label {
-            text: "Настройки чата"
-            font.pixelSize: 22
-            font.bold: true
-            color: Colors.overBackground
+        // ─── Заголовок ─────────────────────────
+        StyledRect {
+            id: settingsBg
+            Layout.fillWidth: true
+            height: 48
+            radius: 12
+            variant: "internalbg"
+
+            Text {
+                anchors.centerIn: parent
+                text: "Настройки чата"
+                font.pixelSize: 20
+                font.bold: true
+                color: settingsBg.item
+            }
         }
 
         // ─── Название ───────────────────────────
-        Label { text: "Название"; color: Colors.overBackground }
-        TextField {
-            id: titleField
-            Layout.fillWidth: true
-            text: vm.chatTitle
-            color: Colors.overBackground
-            onTextChanged: vm.chatTitle = text
+        Text {
+            text: "Название"
+            color: root.item
+        }
 
-            Binding {
-                target: titleField
-                property: "text"
-                value: vm.chatTitle
+        StyledRect {
+            id: titleBg
+            Layout.fillWidth: true
+            height: 42
+            radius: 10
+            variant: "internalbg"
+
+            TextField {
+                id: titleField
+                anchors.fill: parent
+                anchors.margins: 8
+
+                text: vm.chatTitle
+                color: titleBg.item
+                background: null
+
+                onTextChanged: vm.chatTitle = text
+
+                Binding {
+                    target: titleField
+                    property: "text"
+                    value: vm.chatTitle
+                }
             }
         }
 
         // ─── Провайдер ─────────────────────────
-        Label { text: "Провайдер"; color: Colors.overBackground }
-        ReusableComboBox {
-            id: providerBox
-            Layout.fillWidth: true
+        Text {
+            text: "Провайдер"
+            color: root.item
+        }
 
-            itemsModel: App.providerSelector.providers
-            selectedIndex: App.providerSelector.currentProviderIndex
-            onItemSelected: function(id) { App.providerSelector.currentProvider = id }
+        StyledRect {
+            Layout.fillWidth: true
+            height: 42
+            radius: 10
+            variant: "internalbg"
+
+            ReusableComboBox {
+                id: providerBox
+                anchors.fill: parent
+
+                itemsModel: App.providerSelector.providers
+                selectedIndex: App.providerSelector.currentProviderIndex
+                onItemSelected: function(id) {
+                    App.providerSelector.currentProvider = id
+                }
+            }
         }
 
         // ─── Модель ───────────────────────────
-        Label { text: "Модель"; color: Colors.overBackground }
-        ReusableComboBox {
-            id: modelBox
-            Layout.fillWidth: true
-
-            itemsModel: App.modelSelector.models
-            selectedIndex: App.modelSelector.currentModelIndex
-            onItemSelected: function(id) { App.modelSelector.currentModel = id }
+        Text {
+            text: "Модель"
+            color: root.item
         }
 
-        // ─── Системный промпт ─────────────────
-        Label { text: "System Prompt"; color: Colors.overBackground }
-        ScrollView {
+        StyledRect {
+            Layout.fillWidth: true
+            height: 42
+            radius: 10
+            variant: "internalbg"
+
+            ReusableComboBox {
+                id: modelBox
+                anchors.fill: parent
+
+                itemsModel: App.modelSelector.models
+                selectedIndex: App.modelSelector.currentModelIndex
+                onItemSelected: function(id) {
+                    App.modelSelector.currentModel = id
+                }
+            }
+        }
+
+        // ─── System prompt ─────────────────────
+        Text {
+            text: "System Prompt"
+            color: root.item
+        }
+
+        StyledRect {
+            id: promptBg
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumHeight: 250
-            TextArea {
-                id: promptEdit
-                wrapMode: TextEdit.Wrap
-                text: vm.prompt
-                color: Colors.overBackground
-                placeholderText: "Введите системный промпт..."
-                placeholderTextColor: Colors.overBackground
+            // minimumHeight: 250
+            radius: 12
+            variant: "internalbg"
 
-                onTextChanged: vm.prompt = text
+            ScrollView {
+                anchors.fill: parent
+                anchors.margins: 8
 
-                Binding {
-                    target: promptEdit
-                    property: "text"
-                    value: vm.prompt
+                TextArea {
+                    id: promptEdit
+                    wrapMode: TextEdit.Wrap
+
+                    text: vm.prompt
+                    color: promptBg.item
+                    background: null
+
+                    placeholderText: "Введите системный промпт..."
+                    placeholderTextColor: promptBg.item
+
+                    onTextChanged: vm.prompt = text
+
+                    Binding {
+                        target: promptEdit
+                        property: "text"
+                        value: vm.prompt
+                    }
                 }
             }
         }
 
+        // ─── Кнопки ───────────────────────────
         RowLayout {
-            anchors.right: parent.right
+            Layout.fillWidth: true
             spacing: 8
 
-            Button {
-                Layout.alignment: Qt.AlignRight
-                Layout.preferredWidth: textItem.implicitWidth + 20
+            Item { Layout.fillWidth: true }
+
+            StyledRect {
+                id: cancelBg
+                width: 110
+                height: 36
+                radius: 10
+                variant: "internalbg"
 
                 Text {
-                    id: textItem
+                    anchors.centerIn: parent
                     text: "Отмена"
-                    color: Colors.overBackground
+                    color: cancelBg.item
                 }
 
-                onClicked: backRequested()
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: backRequested()
+                    onEntered: cancelBg.variant = "focus"
+                    onExited: cancelBg.variant = "internalbg"
+                }
             }
 
-            Button {
-                Layout.alignment: Qt.AlignRight
-                Layout.preferredWidth: textItem2.implicitWidth + 20
+            StyledRect {
+                id: saveBg
+                width: 120
+                height: 36
+                radius: 10
+                variant: "primary"
 
                 Text {
-                    id: textItem2
+                    anchors.centerIn: parent
                     text: "Сохранить"
-                    color: Colors.overBackground
+                    color: saveBg.item
                 }
 
-                onClicked: vm.saveChat()
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: vm.saveChat()
+                    onEntered: saveBg.variant = "focus"
+                    onExited: saveBg.variant = "primary"
+                }
             }
         }
     }

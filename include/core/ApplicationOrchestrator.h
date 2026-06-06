@@ -23,6 +23,8 @@
 #include "MessageService.h"
 #include "ChatContextService.h"
 #include "ChatSettingsViewModel.h"
+#include "ProjectTreeItem.h"
+#include "ProjectTreeModel.h"
 
 class ApplicationOrchestrator : public QObject {
     Q_OBJECT
@@ -41,7 +43,7 @@ class ApplicationOrchestrator : public QObject {
     Q_PROPERTY(ProviderSelector* providerSelector READ providerSelector CONSTANT)
 
     Q_PROPERTY(ChatSettingsViewModel* chatSettings  READ chatSettings CONSTANT)
-
+    Q_PROPERTY(ProjectTreeModel* projectTreeModel  READ projectTreeModel CONSTANT)
 
 public:
     explicit ApplicationOrchestrator(QObject* parent = nullptr);
@@ -64,6 +66,7 @@ public:
     ChatOrchestrator* chatOrchestrator();
     SettingsService* settingsService();
     ChatSettingsViewModel* chatSettings();
+    ProjectTreeModel* projectTreeModel();
 
     bool ready() const { return m_ready; }
 
@@ -106,6 +109,11 @@ private:
     std::unique_ptr<ChatListViewModel> m_chatListVM;
     std::unique_ptr<ProviderModel> m_providerVM;
     std::unique_ptr<ModelsModel> m_modelsVM;
+
+
+    std::unique_ptr<ProjectTreeItem> m_projectTreeItem;
+    std::unique_ptr<ProjectTreeModel> m_projectTreeModel;
+
 };
 
 #endif // APPLICATIONORCHESTRATOR_H

@@ -152,6 +152,20 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_modelSelector.get()
             );
 
+    m_projectTreeItem =
+        std::make_unique<ProjectTreeItem>(
+        "root",
+        "",
+        ProjectTreeItem::Type::Folder,
+        nullptr
+        );
+
+    m_projectTreeModel =
+        std::make_unique<ProjectTreeModel>(
+            m_projectTreeItem.get()
+            );
+    m_projectTreeModel->loadTestData();
+
     connect(
         m_modelSelector.get(),
         &ModelSelector::currentModelChanged,
@@ -344,4 +358,8 @@ SettingsService* ApplicationOrchestrator::settingsService() {
 
 ChatSettingsViewModel* ApplicationOrchestrator::chatSettings() {
     return m_chatSettingsVM.get();
+}
+
+ProjectTreeModel* ApplicationOrchestrator::projectTreeModel() {
+    return m_projectTreeModel.get();
 }

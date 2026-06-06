@@ -13,12 +13,15 @@ StyledRect {
     id: root
 
     property bool sidebarOpened: true
-    property bool sidebarAnimating: false
+    property bool rightSidebarOpened: true
 
     signal toggleSidebar()
+    signal toggleRightSidebar()
+
     signal settings()
 
     onToggleSidebar: sidebarOpened = !sidebarOpened
+    onToggleRightSidebar: rightSidebarOpened = !rightSidebarOpened
 
     height: 52
     radius: 16
@@ -74,6 +77,11 @@ StyledRect {
         StyledToolButton {
             buttonText: "⚙"
             onClicked: root.settings()
+        }
+
+        StyledToolButton {
+            buttonText: "🗂"
+            onClicked: root.toggleRightSidebar()
         }
     }
 }
