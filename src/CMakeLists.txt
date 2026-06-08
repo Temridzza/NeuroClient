@@ -21,6 +21,8 @@ set(SRC_FILES
     service/MessageService.cpp
     service/ChatService.cpp
     service/ChatContextService.cpp
+    service/ProjectContextService.cpp
+    service/ProjectService.cpp
 
     # =========================
     # Network
@@ -44,6 +46,7 @@ set(SRC_FILES
     database/MessageRepository.cpp
     database/ProviderRepository.cpp
     database/ModelRepository.cpp
+    database/ProjectRepository.cpp
 
     # =========================
     # UI / ViewModels
@@ -87,6 +90,9 @@ set(INCLUDE
     ../include/core/Model.h
     ../include/core/Provider.h
     ../include/core/ChatSession.h
+    ../include/core/ProjectNode.h
+    ../include/core/ChatProject.h
+    ../include/service/ProviderService.h
 
     # =========================
     # Services
@@ -98,6 +104,7 @@ set(INCLUDE
     ../include/service/ChatService.h
     ../include/service/MessageService.h
     ../include/service/ChatContextService.h
+    ../include/service/ProjectService.h
 
     # =========================
     # Network
@@ -121,6 +128,7 @@ set(INCLUDE
     ../include/database/MessageRepository.h
     ../include/database/ProviderRepository.h
     ../include/database/ModelRepository.h
+    ../include/database/ProjectRepository.h
 
     # =========================
     # UI / ViewModels

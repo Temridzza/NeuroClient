@@ -2,12 +2,15 @@
 #include "ProjectTreeItem.h"
 #include <QDebug>
 
-ProjectTreeModel::ProjectTreeModel(ProjectTreeItem* root, QObject* parent)
+ProjectTreeModel::ProjectTreeModel(
+    ProjectTreeItem* root,
+    ProjectContextService* service,
+    QObject* parent)
     : QAbstractItemModel(parent),
-    m_root(root)
-
+    m_root(root),
+    m_service(service)
 {
-    loadTestData();
+    // loadTestData();
 }
 
 // Индекс элемента по row/column
@@ -16,17 +19,15 @@ QModelIndex ProjectTreeModel::index(int row, int column, const QModelIndex& pare
     if (!hasIndex(row, column, parent))
         return QModelIndex();
 
-    ProjectTreeItem* parentItem;
+    auto* parentItem = !parent.isValid()
+                           ? m_root
+                           : static_cast<ProjectTreeItem*>(parent.internalPointer());
 
-    if (!parent.isValid())
-        parentItem = m_root;
-    else
-        parentItem = static_cast<ProjectTreeItem*>(parent.internalPointer());
+    auto* childItem = parentItem->child(row);
+    if (!childItem)
+        return QModelIndex();
 
-    ProjectTreeItem* childItem = parentItem->child(row);
-    if (childItem)
-        return createIndex(row, column, childItem);
-    return QModelIndex();
+    return createIndex(row, column, childItem);
 }
 
 // Родитель элемента
@@ -35,8 +36,8 @@ QModelIndex ProjectTreeModel::parent(const QModelIndex& index) const
     if (!index.isValid())
         return QModelIndex();
 
-    ProjectTreeItem* childItem = static_cast<ProjectTreeItem*>(index.internalPointer());
-    ProjectTreeItem* parentItem = childItem->parentItem();
+    auto* childItem = static_cast<ProjectTreeItem*>(index.internalPointer());
+    auto* parentItem = childItem->parentItem();
 
     if (!parentItem || parentItem == m_root)
         return QModelIndex();
@@ -47,56 +48,74 @@ QModelIndex ProjectTreeModel::parent(const QModelIndex& index) const
 // Количество детей
 int ProjectTreeModel::rowCount(const QModelIndex& parent) const
 {
-    ProjectTreeItem* parentItem;
     if (parent.column() > 0)
         return 0;
 
-    if (!parent.isValid())
-        parentItem = m_root;
-    else
-        parentItem = static_cast<ProjectTreeItem*>(parent.internalPointer());
+    auto* parentItem = !parent.isValid()
+                           ? m_root
+                           : static_cast<ProjectTreeItem*>(parent.internalPointer());
 
     return parentItem->childCount();
 }
 
-int ProjectTreeModel::columnCount(const QModelIndex&) const {
-    return 1; // только имя
+int ProjectTreeModel::columnCount(const QModelIndex&) const
+{
+    return 1;
 }
 
 // Данные по роли
 QVariant ProjectTreeModel::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid())
-        return QVariant();
+        return {};
 
-    ProjectTreeItem* item = static_cast<ProjectTreeItem*>(index.internalPointer());
+    auto* item = static_cast<ProjectTreeItem*>(index.internalPointer());
 
     switch (role)
     {
-    case NameRole: return item->name();
-    case PathRole: return item->path();
-    case TypeRole: return item->type() == ProjectTreeItem::Type::Folder ? "folder" : "file";
-    case SelectedRole: return item->selected();
+    case NameRole:
+        return item->name();
+
+    case PathRole:
+        return item->path();
+
+    case TypeRole:
+        return item->type() == ProjectTreeItem::Type::Folder
+                   ? "folder"
+                   : "file";
+
+    case Qt::CheckStateRole:
+        return item->selected()
+                   ? Qt::Checked
+                   : Qt::Unchecked;
     }
 
-    return QVariant();
+    return {};
 }
 
 // Установка данных (выбор/selected)
-bool ProjectTreeModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool ProjectTreeModel::setData(
+    const QModelIndex& index,
+    const QVariant& value,
+    int role)
 {
     if (!index.isValid())
         return false;
 
-    ProjectTreeItem* item = static_cast<ProjectTreeItem*>(index.internalPointer());
+    if (role != Qt::CheckStateRole)
+        return false;
 
-    if (role == SelectedRole) {
-        item->setSelected(value.toBool());
-        emit dataChanged(index, index, {SelectedRole});
-        return true;
-    }
+    auto* item = static_cast<ProjectTreeItem*>(index.internalPointer());
 
-    return false;
+    const auto state = static_cast<Qt::CheckState>(value.toInt());
+    const bool checked = (state == Qt::Checked);
+
+    item->setSelected(checked);
+
+    // 🔥 обновляем UI
+    emit dataChanged(index, index, {Qt::CheckStateRole});
+
+    return true;
 }
 
 Qt::ItemFlags ProjectTreeModel::flags(const QModelIndex& index) const
@@ -104,7 +123,10 @@ Qt::ItemFlags ProjectTreeModel::flags(const QModelIndex& index) const
     if (!index.isValid())
         return Qt::NoItemFlags;
 
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable;
+    return Qt::ItemIsEnabled
+           | Qt::ItemIsSelectable
+           | Qt::ItemIsUserCheckable
+           | Qt::ItemIsEditable;
 }
 
 QHash<int, QByteArray> ProjectTreeModel::roleNames() const
@@ -113,7 +135,9 @@ QHash<int, QByteArray> ProjectTreeModel::roleNames() const
         {NameRole, "name"},
         {PathRole, "path"},
         {TypeRole, "type"},
-        {SelectedRole, "selected"}
+
+
+        {Qt::CheckStateRole, "checkState"}
     };
 }
 
@@ -134,4 +158,92 @@ void ProjectTreeModel::loadTestData()
     // уведомляем QML
     beginResetModel();
     endResetModel();
+}
+
+void ProjectTreeModel::clearTree()
+{
+    delete m_root;
+
+    m_root = new ProjectTreeItem(
+        "",
+        "",
+        ProjectTreeItem::Type::Folder);
+}
+
+ProjectTreeItem* ProjectTreeModel::createItemTree(
+    const ProjectNode& node,
+    ProjectTreeItem* parent)
+{
+    auto* item = new ProjectTreeItem(
+        node.name,
+        node.path,
+        node.isDir
+            ? ProjectTreeItem::Type::Folder
+            : ProjectTreeItem::Type::File,
+        parent);
+
+    item->setSelected(node.selected);
+
+    for (const auto& child : node.children)
+    {
+        item->appendChild(
+            createItemTree(child, item));
+    }
+
+    return item;
+}
+
+void ProjectTreeModel::loadFolder(const QString& path)
+{
+    const auto localPath = QUrl(path).toLocalFile();
+    const auto nodes = m_service->buildTree(localPath);
+
+    beginResetModel();
+
+    m_root->clearChildren();
+
+    for (const auto& node : nodes)
+    {
+        m_root->appendChild(createItemTree(node, m_root));
+    }
+
+    endResetModel();
+}
+
+void ProjectTreeModel::loadFile(const QString& path)
+{
+    const auto localPath = QUrl(path).toLocalFile();
+    QFileInfo info(localPath);
+
+    beginResetModel();
+
+    m_root->clearChildren();
+
+    m_root->appendChild(
+        new ProjectTreeItem(
+            info.fileName(),
+            localPath,
+            ProjectTreeItem::Type::File,
+            m_root));
+
+    endResetModel();
+}
+
+QStringList ProjectTreeModel::selectedFiles() const
+{
+    QStringList result;
+    collectSelected(m_root, result);
+    return result;
+}
+
+void ProjectTreeModel::collectSelected(ProjectTreeItem* item, QStringList& out) const
+{
+    // if (!item)
+    //     return;
+
+    // if (item->type() == ProjectTreeItem::Type::File && item->selected())
+    //     out.push_back(item->path());
+
+    // for (auto* child : item->children())
+    //     collectSelected(child, out);
 }

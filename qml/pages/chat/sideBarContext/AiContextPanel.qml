@@ -1,48 +1,55 @@
-// import QtQuick
-// import QtQuick.Layouts
+import QtQuick
+import QtQuick.Layouts
 
-// import qs.modules.components
+import qs.modules.theme
+import qs.modules.components
 
-// StyledRect {
-//     Layout.fillWidth: true
-//     Layout.preferredHeight: 130
+import "../../../components"
 
-//     radius: 10
-//     variant: "internalbg"
+StyledRect {
+    id: root
 
-//     ColumnLayout {
-//         anchors.fill: parent
-//         anchors.margins: 8
-//         spacing: 4
+    Layout.fillWidth: true
+    Layout.preferredHeight: 130
 
-//         Text {
-//             text: "AI Контекст"
-//             color: "white"
-//             font.bold: true
-//             font.pixelSize: 13
-//         }
+    radius: 10
+    variant: "pane"
 
-//         Text {
-//             text: "Выбрано файлов: 0"
-//             color: "#d0d0d0"
-//         }
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 8
+        spacing: 6
 
-//         Text {
-//             text: "Примерно токенов: 0"
-//             color: "#d0d0d0"
-//         }
+        Text {
+            text: "AI Контекст"
+            color: root.item
 
-//         Text {
-//             text: "Примерный размер: 0 KB"
-//             color: "#d0d0d0"
-//         }
+        }
 
-//         Item {
-//             Layout.fillHeight: true
-//         }
+        Text {
+            text: "Выбрано файлов: 0"
 
-//         StyledToolButton {
-//             text: "Очистить"
-//         }
-//     }
-// }
+            color: Qt.alpha(root.item, 0.8)
+        }
+
+        Text {
+            text: "Примерно токенов: 0"
+
+            color: Qt.alpha(root.item, 0.8)
+        }
+
+        Text {
+            text: "Примерный размер: 0 KB"
+
+            color: Qt.alpha(root.item, 0.8)
+        }
+
+        Item {
+            Layout.fillHeight: true
+        }
+
+        StyledToolButton {
+            text: "Очистить"
+        }
+    }
+}

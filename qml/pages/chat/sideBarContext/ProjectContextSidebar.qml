@@ -17,7 +17,7 @@ StyledRect {
     property bool animating: false
 
     radius: 22
-    variant: "pane"   // фон берётся из темы Ambxst
+    variant: "internalbg"
 
     width: root.rightSidebarOpened ? 320 : 0
     visible: width > 0
@@ -41,8 +41,8 @@ StyledRect {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 8
-        spacing: 8
+        anchors.margins: 10
+        spacing: 10
 
         ProjectPathHeader {}
 
@@ -53,6 +53,6 @@ StyledRect {
             Layout.fillHeight: true
         }
 
-        // AiContextPanel {}
+        AiContextPanel {}
     }
 }

@@ -121,6 +121,20 @@ bool DatabaseManager::createSchema() {
     }
 
     if (!q.exec(R"(
+        CREATE TABLE IF NOT EXISTS chat_projects (
+            chat_id TEXT PRIMARY KEY,
+            project_path TEXT NOT NULL,
+
+            FOREIGN KEY(chat_id)
+                REFERENCES chats(id)
+                ON DELETE CASCADE
+        )
+    )")) {
+        qWarning() << q.lastError();
+        return false;
+    }
+
+    if (!q.exec(R"(
         CREATE TABLE IF NOT EXISTS messages (
             id TEXT PRIMARY KEY,
             chat_id TEXT NOT NULL,
@@ -157,6 +171,7 @@ bool DatabaseManager::createSchema() {
     q.exec("CREATE INDEX IF NOT EXISTS idx_messages_provider_id ON messages(provider_id)");
     q.exec("CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at)");
     q.exec("CREATE INDEX IF NOT EXISTS idx_chats_updated_at ON chats(updated_at)");
+    q.exec("CREATE INDEX IF NOT EXISTS idx_chat_projects_chat_id ON chat_projects(chat_id)");
 
     return true;
 }

@@ -26,6 +26,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     Core
     Gui
     Quick
+    QuickDialogs2
     Qml
     Sql
     Concurrent
@@ -105,13 +106,16 @@ qt_add_qml_module(ChatGPT_QML
         qml/components/StyledMenu.qml
 
         qml/components/StyledToolButton.qml
+        qml/components/ToolButtonCheckbox.qml
 
         qml/pages/chat/sideBarContext/ProjectContextSidebar.qml
         qml/pages/chat/sideBarContext/ProjectPathHeader.qml
         qml/pages/chat/sideBarContext/QuickActionsBar.qml
-        # qml/pages/chat/sideBarContext/AiContextPanel.qml
+        qml/pages/chat/sideBarContext/AiContextPanel.qml
 
         qml/pages/chat/sideBarContext/ProjectTreePanel.qml
+
+
 
     # ---------- C++‑исходники, которые нужны плагину ----------
     SOURCES
@@ -132,6 +136,7 @@ target_link_libraries(ChatGPT_QML PRIVATE
     Qt6::Qml
     Qt6::Sql
     Qt6::Concurrent
+    Qt6::QuickDialogs2
 
     ${CURL_TARGET}
     ${CMARK_GFM_LIBRARIES}

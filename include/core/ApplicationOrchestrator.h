@@ -25,6 +25,10 @@
 #include "ChatSettingsViewModel.h"
 #include "ProjectTreeItem.h"
 #include "ProjectTreeModel.h"
+#include "ProjectRepository.h"
+#include "ProjectService.h"
+
+#include "ProjectContextService.h"
 
 class ApplicationOrchestrator : public QObject {
     Q_OBJECT
@@ -88,6 +92,11 @@ private:
     std::unique_ptr<ModelService> m_modelService;
     std::unique_ptr<MessageService> m_messageService;
     std::unique_ptr<ChatContextService> m_chatContextService;
+    std::unique_ptr<ProjectContextService> m_projectContextService;
+
+    std::unique_ptr<ProjectService> m_projectService;
+
+
     std::unique_ptr<ChatSettingsViewModel> m_chatSettingsVM;
 
 
@@ -97,6 +106,8 @@ private:
     std::unique_ptr<MessageRepository> m_messageRepo;
     std::unique_ptr<ProviderRepository> m_providerRepo;
     std::unique_ptr<ModelRepository> m_modelRepo;
+    std::unique_ptr<ProjectRepository> m_projectRepo;
+
 
     std::unique_ptr<PromptBuilder> m_promptBuilder;
 

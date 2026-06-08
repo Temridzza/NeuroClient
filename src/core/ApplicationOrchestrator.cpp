@@ -40,6 +40,11 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
         std::make_unique<ModelRepository>(
             m_database.db()
             );
+    m_projectRepo =
+        std::make_unique<ProjectRepository>(
+            m_database.db()
+            );
+
 
     //---------- Services ---------
     m_settingsService =
@@ -74,6 +79,13 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_messageService.get(),
             m_settingsService.get()
             );
+    m_projectService =
+        std::make_unique<ProjectService>(
+            m_projectRepo.get()
+            );
+    m_projectContextService =
+        std::make_unique<ProjectContextService>();
+
 
     //---------- Selectors ---------
     m_modelSelector =
@@ -162,9 +174,9 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
 
     m_projectTreeModel =
         std::make_unique<ProjectTreeModel>(
-            m_projectTreeItem.get()
+            m_projectTreeItem.get(),
+            m_projectContextService.get()
             );
-    m_projectTreeModel->loadTestData();
 
     connect(
         m_modelSelector.get(),

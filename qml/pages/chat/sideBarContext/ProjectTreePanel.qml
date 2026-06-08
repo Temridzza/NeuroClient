@@ -8,123 +8,54 @@ import ChatGPT 1.0
 import NeuroClient
 import "../../../components"
 
-StyledRect {
-    id: root
-    radius: 10
-    variant: "internalbg"
-    anchors.margins: 6
+ScrollView {
+    id: scroll
+
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 4
+    clip: true
 
-        // Заголовок
-        StyledRect {
-            id: header
-            variant: "pane"
-            radius: 0
-            Layout.fillWidth: true
-            Layout.preferredHeight: 24
+    TreeView {
+        id: treeView
 
-            Text {
-                anchors.centerIn: parent
-                text: "Файлы проекта"
-                color: header.item
-                font.pixelSize: 13
-                font.bold: true
+        width: scroll.availableWidth
+        height: scroll.availableHeight
+
+        model: App.projectTreeModel
+
+        delegate: TreeViewDelegate {
+            id: delegateRoot
+
+            implicitHeight: 28
+
+            leftMargin: 8
+            rightMargin: 8
+            indentation: 20
+
+            background: Rectangle {
+                color: delegateRoot.current
+                       ? "#2d2d2d"
+                       : "transparent"
             }
-        }
 
-        // Дерево файлов
-        TreeView {
-            id: treeView
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            model: App.projectTreeModel
-            selectionMode: TreeView.SingleSelection
+            contentItem: Row {
+               spacing: 6
 
-            delegate: TreeViewDelegate {
-                id: delegateItem
+               CheckBox {
+                   // 🔥 главное изменение: используем CheckStateRole
+                   checkState: model.checkState
 
-                width: treeView.width
-                implicitHeight: 28
+                   onToggled: {
+                       model.checkState = checkState
+                   }
+               }
 
-                property int indent: 18
-
-                StyledRect {
-                    anchors.fill: parent
-                    radius: 4
-                    variant: checked ? "focus" : "internalbg"
-                }
-
-                Row {
-                    anchors.fill: parent
-                    anchors.leftMargin: model.depth * indent
-                    anchors.rightMargin: 6
-                    spacing: 6
-
-                    // 🔽 EXPANDER (место под раскрытие)
-                    ToolButton {
-                        visible: model.hasChildren
-
-                        width: 16
-                        height: 16
-
-                        text: model.expanded ? "▾" : "▸"
-
-                        background: Item {}
-                        contentItem: Text {
-                            text: parent.text
-                            color: rowBg.item
-                            font.pixelSize: 12
-                        }
-
-                        onClicked: model.expanded = !model.expanded
-                    }
-
-                    // ☑ CHECKBOX
-                    ToolButton {
-                        width: 18
-                        height: 18
-
-                        checkable: true
-                        checked: model.selected
-                        onClicked: model.selected = checked
-
-                        background: StyledRect {
-                            anchors.fill: parent
-                            radius: 4
-                            variant: parent.checked ? "primary" : "internalbg"
-                        }
-
-                        contentItem: Text {
-                            anchors.centerIn: parent
-                            text: "✔"
-                            visible: parent.checked
-                            color: rowBg.item
-                            font.pixelSize: 11
-                        }
-                    }
-
-                    // 📄 TEXT
-                    Text {
-                        text: model.name
-                        verticalAlignment: Text.AlignVCenter
-                        color: rowBg.item
-                        elide: Text.ElideRight
-                    }
-                }
-            }
-        }
-    }
-
-    function setSelectedRecursive(path, value) {
-        for (let i = 0; i < App.projectTreeModel.count; i++) {
-            let item = App.projectTreeModel.get(i)
-            if (item.path === path || item.path.startsWith(path + "/")) {
-                App.projectTreeModel.setProperty(i, "selected", value)
+               Text {
+                   text: model.name
+                   color: "#d0d0d0"
+                   verticalAlignment: Text.AlignVCenter
+               }
             }
         }
     }

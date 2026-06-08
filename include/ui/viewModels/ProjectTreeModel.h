@@ -5,6 +5,7 @@
 
 #include <QAbstractItemModel>
 #include "ProjectTreeItem.h"
+#include "ProjectContextService.h"
 
 class ProjectTreeModel : public QAbstractItemModel
 {
@@ -19,7 +20,10 @@ public:
         SelectedRole
     };
 
-    explicit ProjectTreeModel(ProjectTreeItem* root, QObject* parent = nullptr);
+    explicit ProjectTreeModel(
+        ProjectTreeItem* root,
+        ProjectContextService* service,
+        QObject* parent = nullptr);
 
     QModelIndex index(
         int row,
@@ -50,9 +54,22 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     void loadTestData();
+    Q_INVOKABLE void loadFolder(const QString& path);
+    Q_INVOKABLE void loadFile(const QString& path);
+
+    QStringList selectedFiles() const;
+
+    void collectSelected(ProjectTreeItem* item, QStringList& out) const;
+
+private:
+    ProjectTreeItem* createItemTree(
+        const ProjectNode& node,
+        ProjectTreeItem* parent);
+    void clearTree();
 
 private:
     ProjectTreeItem* m_root;
+    ProjectContextService* m_service;
 };
 
 #endif // PROJECTTREEMODEL_H

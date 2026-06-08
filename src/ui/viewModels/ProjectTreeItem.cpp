@@ -74,3 +74,14 @@ ProjectTreeItem::Type ProjectTreeItem::type() const
 {
     return m_type;
 }
+
+ProjectTreeItem::~ProjectTreeItem()
+{
+    qDeleteAll(m_children);
+}
+
+void ProjectTreeItem::clearChildren()
+{
+    qDeleteAll(m_children);
+    m_children.clear();
+}

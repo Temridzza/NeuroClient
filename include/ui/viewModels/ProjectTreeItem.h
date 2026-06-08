@@ -35,6 +35,10 @@ public:
 
     Type type() const;
 
+    ~ProjectTreeItem();
+
+    void clearChildren();
+
 private:
     QString m_name;
     QString m_path;

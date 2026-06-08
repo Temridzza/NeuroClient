@@ -1,47 +1,57 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Dialogs
+import QtQuick.Controls
 
 import qs.modules.theme
 import qs.modules.components
 import "../../../components"
 
-RowLayout {
-    spacing: 6
+import ChatGPT 1.0
+import NeuroClient
 
-    Repeater {
-        model: ["📄", "📁", "⟳"]
+StyledRect {
+    radius: 10
+    variant: "pane"
 
-        delegate: StyledRect {
-            id: buttonBg
+    implicitWidth: content.implicitWidth + 16
+    implicitHeight: content.implicitHeight + 16
 
-            required property string modelData
+    FileDialog {
+        id: fileDialog
+        title: "Выберите файл"
 
-            Layout.preferredWidth: 36
-            Layout.preferredHeight: 36
+        onAccepted: {
+            App.projectTreeModel.loadFile(selectedFile)
+        }
+    }
 
-            radius: 18
-            variant: mouseArea.pressed
-                     ? "primary"
-                     : mouseArea.containsMouse
-                       ? "focus"
-                       : "internalbg"
+    FolderDialog {
+        id: folderDialog
+        title: "Выберите папку"
 
-            Text {
-                anchors.centerIn: parent
+        onAccepted: {
+            App.projectTreeModel.loadFolder(selectedFolder)
+        }
+    }
 
-                text: modelData
-                color: buttonBg.item
+    RowLayout {
+        id: content
+        anchors.fill: parent
+        anchors.margins: 8
+        spacing: 10
 
-                font.pixelSize: 16
-            }
-
-            MouseArea {
-                id: mouseArea
-
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-            }
+        StyledToolButton {
+            buttonText: "📄"
+            onClicked: fileDialog.open()
+        }
+        StyledToolButton {
+            buttonText: "📁"
+            onClicked: folderDialog.open()
+        }
+        StyledToolButton {
+            buttonText: "⟳"
+            onClicked: App.projectTreeModel.reloadProject()
         }
     }
 }

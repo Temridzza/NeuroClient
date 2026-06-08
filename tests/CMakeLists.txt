@@ -2,6 +2,7 @@
 add_executable(UnitTests
         ChatOrhestrator_test.cpp
         main.cpp
+        service/ProjectContextService_test.cpp
         # ChatGPTConfig_test.cpp
         # MainWindow_test.cpp
         # ChatGPTClient_test.cpp
