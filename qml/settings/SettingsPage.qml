@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Theme 1.0
 import "../pages"
 import "pages"
+import "pages/models"
 
 import ChatGPT 1.0
 import NeuroClient 1.0
@@ -18,11 +19,11 @@ Item {
 
     property int currentIndex: 0
 
-    // selected provider
     property string editingProviderId: ""
-
-    // edit mode
     property bool editingProvider: false
+
+    property var editingModelData: ({})
+    property bool editingModel: false
 
     RowLayout {
         anchors.fill: parent
@@ -78,15 +79,15 @@ Item {
                     height: parent.height - 50
 
                     model: [
-                        "General",
+                        // "General",
                         "Providers",
                         "Models",
-                        "API Keys",
-                        "Network",
-                        "Appearance",
-                        "Shortcuts",
-                        "Advanced",
-                        "About"
+                        // "API Keys",
+                        // "Network",
+                        // "Appearance",
+                        // "Shortcuts",
+                        // "Advanced",
+                        // "About"
                     ]
 
                     delegate: Rectangle {
@@ -105,6 +106,7 @@ Item {
                             : (
                                   index === root.currentIndex
                                   && !root.editingProvider
+                                  && !root.editingModel
                                   ? Qt.darker(
                                         Theme.panelColor,
                                         1.2
@@ -135,7 +137,12 @@ Item {
 
                             onClicked: {
                                 root.editingProvider = false
+                                root.editingModel = false
+
                                 root.currentIndex = index
+
+                                if (modelData === "Models")
+                                       App.models.loadModels()
                             }
                         }
                     }
@@ -158,29 +165,24 @@ Item {
             StackLayout {
                 anchors.fill: parent
 
-                visible: !root.editingProvider
+                visible: !root.editingProvider && !root.editingModel
 
                 currentIndex: root.currentIndex
 
                 // GENERAL
-                Item {
-                    Text {
-                        anchors.centerIn: parent
+                // Item {
+                //     Text {
+                //         anchors.centerIn: parent
 
-                        text: "General Settings"
+                //         text: "General Settings"
 
-                        color: Theme.textColor
-                    }
-                }
+                //         color: Theme.textColor
+                //     }
+                // }
 
                 // PROVIDERS
                 ProviderPage {
                     onOpenProvider: function(providerId) {
-                        console.log(
-                                    "Open provider:",
-                                    providerId
-                                    )
-
                         root.editingProviderId =
                                 providerId
 
@@ -189,81 +191,78 @@ Item {
                 }
 
                 // MODELS
-                Item {
-                    Text {
-                        anchors.centerIn: parent
-
-                        text: "Models Settings"
-
-                        color: Theme.textColor
+                ModelPage {
+                    onOpenModel: function(modelData) {
+                        root.editingModelData = modelData
+                        root.editingModel = true
                     }
                 }
 
                 // API KEYS
-                Item {
-                    Text {
-                        anchors.centerIn: parent
+                // Item {
+                //     Text {
+                //         anchors.centerIn: parent
 
-                        text: "API Keys"
+                //         text: "API Keys"
 
-                        color: Theme.textColor
-                    }
-                }
+                //         color: Theme.textColor
+                //     }
+                // }
 
                 // NETWORK
-                Item {
-                    Text {
-                        anchors.centerIn: parent
+                // Item {
+                //     Text {
+                //         anchors.centerIn: parent
 
-                        text: "Network Settings"
+                //         text: "Network Settings"
 
-                        color: Theme.textColor
-                    }
-                }
+                //         color: Theme.textColor
+                //     }
+                // }
 
                 // APPEARANCE
-                Item {
-                    Text {
-                        anchors.centerIn: parent
+                // Item {
+                //     Text {
+                //         anchors.centerIn: parent
 
-                        text: "Appearance"
+                //         text: "Appearance"
 
-                        color: Theme.textColor
-                    }
-                }
+                //         color: Theme.textColor
+                //     }
+                // }
 
                 // SHORTCUTS
-                Item {
-                    Text {
-                        anchors.centerIn: parent
+                // Item {
+                //     Text {
+                //         anchors.centerIn: parent
 
-                        text: "Shortcuts"
+                //         text: "Shortcuts"
 
-                        color: Theme.textColor
-                    }
-                }
+                //         color: Theme.textColor
+                //     }
+                // }
 
                 // ADVANCED
-                Item {
-                    Text {
-                        anchors.centerIn: parent
+                // Item {
+                //     Text {
+                //         anchors.centerIn: parent
 
-                        text: "Advanced"
+                //         text: "Advanced"
 
-                        color: Theme.textColor
-                    }
-                }
+                //         color: Theme.textColor
+                //     }
+                // }
 
                 // ABOUT
-                Item {
-                    Text {
-                        anchors.centerIn: parent
+                // Item {
+                //     Text {
+                //         anchors.centerIn: parent
 
-                        text: "About"
+                //         text: "About"
 
-                        color: Theme.textColor
-                    }
-                }
+                //         color: Theme.textColor
+                //     }
+                // }
             }
 
             // ─────────────────────────────
@@ -282,6 +281,22 @@ Item {
 
                     onBackRequested: {
                         root.editingProvider = false
+                    }
+                }
+            }
+
+            Loader {
+                anchors.fill: parent
+
+                active: root.editingModel
+
+                visible: root.editingModel
+
+                sourceComponent: ModelEditPage {
+                    modelData: root.editingModelData
+
+                    onBackRequested: {
+                        root.editingModel = false
                     }
                 }
             }

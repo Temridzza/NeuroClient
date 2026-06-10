@@ -85,3 +85,31 @@ void ProjectTreeItem::clearChildren()
     qDeleteAll(m_children);
     m_children.clear();
 }
+
+QVector<ProjectTreeItem*>& ProjectTreeItem::children(){
+    return m_children;
+}
+
+void ProjectTreeItem::setPath(const QString& path) {
+    m_path = path;
+}
+
+int ProjectTreeItem::estimatedTokens() const
+{
+    return m_estimatedTokens;
+}
+
+void ProjectTreeItem::setEstimatedTokens(int tokens)
+{
+    m_estimatedTokens = tokens;
+}
+
+qint64 ProjectTreeItem::fileSize() const
+{
+    return m_fileSize;
+}
+
+void ProjectTreeItem::setFileSize(qint64 size)
+{
+    m_fileSize = size;
+}

@@ -39,6 +39,15 @@ public:
 
     void clearChildren();
 
+    QVector<ProjectTreeItem *> &children();
+    void setPath(const QString& path);
+
+    int estimatedTokens() const;
+    void setEstimatedTokens(int tokens);
+
+    qint64 fileSize() const;
+    void setFileSize(qint64 size);
+
 private:
     QString m_name;
     QString m_path;
@@ -49,4 +58,8 @@ private:
 
     ProjectTreeItem* m_parent = nullptr;
     QVector<ProjectTreeItem*> m_children;
+
+    int m_estimatedTokens = 0;
+    qint64 m_fileSize = 0;
+
 };

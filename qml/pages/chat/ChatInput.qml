@@ -101,9 +101,9 @@ StyledRect {
             Layout.fillWidth: true
             spacing: 10
 
-            StyledToolButton {
-                buttonText: "📎"
-            }
+            // StyledToolButton {
+            //     buttonText: "📎"
+            // }
 
             Item { Layout.fillWidth: true }
 

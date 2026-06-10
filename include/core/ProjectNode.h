@@ -11,6 +11,9 @@ struct ProjectNode
     QString path;        // относительный путь от корня проекта
     bool isDir = false;
     bool selected = false;
+
+    int estimatedTokens = 0;
+
     QVector<ProjectNode> children;
 };
 

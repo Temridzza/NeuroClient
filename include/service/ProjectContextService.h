@@ -21,7 +21,11 @@ public:
     QVector<ProjectNode> buildTree(const QString& projectPath);
 
     // получает массив относительных путей и добавляет их содержимое в "промпт"
-    void collectFiles(const QVector<QString>& relativePaths);
+    QString collectFiles(const QVector<QString>& relativePaths);
+    QString path() const;
+
+    int estimateTokens(const QString& relativePath) const;
+    qint64 estimateFileSize(const QString& filePath) const;
 
 private:
     ProjectNode buildNode(const QString& absolutePath);

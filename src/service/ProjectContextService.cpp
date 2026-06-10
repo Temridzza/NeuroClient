@@ -12,11 +12,16 @@ QVector<ProjectNode> ProjectContextService::buildTree(const QString& projectPath
     QVector<ProjectNode> result;
 
     QDir root(projectPath);
-    QFileInfoList entries = root.entryInfoList(QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot,
-                                               QDir::DirsFirst | QDir::Name);
+
+    auto entries = root.entryInfoList(
+        QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot,
+        QDir::DirsFirst | QDir::Name);
 
     for (const QFileInfo& entry : entries)
-        result.append(buildNode(entry.absoluteFilePath()));
+    {
+        result.append(
+            buildNode(entry.absoluteFilePath()));
+    }
 
     return result;
 }
@@ -44,24 +49,54 @@ ProjectNode ProjectContextService::buildNode(const QString& absolutePath)
 }
 
 // ------------------ collectFiles ------------------
-void ProjectContextService::collectFiles(const QVector<QString>& relativePaths)
+QString ProjectContextService::collectFiles(
+    const QVector<QString>& relativePaths)
 {
-    QVector<QPair<QString, QString>> files;
+    QString result;
 
-    for (const QString& relPath : relativePaths) {
-        QString absolutePath = QDir(m_projectRoot).filePath(relPath);
+    for (const QString& relPath : relativePaths)
+    {
+        QString absolutePath =
+            QDir(m_projectRoot).filePath(relPath);
+
         QFile file(absolutePath);
 
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qWarning() << "Не удалось открыть файл:" << absolutePath;
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            qWarning()
+            << "Не удалось открыть файл:"
+            << absolutePath;
             continue;
         }
 
-        QString content = QString::fromUtf8(file.readAll());
-        files.append({relPath, content});
+        result += "\n=== FILE: ";
+        result += relPath;
+        result += " ===\n";
+        result += QString::fromUtf8(file.readAll());
+        result += "\n";
     }
 
-    appendFilesToPrompt(files);
+    return result;
+}
+
+int ProjectContextService::estimateTokens(
+    const QString& relativePath) const
+{
+    const QString absolutePath =
+        QDir(m_projectRoot).filePath(relativePath);
+
+    QFile file(absolutePath);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return 0;
+    }
+
+    const QString text =
+        QString::fromUtf8(file.readAll());
+
+    return static_cast<int>(
+        std::ceil(text.size() / 3.5));
 }
 
 // ------------------ appendFilesToPrompt ------------------
@@ -89,4 +124,24 @@ void ProjectContextService::openPath(const QString& path)
     } else {
         collectFiles({localPath});
     }
+}
+
+QString ProjectContextService::path() const {
+    return m_projectRoot;
+}
+
+qint64 ProjectContextService::estimateFileSize(
+    const QString& relativePath) const
+{
+    const QString absolutePath =
+        QDir(m_projectRoot).filePath(relativePath);
+
+    QFileInfo info(absolutePath);
+
+    if (!info.exists() || !info.isFile())
+    {
+        return 0;
+    }
+
+    return info.size();
 }

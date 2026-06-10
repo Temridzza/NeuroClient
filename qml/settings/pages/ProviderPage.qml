@@ -213,40 +213,40 @@ Item {
             }
 
             // EMPTY STATE
-            Rectangle {
-                anchors.centerIn: parent
+            // Rectangle {
+            //     anchors.centerIn: parent
 
-                width: 320
-                height: 140
-                radius: 18
+            //     width: 320
+            //     height: 140
+            //     radius: 18
 
-                visible: App.providers.rowCount() === 0
+            //     visible: App.providers.rowCount() === 0
 
-                color: Qt.lighter(Theme.panelColor, 1.03)
+            //     color: Qt.lighter(Theme.panelColor, 1.03)
 
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 10
+            //     Column {
+            //         anchors.centerIn: parent
+            //         spacing: 10
 
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
+            //         Text {
+            //             anchors.horizontalCenter: parent.horizontalCenter
 
-                        text: "No Providers"
+            //             text: "No Providers"
 
-                        font.pixelSize: 20
-                        color: Theme.textColor
-                    }
+            //             font.pixelSize: 20
+            //             color: Theme.textColor
+            //         }
 
-                    Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
+            //         Text {
+            //             anchors.horizontalCenter: parent.horizontalCenter
 
-                        text: "Add your first AI provider"
+            //             text: "Add your first AI provider"
 
-                        color: Theme.textColor
-                        opacity: 0.6
-                    }
-                }
-            }
+            //             color: Theme.textColor
+            //             opacity: 0.6
+            //         }
+            //     }
+            // }
         }
     }
 }

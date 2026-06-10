@@ -43,7 +43,6 @@ ScrollView {
                spacing: 6
 
                CheckBox {
-                   // 🔥 главное изменение: используем CheckStateRole
                    checkState: model.checkState
 
                    onToggled: {

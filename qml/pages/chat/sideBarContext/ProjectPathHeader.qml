@@ -25,15 +25,18 @@ StyledRect {
         Text {
             Layout.fillWidth: true
 
-            text: "Проект: /путь/до/проекта"
+            text: App.projectTreeModel.path
             color: "white"
 
-            // font.pixelSize: 13
             elide: Text.ElideRight
-        }
 
-        // StyledToolButton {
-        //     text: "⟳"
-        // }
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+
+                ToolTip.visible: containsMouse
+                ToolTip.text: parent.text
+            }
+        }
     }
 }

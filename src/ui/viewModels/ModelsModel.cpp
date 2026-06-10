@@ -89,9 +89,9 @@ bool ModelsModel::updateModel(
 
 bool ModelsModel::deleteModel(const QString& id) {
     const bool ok = m_service->deleteModel(id);
-    if (ok) {
-        loadModels();
-    }
+    // if (ok) {
+    //     loadModels();
+    // }
 
     return ok;
 }

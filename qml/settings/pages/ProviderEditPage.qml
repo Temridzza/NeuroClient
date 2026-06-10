@@ -109,13 +109,13 @@ Item {
 
                     onClicked: {
                         App.providers.updateProvider(
-                                    providerId,
-                                    {
-                                        "name": providerName,
-                                        "base_url": providerUrl,
-                                        "api_key": providerKey
-                                    }
-                                    )
+                            providerId,
+                            {
+                                "name": providerName,
+                                "base_url": providerUrl,
+                                "api_key": providerKey
+                            }
+                        )
 
                         root.backRequested()
                     }

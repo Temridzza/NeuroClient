@@ -5,13 +5,15 @@ ChatContextService::ChatContextService(
     ModelService* modelService,
     ProviderService* providerService,
     MessageService* messageService,
-    SettingsService* settingsService
+    SettingsService* settingsService,
+    ProjectTreeModel* projectTreeModel
     )
     : m_chatService(chatService),
     m_modelService(modelService),
     m_providerService(providerService),
     m_messageService(messageService),
-    m_settingsService(settingsService)
+    m_settingsService(settingsService),
+    m_projectTreeModel(projectTreeModel)
 {}
 
 QString ChatContextService::resolveChatId(
@@ -69,6 +71,26 @@ PromptContext ChatContextService::buildPromptContext(
     ctx.defaultSystemPrompt =
         systemPrompt(chatId);
 
+    const auto projectCtx =
+        m_projectTreeModel->buildContext();
+
+
+    QString fileContent;
+
+    if (!projectCtx.tree.trimmed().isEmpty())
+    {
+        fileContent += "PROJECT TREE:\n";
+        fileContent += projectCtx.tree;
+        fileContent += "\n\n";
+    }
+
+    if (!projectCtx.files.trimmed().isEmpty())
+    {
+        fileContent += "SELECTED FILES:\n";
+        fileContent += projectCtx.files;
+    }
+
+    ctx.fileContent = fileContent;
     return ctx;
 }
 

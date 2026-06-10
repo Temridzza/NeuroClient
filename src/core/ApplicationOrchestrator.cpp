@@ -71,20 +71,38 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_messageRepo.get(),
             m_settingsService.get()
             );
+
+    m_projectTreeItem =
+        std::make_unique<ProjectTreeItem>(
+            "root",
+            "",
+            ProjectTreeItem::Type::Folder,
+            nullptr
+            );
+
+    m_projectContextService =
+        std::make_unique<ProjectContextService>();
+
+    m_projectTreeModel =
+        std::make_unique<ProjectTreeModel>(
+            m_projectTreeItem.get(),
+            m_projectContextService.get()
+            );
+
     m_chatContextService =
         std::make_unique<ChatContextService>(
             m_chatService.get(),
             m_modelService.get(),
             m_providerService.get(),
             m_messageService.get(),
-            m_settingsService.get()
+            m_settingsService.get(),
+            m_projectTreeModel.get()
             );
     m_projectService =
         std::make_unique<ProjectService>(
             m_projectRepo.get()
             );
-    m_projectContextService =
-        std::make_unique<ProjectContextService>();
+
 
 
     //---------- Selectors ---------
@@ -164,19 +182,7 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
             m_modelSelector.get()
             );
 
-    m_projectTreeItem =
-        std::make_unique<ProjectTreeItem>(
-        "root",
-        "",
-        ProjectTreeItem::Type::Folder,
-        nullptr
-        );
 
-    m_projectTreeModel =
-        std::make_unique<ProjectTreeModel>(
-            m_projectTreeItem.get(),
-            m_projectContextService.get()
-            );
 
     connect(
         m_modelSelector.get(),

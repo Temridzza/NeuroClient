@@ -17,6 +17,7 @@
 #include "MessageService.h"
 #include "SettingsService.h"
 #include "PromptContext.h"
+#include "ProjectTreeModel.h"
 
 class ChatContextService : public QObject
 {
@@ -27,7 +28,8 @@ public:
         ModelService* modelService,
         ProviderService* providerService,
         MessageService* messageService,
-        SettingsService* settingsService
+        SettingsService* settingsService,
+        ProjectTreeModel* projectTreeModel
         );
 
     // создаёт чат если нужно и возвращает id
@@ -59,6 +61,7 @@ private:
     ProviderService* m_providerService;
     MessageService* m_messageService;
     SettingsService* m_settingsService;
+    ProjectTreeModel* m_projectTreeModel;
 };
 
 #endif // CHATCONTEXTSERVICE_H
