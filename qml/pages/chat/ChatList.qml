@@ -19,6 +19,8 @@ ListView {
     model: App.messages
     maximumFlickVelocity: 12000
     flickDeceleration: 8000
+    boundsBehavior: Flickable.StopAtBounds
+    boundsMovement: Flickable.StopAtBounds
 
     // --------------------------------------------------------------
     //  Прокрутка мышью / тачпадом (скорость можно менять)
@@ -26,8 +28,13 @@ ListView {
     WheelHandler {
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         onWheel: {
-            const factor = 2               // <-- скорость прокрутки
-            chatView.contentY -= event.angleDelta.y * factor
+            const factor = 1.5
+            let newY = chatView.contentY - event.angleDelta.y * factor
+
+            // Ограничиваем сверху и снизу
+            newY = Math.max(0, Math.min(newY, chatView.contentHeight - chatView.height))
+
+            chatView.contentY = newY
             event.accepted = true
         }
     }
@@ -106,11 +113,6 @@ ListView {
                 onTapped: contextMenu.popup()
             }
 
-            // StyledToolButton {
-            //     buttonText: Theme.iconCopy
-            //     onClicked: App.messages.copyAt(index, MessageModel.RawMarkdown)
-            // }
-
             // ------------------------------------------------------
             //  Текст сообщения
             // ------------------------------------------------------
@@ -181,7 +183,7 @@ ListView {
             }
 
             // ------------------------------------------------------
-            //  Помощник измерения ширины текста (не меняем)
+            //  Помощник измерения ширины текста
             // ------------------------------------------------------
             TextMetrics {
                 id: metrics
@@ -199,7 +201,7 @@ ListView {
     }
 
     // --------------------------------------------------------------
-    //  Синхронизация с изменениями в модели
+    //  Синхронизация
     // --------------------------------------------------------------
     Connections {
         target: App.messages

@@ -6,6 +6,8 @@ import Theme 1.0
 import ChatGPT 1.0
 import NeuroClient 1.0
 
+import "../../components"
+
 Item {
     id: root
 
@@ -17,6 +19,7 @@ Item {
     property string providerUrl: ""
     property string providerKey: ""
 
+    signal openModel(var modelData)
     signal backRequested()
 
     Component.onCompleted: {
@@ -478,6 +481,13 @@ Item {
                                 Item {
                                     Layout.fillWidth: true
                                 }
+
+                                StyledToolButton {
+                                    buttonText: "🖉"
+                                    onClicked: root.openModel(item)
+                                }
+
+
 
                                 Rectangle {
                                     width: 26

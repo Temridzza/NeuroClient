@@ -24,15 +24,28 @@ StyledRect {
 
     variant: "transparent"
 
-    // -------------------------
-    // Общие свойства
-    // -------------------------
-    property bool sidebarOpened: false
-    property bool rightSidebarOpened: false
+    property string sidebarState: "closed"
+    property string rightSidebarState: "closed"
 
     property string currentPage: "chat"
     property string currentChatId: ""
     property bool showChatSettings: false
+
+    function toggleSidebar() {
+        if (sidebarState === "closed") {
+            sidebarState = "opening"
+        } else if (sidebarState === "open") {
+            sidebarState = "closing"
+        }
+    }
+
+    function toggleRightSidebar() {
+        if (rightSidebarState === "closed") {
+            rightSidebarState = "opening"
+        } else if (rightSidebarState === "open") {
+            rightSidebarState = "closing"
+        }
+    }
 
     // -------------------------
     // Основной контент
@@ -57,21 +70,34 @@ StyledRect {
         anchors.bottom: parent.bottom
 
         variant: "internalbg"
-
-        width: sidebarOpened ? 320 : 0
         z: 1000
         clip: true
-        visible: sidebarOpened
+        visible: true
+
+        width: (root.sidebarState === "open" || root.sidebarState === "opening")
+               ? 320 : 0
 
         Behavior on width {
-            NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                duration: 180
+                easing.type: Easing.OutCubic
+
+                onRunningChanged: {
+                    if (!running) {
+                        if (root.sidebarState === "opening") {
+                            root.sidebarState = "open"
+                        } else if (root.sidebarState === "closing") {
+                            root.sidebarState = "closed"
+                        }
+                    }
+                }
+            }
         }
 
         ChatsSideBar {
             anchors.fill: parent
 
             onSettingsRequested: function(chatId) {
-                // console.log("MAIN GOT openChatSettings:", chatId)
                 root.currentChatId = chatId
                 root.showChatSettings = true
             }
@@ -89,14 +115,28 @@ StyledRect {
         anchors.bottom: parent.bottom
 
         variant: "internalbg"
-
-        width: rightSidebarOpened ? 320 : 0
         z: 1000
         clip: true
-        visible: rightSidebarOpened
+        visible: true
+
+        width: (root.rightSidebarState === "open" || root.rightSidebarState === "opening")
+               ? 320 : 0
 
         Behavior on width {
-            NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+            NumberAnimation {
+                duration: 180
+                easing.type: Easing.OutCubic
+
+                onRunningChanged: {
+                    if (!running) {
+                        if (root.rightSidebarState === "opening") {
+                            root.rightSidebarState = "open"
+                        } else if (root.rightSidebarState === "closing") {
+                            root.rightSidebarState = "closed"
+                        }
+                    }
+                }
+            }
         }
 
         ProjectContextSidebar {
@@ -112,8 +152,8 @@ StyledRect {
 
         variant: "pane"
         color: "black"
-        opacity: sidebarOpened ? 0.35 : 0
-        visible: sidebarOpened
+        opacity: root.sidebarState === "open" || root.sidebarState === "opening" ? 0.35 : 0
+        visible: opacity > 0
         z: 900
 
         Behavior on opacity {
@@ -122,7 +162,7 @@ StyledRect {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.sidebarOpened = false
+            onClicked: root.sidebarState = "closing"
         }
     }
 
@@ -131,8 +171,8 @@ StyledRect {
 
         variant: "pane"
         color: "black"
-        opacity: rightSidebarOpened ? 0.35 : 0
-        visible: rightSidebarOpened
+        opacity: root.rightSidebarState === "open" || root.rightSidebarState === "opening" ? 0.35 : 0
+        visible: opacity > 0
         z: 900
 
         Behavior on opacity {
@@ -141,7 +181,7 @@ StyledRect {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.rightSidebarOpened = false
+            onClicked: root.rightSidebarState = "closing"
         }
     }
 
@@ -152,14 +192,14 @@ StyledRect {
         id: chatPage
 
         ChatPage {
-            sidebarOpened: root.sidebarOpened
-            rightSidebarOpened: root.rightSidebarOpened
+            sidebarState: root.sidebarState === "open" || root.sidebarState === "opening"
+            rightSidebarState: root.rightSidebarState === "open" || root.rightSidebarState === "opening"
 
             currentChatId: root.currentChatId
             showChatSettings: root.showChatSettings
 
-            onSidebarOpenedChanged: root.sidebarOpened = sidebarOpened
-            onRightSidebarOpenedChanged: root.rightSidebarOpened = rightSidebarOpened
+            onRequestToggleSidebar: root.toggleSidebar()
+            onRequestToggleRightSidebar: root.toggleRightSidebar()
 
             onRequestSettings: root.currentPage = "settings"
         }

@@ -29,7 +29,7 @@ Rectangle {
         id: bg
         anchors.fill: parent
         radius: 12
-        variant: rowMouse.containsMouse ? "primary" : "internalbg"
+        variant: rowMouse.containsMouse ? "primary" : "pane"
     }
 
     MouseArea {

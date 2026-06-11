@@ -79,15 +79,8 @@ Item {
                     height: parent.height - 50
 
                     model: [
-                        // "General",
                         "Providers",
-                        "Models",
-                        // "API Keys",
-                        // "Network",
-                        // "Appearance",
-                        // "Shortcuts",
-                        // "Advanced",
-                        // "About"
+                        "Models"
                     ]
 
                     delegate: Rectangle {
@@ -169,17 +162,6 @@ Item {
 
                 currentIndex: root.currentIndex
 
-                // GENERAL
-                // Item {
-                //     Text {
-                //         anchors.centerIn: parent
-
-                //         text: "General Settings"
-
-                //         color: Theme.textColor
-                //     }
-                // }
-
                 // PROVIDERS
                 ProviderPage {
                     onOpenProvider: function(providerId) {
@@ -197,72 +179,6 @@ Item {
                         root.editingModel = true
                     }
                 }
-
-                // API KEYS
-                // Item {
-                //     Text {
-                //         anchors.centerIn: parent
-
-                //         text: "API Keys"
-
-                //         color: Theme.textColor
-                //     }
-                // }
-
-                // NETWORK
-                // Item {
-                //     Text {
-                //         anchors.centerIn: parent
-
-                //         text: "Network Settings"
-
-                //         color: Theme.textColor
-                //     }
-                // }
-
-                // APPEARANCE
-                // Item {
-                //     Text {
-                //         anchors.centerIn: parent
-
-                //         text: "Appearance"
-
-                //         color: Theme.textColor
-                //     }
-                // }
-
-                // SHORTCUTS
-                // Item {
-                //     Text {
-                //         anchors.centerIn: parent
-
-                //         text: "Shortcuts"
-
-                //         color: Theme.textColor
-                //     }
-                // }
-
-                // ADVANCED
-                // Item {
-                //     Text {
-                //         anchors.centerIn: parent
-
-                //         text: "Advanced"
-
-                //         color: Theme.textColor
-                //     }
-                // }
-
-                // ABOUT
-                // Item {
-                //     Text {
-                //         anchors.centerIn: parent
-
-                //         text: "About"
-
-                //         color: Theme.textColor
-                //     }
-                // }
             }
 
             // ─────────────────────────────
@@ -282,9 +198,19 @@ Item {
                     onBackRequested: {
                         root.editingProvider = false
                     }
+
+                    onOpenModel: function(modelData) {
+                            root.editingModelData = modelData
+
+                            root.editingProvider = false
+                            root.editingModel = true
+                        }
                 }
             }
 
+            // ─────────────────────────────
+            // MODEL EDITOR
+            // ─────────────────────────────
             Loader {
                 anchors.fill: parent
 

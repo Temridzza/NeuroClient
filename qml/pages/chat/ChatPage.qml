@@ -15,11 +15,14 @@ StyledRect {
     variant: "transparent"
     clip: true
 
-    property bool sidebarOpened: false
-    property bool rightSidebarOpened: false
+    property string sidebarState: "closed"
+    property string rightSidebarState: "closed"
 
     property bool showChatSettings: false
     property string currentChatId: ""
+
+    signal requestToggleSidebar()
+    signal requestToggleRightSidebar()
 
     signal requestSettings()
 
@@ -36,11 +39,8 @@ StyledRect {
                 id: header
                 anchors.fill: parent
 
-                sidebarOpened: root.sidebarOpened
-                rightSidebarOpened: root.rightSidebarOpened
-
-                onToggleSidebar: root.sidebarOpened = !root.sidebarOpened
-                onToggleRightSidebar: root.rightSidebarOpened = !root.rightSidebarOpened
+                onToggleSidebar: root.requestToggleSidebar()
+                onToggleRightSidebar: root.requestToggleRightSidebar()
 
                 onSettings: root.requestSettings()
             }

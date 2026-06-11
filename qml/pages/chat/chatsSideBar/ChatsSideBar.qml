@@ -16,7 +16,7 @@ StyledRect {
     property bool animating: false
 
     radius: 22
-    variant: "pane"   // фон берётся из темы Ambxst
+    variant: "internalbg"
 
     width: root.sidebarOpened ? 320 : 0
     visible: width > 0

@@ -12,16 +12,9 @@ import "../../components"
 StyledRect {
     id: root
 
-    property bool sidebarOpened: true
-    property bool rightSidebarOpened: true
-
     signal toggleSidebar()
     signal toggleRightSidebar()
-
     signal settings()
-
-    onToggleSidebar: sidebarOpened = !sidebarOpened
-    onToggleRightSidebar: rightSidebarOpened = !rightSidebarOpened
 
     height: 52
     radius: 16
