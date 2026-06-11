@@ -24,11 +24,14 @@ QList<Message> PromptBuilder::build(
         result.append(file);
     }
 
-    Message user;
-    user.role = "user";
-    user.content = ctx.userInput;
+    if (!ctx.userInput.trimmed().isEmpty())
+    {
+        Message user;
+        user.role = "user";
+        user.content = ctx.userInput;
 
-    result.append(user);
+        result.append(user);
+    }
 
     return result;
 }

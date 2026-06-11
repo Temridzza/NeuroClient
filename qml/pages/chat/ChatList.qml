@@ -76,7 +76,7 @@ ListView {
         implicitHeight: bubble.implicitHeight + 8
         readonly property bool isUser: role === "user"
         property bool editing: false
-        property string draftText: message
+        property string draftText: ""
 
         Rectangle {
             id: bubble
@@ -125,29 +125,34 @@ ListView {
                 anchors.margins: bubble.pad
                 spacing: 6
 
-                TextEdit {
-                    id: textItem
-
+                // --------- Режим отображения ---------
+                Text {
+                    id: viewText
                     width: parent.width
-                    height: implicitHeight
+                    visible: !row.editing
+                    text: htmlReady ? html : message
+                    textFormat: htmlReady ? Text.RichText : Text.PlainText
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    color: isUser ? Colors.background : Colors.overSurface
+                    renderType: Text.NativeRendering
+                }
 
-                    text: row.editing ? row.draftText : (htmlReady ? html : message)
-
-                    textFormat: htmlReady ? TextEdit.RichText : TextEdit.PlainText
-
-                    readOnly: !row.editing
-                    selectByMouse: true
-                    cursorVisible: row.editing
-
+                // --------- Режим редактирования ---------
+                TextEdit {
+                    id: editText
+                    width: parent.width
+                    visible: row.editing
+                    text: row.draftText
+                    textFormat: TextEdit.PlainText
                     wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
+                    selectByMouse: true
+                    cursorVisible: true
+                    color: isUser ? Colors.background : Colors.overSurface
                     renderType: Text.NativeRendering
 
                     onTextChanged: {
-                        if (row.editing) {
-                            row.draftText = text
-                        }
+                        row.draftText = text
                     }
-                    color: isUser ? Colors.background : Colors.overSurface
                 }
 
                 Row {
@@ -156,47 +161,30 @@ ListView {
                     opacity: visible ? 1 : 0
 
                     StyledToolButton {
-                        visible: !isUser
-                        buttonText: "⧉"
-
-                        onClicked: App.messages.copyAt(index, App.PlainText)
-                    }
-
-                    StyledToolButton {
-                        visible: !isUser
-                        buttonText: "⟳"
-
-                        onClicked: {
-                            // App.chat.regenerate(index)
-                        }
-                    }
-
-                    StyledToolButton {
-                        visible: isUser
+                        id: editingButton
+                        visible: isUser && messageId !== ""
                         buttonText: "🖉"
-
                         onClicked: {
-                            row.editing = true
                             row.draftText = message
-                            textItem.forceActiveFocus()
-                            textItem.cursorPosition = textItem.length
+                            row.editing = true
+                            editText.forceActiveFocus()
+                            editText.cursorPosition = editText.text.length
                         }
                     }
 
                     StyledToolButton {
                         visible: isUser && row.editing
                         buttonText: "✔"
-
                         onClicked: {
-                            App.messages.updateAt(index, row.draftText)
+                            const newText = row.draftText
                             row.editing = false
+                            App.chat.editMessage(messageId, newText)
                         }
                     }
 
                     StyledToolButton {
                         visible: isUser && row.editing
                         buttonText: "✖"
-
                         onClicked: {
                             row.draftText = message
                             row.editing = false
@@ -230,16 +218,16 @@ ListView {
                         onTriggered: App.messages.copyAt(index, App.VisibleText)
                     }
 
-                    StyledMenuItem {
-                        text: qsTr("Выделенное")
-                        enabled: textItem.selectedText.length > 0
-                        onTriggered: App.messages.copyAt(index, App.PlainText)
-                    }
+                    // StyledMenuItem {
+                    //     text: qsTr("Выделенное")
+                    //     enabled: viewText.selectedText.length > 0
+                    //     onTriggered: App.messages.copyAt(index, App.PlainText)
+                    // }
                 }
 
                 StyledMenuItem {
                     text: qsTr("Выделить всё")
-                    onTriggered: textItem.selectAll()
+                    onTriggered: viewText.selectAll()
                 }
             }
 
@@ -248,7 +236,7 @@ ListView {
             // ------------------------------------------------------
             TextMetrics {
                 id: metrics
-                font: textItem.font
+                font: viewText.font
                 text: sidebarAnimating ? "…" : message
             }
         }

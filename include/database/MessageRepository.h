@@ -19,9 +19,15 @@ public:
     QList<Message> getMessages(const QString& chatId);
     QString lastMessageId(const QString& chatId);
     bool updateMessageContent(const QString& id, const QString& content);
+    bool setActiveChild(const QString& parentId, const QString& childId);
+    Message getMessageById(const QString& id);
+    QList<Message> getActiveChain(const QString& chatId);
 
 private:
     QSqlDatabase m_db;
+
+private:
+    Message mapRow(QSqlQuery& q);
 };
 
 #endif // CHATGPT_MESSAGEREPOSITORY_H

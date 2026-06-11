@@ -6,6 +6,7 @@
 #include <QObject>
 #include "MessageModel.h"
 #include "ChatOrchestrator.h"
+#include "MessageService.h"
 
 class ChatViewModel : public QObject
 {
@@ -17,6 +18,7 @@ class ChatViewModel : public QObject
 public:
     explicit ChatViewModel(ChatOrchestrator* orchestrator,
                            MessageModel* m_messages,
+                           MessageService* service,
                            QObject* parent = nullptr
                            );
 
@@ -33,6 +35,8 @@ public:
 
     QString chatId() const;
     bool hasChat() const;
+    Q_INVOKABLE void editMessage(const QString& messageId,
+                                 const QString& newText);
 
 signals:
     void messagesChanged();
@@ -41,6 +45,7 @@ signals:
 
 private:
     MessageModel* m_messages;
+    MessageService* m_messageService;
     bool m_loading = false;
     QString m_currentChatId;
 

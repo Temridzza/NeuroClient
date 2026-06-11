@@ -23,7 +23,7 @@ Rectangle {
     signal settingsRequested(string chatId)
     signal deleteRequested(string chatId)
 
-    property bool hovered: rowMouse.containsMouse || moreButton.hovered || contextMenu.visible
+    property bool hovered: rowMouse.containsMouse || /*moreButton.hovered ||*/ contextMenu.visible
 
     StyledRect {
         id: bg

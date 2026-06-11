@@ -43,6 +43,15 @@ public:
         const QString& content
         );
 
+    QString forkMessage(
+        const QString& messageId,
+        const QString& newContent
+        );
+
+    bool setActiveChild(const QString& parentId,
+                        const QString& childId);
+    Message getMessageById(const QString& id) const;
+
 private:
     QString createMessage(
         const QString& chatId,

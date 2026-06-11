@@ -79,7 +79,7 @@ QList<Message> MessageService::getMessages(
     const QString& chatId
     ) const
 {
-    return m_repository->getMessages(chatId);
+    return m_repository->getActiveChain(chatId);
 }
 
 QString MessageService::lastMessageId(
@@ -98,4 +98,53 @@ bool MessageService::updateMessageContent(
         id,
         content
         );
+}
+
+QString MessageService::forkMessage(
+    const QString& messageId,
+    const QString& newContent
+    )
+{
+    // 1. берём старое сообщение
+    Message old = m_repository->getMessageById(messageId);
+
+    if (old.id.isEmpty())
+        return {};
+
+    // 2. создаём новое сообщение (fork)
+    Message fork;
+    fork.chatId = old.chatId;
+    fork.role = old.role;
+    fork.content = newContent;
+
+    fork.parentId = old.parentId;
+
+    // 3. сохраняем
+    QString newId = m_repository->addMessage(fork);
+
+    if (newId.isEmpty())
+        return {};
+
+    // 4. переключаем ветку
+    if (!old.parentId.isEmpty()) {
+        m_repository->setActiveChild(
+            old.parentId,
+            newId
+            );
+    }
+
+    return newId;
+}
+
+bool MessageService::setActiveChild(const QString &parentId,
+                                    const QString &childId) {
+    return m_repository->setActiveChild(parentId, childId);
+}
+
+Message MessageService::getMessageById(const QString& id) const
+{
+    if (id.isEmpty())
+        return {};
+
+    return m_repository->getMessageById(id);
 }

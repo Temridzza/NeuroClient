@@ -20,7 +20,8 @@ public:
         RoleRole = Qt::UserRole + 1,
         RoleContent,
         RoleHtml,
-        RoleHtmlReady
+        RoleHtmlReady,
+        RoleId
     };
     Q_ENUM(Roles)
 
@@ -53,7 +54,11 @@ public:
     void clear();
 
     const QList<Message>& messages() const;
-    void setMessages(const QList<Message> messages);
+    Message messageAt(int row) const;
+    void setMessages(const QList<Message>& msgs);
+    void updateMessage(int index, const Message& msg);
+    void updateMessageById(const QString& id, const Message& msg);
+
 
 
 private:

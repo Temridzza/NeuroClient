@@ -26,19 +26,12 @@ void ChatOrchestrator::loadChat(
     QObject* uiContext
     )
 {
-    Q_UNUSED(uiContext)
-
     emit chatLoadingStarted(chatId);
-
-    model->clear();
 
     const QList<Message> messages =
         m_messageService->getMessages(chatId);
 
-    for (const auto& msg : messages)
-    {
-        model->addMessage(msg);
-    }
+    model->setMessages(messages);
 
     emit chatLoadingFinished(chatId);
 }
@@ -53,127 +46,75 @@ QString ChatOrchestrator::sendMessage(
     Q_UNUSED(uiContext)
 
     QString effectiveChatId =
-        m_chatContextService->resolveChatId(chatId, text);
-
+        m_chatContextService->resolveChatId(
+            chatId,
+            text
+            );
 
     if (!model || !m_client)
         return {};
 
     const QString trimmed = text.trimmed();
+
     if (trimmed.isEmpty())
         return {};
 
     PromptContext ctx =
         m_chatContextService->buildPromptContext(
             effectiveChatId,
-            text
+            trimmed
             );
 
     QList<Message> promptMessages =
         m_promptBuilder->build(ctx);
 
-    emit requestStarted(effectiveChatId);
+    // Текущий конец активной ветки
+    const QString branchParentId =
+        m_messageService->lastMessageId(
+            effectiveChatId
+            );
 
-    // Берём tip ветки из БД, до вставки новых сообщений
-    const QString branchParentId = m_messageService->lastMessageId(effectiveChatId);
-
-    // Сохраняем user в БД
+    // Создаём user сообщение
     Message userMsg;
     userMsg.chatId = effectiveChatId;
     userMsg.role = "user";
     userMsg.content = trimmed;
     userMsg.parentId = branchParentId;
 
-    const QString userId = m_messageService->addMessage(userMsg);
+    const QString userId =
+        m_messageService->addMessage(userMsg);
+
     if (userId.isEmpty()) {
         qWarning() << "Failed to insert user message";
         return {};
     }
 
-    userMsg.id = userId;
-    model->startStreaming("user");
-    model->appendStream(trimmed);
-    model->finishStreaming();
-
-    // Создаём assistant placeholder и сразу сохраняем его в БД
-    Message assistantMsg;
-    assistantMsg.chatId = effectiveChatId;
-    assistantMsg.role = "assistant";
-    assistantMsg.parentId = userId;
-    assistantMsg.content.clear();
-    assistantMsg.streaming = true;
-
-    const QString assistantId = m_messageService->addMessage(assistantMsg);
-    if (assistantId.isEmpty()) {
-        qWarning() << "Failed to insert assistant placeholder";
-        return {};
+    // branchParent -> user
+    if (!branchParentId.isEmpty()) {
+        m_messageService->setActiveChild(
+            branchParentId,
+            userId
+            );
     }
 
-    assistantMsg.id = assistantId;
-    model->addMessage(assistantMsg);
+    // отображаем user в UI
+    userMsg.id = userId;
 
-    auto buffer = std::make_shared<QString>();
+    Message uiMsg;
+    uiMsg.chatId = effectiveChatId;
+    uiMsg.role = "user";
+    uiMsg.content = trimmed;
+    uiMsg.id = userId;
 
-    m_client->onStreamChunk = [model, buffer](const QString& delta)
-    {
-        QMetaObject::invokeMethod(
-            model,
-            [model, buffer, delta]()
-            {
-                *buffer += delta;
-                model->appendStream(delta);
-            },
-            Qt::QueuedConnection
-            );
-    };
+    model->addMessage(uiMsg);
 
-    m_client->onFinished = [this, model, buffer, assistantId, effectiveChatId]()
-    {
-        QMetaObject::invokeMethod(
-            model,
-            [this, model, buffer, assistantId, effectiveChatId]()
-            {
-                model->finishStreaming();
-
-                if (!buffer->isEmpty()) {
-                    m_messageService->updateMessageContent(assistantId, *buffer);
-                }
-
-                emit requestFinish(effectiveChatId);
-            },
-            Qt::QueuedConnection
-            );
-    };
-
-    m_client->onError = [this, model, assistantId, effectiveChatId](const QString& err)
-    {
-        QMetaObject::invokeMethod(
-            model,
-            [this, model, assistantId, effectiveChatId, err]()
-            {
-                model->finishStreaming();
-
-                m_messageService->updateMessageContent(
-                    assistantId,
-                    QString("[error] %1").arg(err)
-                    );
-
-                Message sysMsg;
-                sysMsg.chatId = effectiveChatId;
-                sysMsg.role = "system";
-                sysMsg.content = err;
-                model->addMessage(sysMsg);
-
-                emit requestFinish(effectiveChatId);
-            },
-            Qt::QueuedConnection
-            );
-    };
-
-    QtConcurrent::run([this, promptMessages]()
-      {
-        m_client->ask(promptMessages);
-      });
+    // создаём assistant и запускаем генерацию
+    generateReply(
+        effectiveChatId,
+        userId,
+        model,
+        promptMessages
+        );
 
     return effectiveChatId;
 }
@@ -210,5 +151,131 @@ QList<Chat> ChatOrchestrator::chats()
 bool ChatOrchestrator::hasChat() const
 {
     return !m_currentChatId.isEmpty();
+}
+
+void ChatOrchestrator::generateReply(
+    const QString& chatId,
+    const QString& parentMessageId,
+    MessageModel* model,
+    const QList<Message>& promptMessages
+    )
+{
+    emit requestStarted(chatId);
+
+    Message assistantMsg;
+    assistantMsg.chatId = chatId;
+    assistantMsg.role = "assistant";
+    assistantMsg.parentId = parentMessageId;
+    assistantMsg.content.clear();
+    assistantMsg.streaming = true;
+
+    const QString assistantId =
+        m_messageService->addMessage(assistantMsg);
+
+    if (assistantId.isEmpty()) {
+        qWarning() << "Failed to insert assistant placeholder";
+        return;
+    }
+
+    m_messageService->setActiveChild(
+        parentMessageId,
+        assistantId
+        );
+
+    assistantMsg.id = assistantId;
+
+    model->addMessage(assistantMsg);
+
+    auto buffer =
+        std::make_shared<QString>();
+
+    m_client->onStreamChunk =
+        [model, buffer](const QString& delta)
+    {
+        QMetaObject::invokeMethod(
+            model,
+            [model, buffer, delta]()
+            {
+                *buffer += delta;
+                model->appendStream(delta);
+            },
+            Qt::QueuedConnection
+            );
+    };
+
+    m_client->onFinished =
+        [this, model, buffer, assistantId, chatId]()
+    {
+        QMetaObject::invokeMethod(
+            model,
+            [this, model, buffer, assistantId, chatId]()
+            {
+                model->finishStreaming();
+
+                if (!buffer->isEmpty()) {
+                    m_messageService->updateMessageContent(
+                        assistantId,
+                        *buffer
+                        );
+                }
+
+                emit requestFinish(chatId);
+            },
+            Qt::QueuedConnection
+            );
+    };
+
+    m_client->onError =
+        [this, model, assistantId, chatId](const QString& err)
+    {
+        QMetaObject::invokeMethod(
+            model,
+            [this, model, assistantId, chatId, err]()
+            {
+                model->finishStreaming();
+
+                m_messageService->updateMessageContent(
+                    assistantId,
+                    QString("[error] %1").arg(err)
+                    );
+
+                emit requestFinish(chatId);
+            },
+            Qt::QueuedConnection
+            );
+    };
+
+    QtConcurrent::run(
+        [this, promptMessages]()
+        {
+            m_client->ask(promptMessages);
+        }
+        );
+}
+
+void ChatOrchestrator::regenerateMessage(
+    const QString& chatId,
+    const QString& parentMessageId,
+    MessageModel* model
+    )
+{
+    if (!model || !m_client)
+        return;
+
+    PromptContext ctx =
+        m_chatContextService->buildPromptContext(
+            chatId,
+            QString()
+            );
+
+    QList<Message> promptMessages =
+        m_promptBuilder->build(ctx);
+
+    generateReply(
+        chatId,
+        parentMessageId,
+        model,
+        promptMessages
+        );
 }
 

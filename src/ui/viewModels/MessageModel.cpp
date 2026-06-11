@@ -33,6 +33,8 @@ QVariant MessageModel::data(const QModelIndex &index,
         return message.html;
     case RoleHtmlReady:
         return message.htmlReady;
+    case RoleId:
+        return message.id;
 
     default:
         return {};
@@ -44,12 +46,17 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
         {RoleRole, "role"},
         {RoleContent, "message"},
         {RoleHtml, "html"},
-        {RoleHtmlReady, "htmlReady"}
+        {RoleHtmlReady, "htmlReady"},
+        {RoleId, "messageId"}
     };
 }
 
 void MessageModel::addMessage(Message msg)
 {
+    if (msg.id.isEmpty()) {
+        qWarning() << "[MessageModel] adding message with EMPTY id!";
+    }
+
     int row = m_messages.size();
     beginInsertRows(QModelIndex(), row, row);
     m_messages.append(msg);
@@ -193,7 +200,46 @@ void MessageModel::copyAt(int row, int mode)
         cb->setText(result);
 }
 
-void MessageModel::setMessages(const QList<Message> messages)
+Message MessageModel::messageAt(int row) const
 {
-    m_messages = messages;
+    if (row < 0 || row >= m_messages.size())
+        return {};
+
+    return m_messages[row];
+}
+
+void MessageModel::setMessages(const QList<Message>& msgs)
+{
+    beginResetModel();
+    m_messages = msgs;
+    endResetModel();
+}
+
+void MessageModel::updateMessage(int index, const Message& msg)
+{
+    if (index < 0 || index >= m_messages.size())
+        return;
+
+    m_messages[index] = msg;
+    emit dataChanged(
+        this->index(index),
+        this->index(index),
+        { RoleContent, RoleHtml, RoleHtmlReady }
+        );
+}
+
+void MessageModel::updateMessageById(const QString& id, const Message& msg)
+{
+    for (int i = 0; i < m_messages.size(); ++i) {
+        if (m_messages[i].id == id) {
+            m_messages[i] = msg;
+
+            emit dataChanged(
+                index(i),
+                index(i),
+                { RoleContent, RoleHtml, RoleHtmlReady }
+                );
+            return;
+        }
+    }
 }

@@ -61,6 +61,11 @@ public:
 
     bool hasChat() const;
 
+    void regenerateMessage(
+        const QString& chatId,
+        const QString& parentMessageId,
+        MessageModel* model
+        );
 signals:
     void chatLoadingStarted(const QString& chatId);
     void chatLoadingFinished(const QString& chatId);
@@ -72,6 +77,12 @@ signals:
 
 private:
     void rebuildClient();
+    void generateReply(
+        const QString& chatId,
+        const QString& parentMessageId,
+        MessageModel* model,
+        const QList<Message>& promptMessages
+        );
 
 private:
     ChatService* m_chatService;
