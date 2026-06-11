@@ -75,6 +75,8 @@ ListView {
         width: chatView.width
         implicitHeight: bubble.implicitHeight + 8
         readonly property bool isUser: role === "user"
+        property bool editing: false
+        property string draftText: message
 
         Rectangle {
             id: bubble
@@ -96,7 +98,8 @@ ListView {
                        maxBubbleWidth,
                        Math.max(120, metrics.boundingRect.width + pad * 2)
                    )
-            implicitHeight: textItem.implicitHeight + pad * 2
+
+            implicitHeight: contentColumn.implicitHeight + pad * 2
             radius: 18
 
             color: isUser ? Colors.primary : Colors.inverseOnSurface
@@ -116,34 +119,92 @@ ListView {
             // ------------------------------------------------------
             //  Текст сообщения
             // ------------------------------------------------------
-            TextEdit {
-                id: textItem
+            Column {
+                id: contentColumn
                 anchors.fill: parent
                 anchors.margins: bubble.pad
+                spacing: 6
 
-                text: sidebarAnimating ? "…" : (htmlReady ? html : message)
-                textFormat: htmlReady ? TextEdit.RichText : TextEdit.PlainText
+                TextEdit {
+                    id: textItem
 
-                readOnly: true
-                selectByMouse: true
-                persistentSelection: true
-                cursorVisible: false
-                wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
-                renderType: Text.NativeRendering
+                    width: parent.width
+                    height: implicitHeight
 
-                color: isUser
-                           ? Colors.background
-                           : Colors.overSurface
-                font.pixelSize: 15
+                    text: row.editing ? row.draftText : (htmlReady ? html : message)
 
+                    textFormat: htmlReady ? TextEdit.RichText : TextEdit.PlainText
 
-                selectionColor: Qt.rgba(Colors.surfaceTint.r,
-                                        Colors.surfaceTint.g,
-                                        Colors.surfaceTint.b, 0.2)
-                selectedTextColor: Colors.overSurface
+                    readOnly: !row.editing
+                    selectByMouse: true
+                    cursorVisible: row.editing
 
-                onLinkActivated: Qt.openUrlExternally(link)
+                    wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
+                    renderType: Text.NativeRendering
+
+                    onTextChanged: {
+                        if (row.editing) {
+                            row.draftText = text
+                        }
+                    }
+                    color: isUser ? Colors.background : Colors.overSurface
+                }
+
+                Row {
+                    spacing: 6
+                    visible: bubble.hovered
+                    opacity: visible ? 1 : 0
+
+                    StyledToolButton {
+                        visible: !isUser
+                        buttonText: "⧉"
+
+                        onClicked: App.messages.copyAt(index, App.PlainText)
+                    }
+
+                    StyledToolButton {
+                        visible: !isUser
+                        buttonText: "⟳"
+
+                        onClicked: {
+                            // App.chat.regenerate(index)
+                        }
+                    }
+
+                    StyledToolButton {
+                        visible: isUser
+                        buttonText: "🖉"
+
+                        onClicked: {
+                            row.editing = true
+                            row.draftText = message
+                            textItem.forceActiveFocus()
+                            textItem.cursorPosition = textItem.length
+                        }
+                    }
+
+                    StyledToolButton {
+                        visible: isUser && row.editing
+                        buttonText: "✔"
+
+                        onClicked: {
+                            App.messages.updateAt(index, row.draftText)
+                            row.editing = false
+                        }
+                    }
+
+                    StyledToolButton {
+                        visible: isUser && row.editing
+                        buttonText: "✖"
+
+                        onClicked: {
+                            row.draftText = message
+                            row.editing = false
+                        }
+                    }
+                }
             }
+
 
             // ------------------------------------------------------
             //  Контекстное меню

@@ -8,6 +8,9 @@ import NeuroClient 1.0
 
 import "../../components"
 
+import qs.modules.theme
+import qs.modules.components
+
 Item {
     id: root
 
@@ -52,36 +55,16 @@ Item {
         RowLayout {
             Layout.fillWidth: true
 
-            Rectangle {
-                width: 42
-                height: 42
-                radius: 10
-
-                color: Qt.lighter(
-                           Theme.panelColor,
-                           1.1
-                       )
-
-                Text {
-                    anchors.centerIn: parent
-
-                    text: "←"
-
-                    color: Theme.textColor
-                    font.pixelSize: 18
+            StyledToolButton {
+                buttonText: "←"
+                onClicked: {
+                    root.backRequested()
                 }
-
-                MouseArea {
-                    anchors.fill: parent
-
-                    onClicked: {
-                        root.backRequested()
-                    }
-                }
+                variantNormal: "pane"
             }
 
             Text {
-                text: "Edit Provider"
+                text: "Редактор"
 
                 font.pixelSize: 24
                 color: Theme.textColor
@@ -91,37 +74,21 @@ Item {
                 Layout.fillWidth: true
             }
 
-            Rectangle {
-                width: 100
-                height: 40
-                radius: 10
+            StyledToolButton {
+                buttonText: "Сохранить"
+                Layout.fillWidth: true
+                variantNormal: "primary"
+                onClicked: {
+                    App.providers.updateProvider(
+                        providerId,
+                        {
+                            "name": providerName,
+                            "base_url": providerUrl,
+                            "api_key": providerKey
+                        }
+                    )
 
-                color: "#3b82f6"
-
-                Text {
-                    anchors.centerIn: parent
-
-                    text: "Save"
-
-                    color: "white"
-                    font.pixelSize: 14
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-
-                    onClicked: {
-                        App.providers.updateProvider(
-                            providerId,
-                            {
-                                "name": providerName,
-                                "base_url": providerUrl,
-                                "api_key": providerKey
-                            }
-                        )
-
-                        root.backRequested()
-                    }
+                    root.backRequested()
                 }
             }
         }
@@ -149,7 +116,7 @@ Item {
                     spacing: 6
 
                     Text {
-                        text: "Provider Name"
+                        text: "Название"
 
                         color: Theme.textColor
                         opacity: 0.8
@@ -183,7 +150,7 @@ Item {
                     spacing: 6
 
                     Text {
-                        text: "Base URL"
+                        text: "Базовый URL"
 
                         color: Theme.textColor
                         opacity: 0.8
@@ -353,63 +320,22 @@ Item {
                                 }
                             }
 
-                            Rectangle {
-                                width: 120
-                                height: 38
-                                radius: 10
+                            StyledToolButton {
+                                buttonText: "+ модель"
+                                onClicked: {
+                                    App.models.createModel(
+                                                providerId,
+                                                "new-model",
+                                                "New Model"
+                                                )
 
-                                color: Qt.lighter(
-                                           Theme.panelColor,
-                                           1.15
-                                       )
-
-                                Text {
-                                    anchors.centerIn: parent
-
-                                    text: "+ Add Model"
-
-                                    color: Theme.textColor
-                                    font.pixelSize: 13
+                                    App.models.loadModelsByProvider(
+                                                providerId
+                                                )
                                 }
-
-                                MouseArea {
-                                    anchors.fill: parent
-
-                                    onClicked: {
-                                        App.models.createModel(
-                                                    providerId,
-                                                    "new-model",
-                                                    "New Model"
-                                                    )
-
-                                        App.models.loadModelsByProvider(
-                                                    providerId
-                                                    )
-                                    }
-                                }
+                                variantNormal: "internalbg"
+                                Layout.fillWidth: true
                             }
-                        }
-
-                        Rectangle {
-                            Layout.fillWidth: true
-
-                            height: 1
-
-                            color: Theme.borderColor
-                            opacity: 0.3
-                        }
-
-                        Text {
-                            text:
-                                "Provider ID: " + providerId
-
-                            color: Theme.textColor
-                            opacity: 0.45
-                            font.pixelSize: 11
-
-                            Layout.fillWidth: true
-
-                            elide: Text.ElideMiddle
                         }
                     }
                 }
@@ -421,7 +347,7 @@ Item {
                     spacing: 10
 
                     Text {
-                        text: "Models"
+                        text: "Модели"
 
                         color: Theme.textColor
                         opacity: 0.8
@@ -487,41 +413,22 @@ Item {
                                     onClicked: root.openModel(item)
                                 }
 
+                                StyledToolButton {
+                                    buttonText: "×"
+                                    onClicked: {
+                                        App.models.deleteModel(item.id)
 
-
-                                Rectangle {
-                                    width: 26
-                                    height: 26
-                                    radius: 8
-
-                                    color: "#402020"
-
-                                    Text {
-                                        anchors.centerIn: parent
-
-                                        text: "×"
-
-                                        color: "#ff8080"
-                                        font.pixelSize: 16
+                                        App.models.loadModelsByProvider(
+                                                    providerId
+                                                    )
                                     }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-
-                                        onClicked: {
-                                            App.models.deleteModel(item.id)
-
-                                            App.models.loadModelsByProvider(
-                                                        providerId
-                                                        )
-                                        }
-                                    }
+                                    variantNormal: Colors.red
                                 }
                             }
                         }
                     }
 
-                    Rectangle {
+                    StyledRect {
                         Layout.fillWidth: true
 
                         height:
@@ -534,15 +441,12 @@ Item {
 
                         radius: 12
 
-                        color: Qt.lighter(
-                                   Theme.panelColor,
-                                   1.02
-                               )
+                        variant: "pane"
 
                         Text {
                             anchors.centerIn: parent
 
-                            text: "No models yet"
+                            text: "Сейчас нет моделей"
 
                             color: Theme.textColor
                             opacity: 0.5
@@ -550,64 +454,17 @@ Item {
                     }
                 }
 
-                // DANGER ZONE
-                Rectangle {
-                    Layout.fillWidth: true
+                StyledToolButton {
+                    buttonText: "Удалить провайдера"
+                    onClicked: {
+                        App.providers.deleteProvider(
+                                    providerId
+                                    )
 
-                    radius: 14
-
-                    color: "#2a1616"
-                    border.color: "#5a2a2a"
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 16
-
-                        spacing: 10
-
-                        Text {
-                            text: "Danger Zone"
-
-                            color: "#ff8080"
-                            font.pixelSize: 16
-                        }
-
-                        Text {
-                            text:
-                                "Remove this provider permanently."
-
-                            color: Theme.textColor
-                            opacity: 0.7
-                        }
-
-                        Rectangle {
-                            width: 120
-                            height: 36
-                            radius: 10
-
-                            color: "#c0392b"
-
-                            Text {
-                                anchors.centerIn: parent
-
-                                text: "Delete"
-
-                                color: "white"
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-
-                                onClicked: {
-                                    App.providers.deleteProvider(
-                                                providerId
-                                                )
-
-                                    root.backRequested()
-                                }
-                            }
-                        }
+                        root.backRequested()
                     }
+                    variantNormal: Colors.red
+                    Layout.fillWidth: true
                 }
 
                 Item {

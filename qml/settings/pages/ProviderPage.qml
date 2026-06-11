@@ -6,6 +6,11 @@ import Theme 1.0
 import ChatGPT 1.0
 import NeuroClient 1.0
 
+import qs.modules.theme
+import qs.modules.components
+
+import "../../components"
+
 Item {
     id: root
 
@@ -27,7 +32,7 @@ Item {
             Layout.fillWidth: true
 
             Text {
-                text: "Providers"
+                text: "Провайдеры"
                 font.pixelSize: 22
                 color: Theme.textColor
             }
@@ -36,35 +41,22 @@ Item {
                 Layout.fillWidth: true
             }
 
-            Rectangle {
-                width: 140
-                height: 36
-                radius: 10
+            StyledToolButton {
+                Layout.fillWidth: true
+                buttonText: "+ Провайдер"
+                onClicked: {
+                    const providerId =
+                            App.providers.createProvider(
+                                "New Provider",
+                                "",
+                                ""
+                            )
 
-                color: Qt.lighter(Theme.panelColor, 1.1)
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "+ Add Provider"
-                    color: Theme.textColor
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-
-                    onClicked: {
-                        const providerId =
-                                App.providers.createProvider(
-                                    "New Provider",
-                                    "",
-                                    ""
-                                )
-
-                        if (providerId.length > 0) {
-                            root.openProvider(providerId)
-                        }
+                    if (providerId.length > 0) {
+                        root.openProvider(providerId)
                     }
                 }
+                variantNormal: "pane"
             }
         }
 
@@ -87,49 +79,15 @@ Item {
 
             model: App.providers
 
-            delegate: Rectangle {
+            delegate: StyledCard {
                 width: ListView.view.width
                 height: 110
-                radius: 14
 
-                color: Qt.lighter(
-                           Theme.panelColor,
-                           hovered ? 1.08 : 1.05
-                       )
-
-                property bool hovered: false
-
-                scale: hovered ? 1.01 : 1.0
-
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: 120
-                    }
-                }
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 120
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-
-                    hoverEnabled: true
-
-                    onEntered: {
-                        parent.hovered = true
-                    }
-
-                    onExited: {
-                        parent.hovered = false
-                    }
-
-                    onClicked: {
-                        root.openProvider(id)
-                    }
-                }
+                onClicked: root.openProvider(id)
+                required property string id
+                required property string name
+                required property string base_url
+                required property string api_key
 
                 Column {
                     anchors.fill: parent
@@ -137,9 +95,6 @@ Item {
 
                     spacing: 4
 
-                    // ─────────────────────────────
-                    // NAME
-                    // ─────────────────────────────
                     Row {
                         width: parent.width
 
@@ -163,13 +118,10 @@ Item {
                         }
                     }
 
-                    // ─────────────────────────────
-                    // URL
-                    // ─────────────────────────────
                     Text {
                         text: "url: " + (
-                                  baseUrl.length > 0
-                                  ? baseUrl
+                                  base_url.length > 0
+                                  ? base_url
                                   : "(empty)"
                               )
 
@@ -177,16 +129,13 @@ Item {
                         opacity: 0.7
                         font.pixelSize: 13
 
-                        elide: Text.ElideRight
                         width: parent.width
+                        elide: Text.ElideRight
                     }
 
-                    // ─────────────────────────────
-                    // API KEY
-                    // ─────────────────────────────
                     Text {
-                        text: "key: " + (
-                                  apiKey.length > 0
+                        text: "ключ: " + (
+                                  api_key.length > 0
                                   ? "********"
                                   : "(none)"
                               )
@@ -196,9 +145,6 @@ Item {
                         font.pixelSize: 13
                     }
 
-                    // ─────────────────────────────
-                    // ID
-                    // ─────────────────────────────
                     Text {
                         text: id
 
@@ -206,47 +152,11 @@ Item {
                         opacity: 0.35
                         font.pixelSize: 11
 
-                        elide: Text.ElideMiddle
                         width: parent.width
+                        elide: Text.ElideMiddle
                     }
                 }
             }
-
-            // EMPTY STATE
-            // Rectangle {
-            //     anchors.centerIn: parent
-
-            //     width: 320
-            //     height: 140
-            //     radius: 18
-
-            //     visible: App.providers.rowCount() === 0
-
-            //     color: Qt.lighter(Theme.panelColor, 1.03)
-
-            //     Column {
-            //         anchors.centerIn: parent
-            //         spacing: 10
-
-            //         Text {
-            //             anchors.horizontalCenter: parent.horizontalCenter
-
-            //             text: "No Providers"
-
-            //             font.pixelSize: 20
-            //             color: Theme.textColor
-            //         }
-
-            //         Text {
-            //             anchors.horizontalCenter: parent.horizontalCenter
-
-            //             text: "Add your first AI provider"
-
-            //             color: Theme.textColor
-            //             opacity: 0.6
-            //         }
-            //     }
-            // }
         }
     }
 }

@@ -6,11 +6,13 @@ import Theme 1.0
 import "../pages"
 import "pages"
 import "pages/models"
+import "../components"
 
 import ChatGPT 1.0
 import NeuroClient 1.0
 
-
+import qs.modules.theme
+import qs.modules.components
 
 Item {
     id: root
@@ -32,11 +34,11 @@ Item {
         // ─────────────────────────────
         // LEFT SIDEBAR
         // ─────────────────────────────
-        Rectangle {
+        StyledRect {
             Layout.preferredWidth: 260
             Layout.fillHeight: true
 
-            color: Theme.panelColor
+            variant: "transparent"
 
             Column {
                 anchors.fill: parent
@@ -47,28 +49,14 @@ Item {
                 // ─────────────────────────────
                 // BACK BUTTON
                 // ─────────────────────────────
-                Rectangle {
-                    width: parent.width
-                    height: 42
-                    radius: 10
 
-                    color: "transparent"
-
-                    Text {
-                        anchors.centerIn: parent
-
-                        text: "← Back"
-
-                        color: Theme.textColor
+                StyledToolButton {
+                    buttonText: "← Вернуться"
+                    onClicked: {
+                        root.requestBack()
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-
-                        onClicked: {
-                            root.requestBack()
-                        }
-                    }
+                    Layout.fillWidth: true
+                    variantNormal: "pane"
                 }
 
                 // ─────────────────────────────
@@ -79,64 +67,31 @@ Item {
                     height: parent.height - 50
 
                     model: [
-                        "Providers",
-                        "Models"
+                        "Провайдеры",
+                        "Модели"
                     ]
 
-                    delegate: Rectangle {
+                    delegate: StyledToolButton {
                         width: ListView.view.width
                         height: 42
+                        variantNormal: "pane"
+
+                        buttonText: modelData
                         radius: 10
 
-                        property bool hovered: false
+                        checkedNormal :
+                            index === root.currentIndex
+                            && !root.editingProvider
+                            && !root.editingModel
 
-                        color:
-                            hovered
-                            ? Qt.lighter(
-                                  Theme.panelColor,
-                                  1.2
-                                  )
-                            : (
-                                  index === root.currentIndex
-                                  && !root.editingProvider
-                                  && !root.editingModel
-                                  ? Qt.darker(
-                                        Theme.panelColor,
-                                        1.2
-                                        )
-                                  : "transparent"
-                                  )
+                        onClicked: {
+                            root.editingProvider = false
+                            root.editingModel = false
 
-                        Text {
-                            anchors.centerIn: parent
+                            root.currentIndex = index
 
-                            text: modelData
-
-                            color: Theme.textColor
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-
-                            hoverEnabled: true
-
-                            onEntered: {
-                                parent.hovered = true
-                            }
-
-                            onExited: {
-                                parent.hovered = false
-                            }
-
-                            onClicked: {
-                                root.editingProvider = false
-                                root.editingModel = false
-
-                                root.currentIndex = index
-
-                                if (modelData === "Models")
-                                       App.models.loadModels()
-                            }
+                            if (modelData === "Models")
+                                App.models.loadModels()
                         }
                     }
                 }
@@ -146,11 +101,11 @@ Item {
         // ─────────────────────────────
         // CONTENT AREA
         // ─────────────────────────────
-        Rectangle {
+        StyledRect {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            color: Theme.chatBgColor
+            variant: "transparent"
 
             // ─────────────────────────────
             // NORMAL SETTINGS PAGES
@@ -208,9 +163,6 @@ Item {
                 }
             }
 
-            // ─────────────────────────────
-            // MODEL EDITOR
-            // ─────────────────────────────
             Loader {
                 anchors.fill: parent
 

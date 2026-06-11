@@ -123,6 +123,7 @@ qt_add_qml_module(ChatGPT_QML
         QML_FILES qml/settings/pages/models/ModelPage.qml
         QML_FILES qml/settings/pages/models/ModelEditPage.qml
         QML_FILES qml/components/ElidedText.qml
+        QML_FILES qml/components/StyledCard.qml
 )
 
 # ------------------- Include‑директории ----------
