@@ -51,6 +51,18 @@ public:
     bool setActiveChild(const QString& parentId,
                         const QString& childId);
     Message getMessageById(const QString& id) const;
+    QList<Message> getChildren(
+        const QString& parentId) const;
+
+    bool switchSibling(
+        const QString& parentId,
+        const QString& newActiveChildId
+        );
+    bool switchToPreviousSibling(const QString& messageId);
+    bool switchToNextSibling(const QString& messageId);
+    bool hasPreviousSibling(const QString& messageId);
+    bool hasNextSibling(const QString& messageId);
+
 
 private:
     QString createMessage(
@@ -58,6 +70,8 @@ private:
         const QString& role,
         const QString& content
         );
+    QList<Message> getSiblings(const QString& messageId) const;
+
 
 private:
     SettingsService* m_settings;

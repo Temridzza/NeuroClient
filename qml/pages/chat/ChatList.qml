@@ -123,9 +123,9 @@ ListView {
                 id: contentColumn
                 anchors.fill: parent
                 anchors.margins: bubble.pad
-                spacing: 6
+                spacing: 8
 
-                // --------- Режим отображения ---------
+                // ---------------- TEXT ----------------
                 Text {
                     id: viewText
                     width: parent.width
@@ -137,56 +137,72 @@ ListView {
                     renderType: Text.NativeRendering
                 }
 
-                // --------- Режим редактирования ---------
                 TextEdit {
                     id: editText
                     width: parent.width
                     visible: row.editing
                     text: row.draftText
-                    textFormat: TextEdit.PlainText
                     wrapMode: TextEdit.WrapAtWordBoundaryOrAnywhere
                     selectByMouse: true
-                    cursorVisible: true
                     color: isUser ? Colors.background : Colors.overSurface
-                    renderType: Text.NativeRendering
 
-                    onTextChanged: {
-                        row.draftText = text
-                    }
+                    onTextChanged: row.draftText = text
                 }
 
+                // ---------------- BOTTOM ACTION BAR ----------------
                 Row {
-                    spacing: 6
-                    visible: bubble.hovered
-                    opacity: visible ? 1 : 0
+                    id: actions
+                    spacing: 4
+                    opacity: bubble.hovered ? 1 : 0
+                    visible: opacity > 0
+
+                    Behavior on opacity { NumberAnimation { duration: 120 } }
+
+                    // LEFT: navigation (только если есть ветки)
+                    StyledToolButton {
+                        buttonText: "‹"
+                        visible: hasPrevSibling && !row.editing
+                        onClicked: App.chat.prevBranch(messageId)
+                    }
 
                     StyledToolButton {
-                        id: editingButton
-                        visible: isUser && messageId !== ""
-                        buttonText: "🖉"
+                        buttonText: "›"
+                        visible: hasNextSibling && !row.editing
+                        onClicked: App.chat.nextBranch(messageId)
+                    }
+
+                    Item { width: 8 }
+
+                    // RIGHT: core actions
+                    StyledToolButton {
+                        buttonText: "⧉"
+                        visible: !row.editing
+                        onClicked: App.messages.copyAt(index, App.PlainText)
+                    }
+
+                    StyledToolButton {
+                        buttonText: "⟳"
+                        visible: !isUser && !row.editing
+                        onClicked: {
+                            App.chat.regenerate(messageId)
+                        }
+                    }
+
+                    StyledToolButton {
+                        buttonText: "✎"
+                        visible: isUser && !row.editing
                         onClicked: {
                             row.draftText = message
                             row.editing = true
-                            editText.forceActiveFocus()
-                            editText.cursorPosition = editText.text.length
                         }
                     }
 
+                    // edit mode replaces everything
                     StyledToolButton {
-                        visible: isUser && row.editing
                         buttonText: "✔"
+                        visible: row.editing
                         onClicked: {
-                            const newText = row.draftText
-                            row.editing = false
-                            App.chat.editMessage(messageId, newText)
-                        }
-                    }
-
-                    StyledToolButton {
-                        visible: isUser && row.editing
-                        buttonText: "✖"
-                        onClicked: {
-                            row.draftText = message
+                            App.chat.editMessage(messageId, row.draftText)
                             row.editing = false
                         }
                     }
@@ -217,12 +233,6 @@ ListView {
                         text: qsTr("Видимый текст")
                         onTriggered: App.messages.copyAt(index, App.VisibleText)
                     }
-
-                    // StyledMenuItem {
-                    //     text: qsTr("Выделенное")
-                    //     enabled: viewText.selectedText.length > 0
-                    //     onTriggered: App.messages.copyAt(index, App.PlainText)
-                    // }
                 }
 
                 StyledMenuItem {

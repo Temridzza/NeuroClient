@@ -1,7 +1,9 @@
 #include "MessageModel.h"
 
-MessageModel::MessageModel(QObject *parent)
-    : QAbstractListModel(parent) {
+MessageModel::MessageModel(MessageService* service, QObject *parent)
+    : QAbstractListModel(parent),
+    m_messageService(service)
+{
 
     m_renderTimer.setSingleShot(true);
     m_renderTimer.setInterval(40); // ~25 FPS max render
@@ -35,6 +37,11 @@ QVariant MessageModel::data(const QModelIndex &index,
         return message.htmlReady;
     case RoleId:
         return message.id;
+    case RoleHasPrevSibling:
+        return m_messageService->hasPreviousSibling(message.id);
+
+    case RoleHasNextSibling:
+        return m_messageService->hasNextSibling(message.id);
 
     default:
         return {};
@@ -47,7 +54,9 @@ QHash<int, QByteArray> MessageModel::roleNames() const {
         {RoleContent, "message"},
         {RoleHtml, "html"},
         {RoleHtmlReady, "htmlReady"},
-        {RoleId, "messageId"}
+        {RoleId, "messageId"},
+        { RoleHasPrevSibling, "hasPrevSibling" },
+        { RoleHasNextSibling, "hasNextSibling" },
     };
 }
 
@@ -242,4 +251,13 @@ void MessageModel::updateMessageById(const QString& id, const Message& msg)
             return;
         }
     }
+}
+
+int MessageModel::indexOfMessage(const QString& id) const
+{
+    for (int i = 0; i < m_messages.size(); ++i) {
+        if (m_messages[i].id == id)
+            return i;
+    }
+    return -1;
 }

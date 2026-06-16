@@ -278,4 +278,3 @@ void ChatOrchestrator::regenerateMessage(
         promptMessages
         );
 }
-

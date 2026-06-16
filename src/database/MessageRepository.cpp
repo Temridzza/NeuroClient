@@ -307,3 +307,25 @@ Message MessageRepository::mapRow(QSqlQuery& q)
     return m;
 }
 
+QList<Message> MessageRepository::getMessagesByParent(const QString& parentId)
+{
+    QList<Message> list;
+
+    QSqlQuery q(m_db);
+    q.prepare(R"(
+        SELECT *
+        FROM messages
+        WHERE parent_id = :parentId
+        ORDER BY created_at ASC
+    )");
+
+    q.bindValue(":parentId", parentId.isEmpty() ? QVariant() : parentId);
+
+    if (!q.exec())
+        return list;
+
+    while (q.next())
+        list.append(mapRow(q));
+
+    return list;
+}

@@ -38,6 +38,10 @@ public:
     Q_INVOKABLE void editMessage(const QString& messageId,
                                  const QString& newText);
 
+    Q_INVOKABLE void prevBranch(const QString& messageId);
+    Q_INVOKABLE void nextBranch(const QString& messageId);
+    Q_INVOKABLE void refreshBranch(const QString& chatId);
+
 signals:
     void messagesChanged();
     void loadingChanged();

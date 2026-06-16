@@ -22,6 +22,8 @@ public:
     bool setActiveChild(const QString& parentId, const QString& childId);
     Message getMessageById(const QString& id);
     QList<Message> getActiveChain(const QString& chatId);
+    QList<Message> getMessagesByParent(const QString& parentId);
+
 
 private:
     QSqlDatabase m_db;

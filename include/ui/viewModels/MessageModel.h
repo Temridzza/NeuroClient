@@ -11,6 +11,7 @@
 
 #include "Markdown.h"
 #include "Message.h"
+#include "MessageService.h"
 
 class MessageModel : public QAbstractListModel {
     Q_OBJECT
@@ -21,7 +22,10 @@ public:
         RoleContent,
         RoleHtml,
         RoleHtmlReady,
-        RoleId
+        RoleId,
+
+        RoleHasPrevSibling,
+        RoleHasNextSibling
     };
     Q_ENUM(Roles)
 
@@ -32,7 +36,9 @@ public:
     };
     Q_ENUM(CopyMode)
 
-    explicit MessageModel(QObject *parent = nullptr);
+    explicit MessageModel(
+        MessageService* service,
+        QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 
@@ -58,7 +64,7 @@ public:
     void setMessages(const QList<Message>& msgs);
     void updateMessage(int index, const Message& msg);
     void updateMessageById(const QString& id, const Message& msg);
-
+    int indexOfMessage(const QString& id) const;
 
 
 private:
@@ -66,6 +72,7 @@ private:
     void renderLastMessage();
 
 private:
+    MessageService* m_messageService = nullptr;
     QList<Message> m_messages;
     QTimer m_renderTimer;
     QString m_chatId;

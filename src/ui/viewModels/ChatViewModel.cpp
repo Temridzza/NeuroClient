@@ -174,3 +174,25 @@ void ChatViewModel::editMessage(const QString& messageId, const QString& newText
 
     qDebug() << "[editMessage] regeneration triggered";
 }
+
+void ChatViewModel::prevBranch(const QString& messageId)
+{
+    m_messageService->switchToPreviousSibling(messageId);
+
+    refreshBranch(m_currentChatId);
+}
+
+void ChatViewModel::nextBranch(const QString& messageId)
+{
+    m_messageService->switchToNextSibling(messageId);
+
+    refreshBranch(m_currentChatId);
+}
+
+void ChatViewModel::refreshBranch(const QString& chatId)
+{
+    auto chain =
+        m_messageService->getMessages(chatId);
+
+    m_messages->setMessages(chain);
+}

@@ -148,3 +148,116 @@ Message MessageService::getMessageById(const QString& id) const
 
     return m_repository->getMessageById(id);
 }
+
+QList<Message> MessageService::getChildren(const QString& parentId) const
+{
+    return m_repository->getMessagesByParent(parentId);
+}
+
+QList<Message> MessageService::getSiblings(const QString& messageId) const
+{
+    Message msg = m_repository->getMessageById(messageId);
+
+    if (msg.parentId.isEmpty())
+        return {};
+
+    return m_repository->getMessagesByParent(msg.parentId);
+}
+
+bool MessageService::switchSibling(
+    const QString& parentId,
+    const QString& newActiveChildId
+    )
+{
+    return m_repository->setActiveChild(parentId, newActiveChildId);
+}
+
+bool MessageService::switchToPreviousSibling(const QString& messageId)
+{
+    Message msg = m_repository->getMessageById(messageId);
+
+    if (msg.id.isEmpty() || msg.parentId.isEmpty())
+        return false;
+
+    QList<Message> siblings =
+        m_repository->getMessagesByParent(msg.parentId);
+
+    int index = -1;
+
+    for (int i = 0; i < siblings.size(); ++i) {
+        if (siblings[i].id == messageId) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index <= 0)
+        return false;
+
+    const QString newActiveId = siblings[index - 1].id;
+
+    // 🔥 обновляем ветку у родителя
+    return m_repository->setActiveChild(msg.parentId, newActiveId);
+}
+
+bool MessageService::switchToNextSibling(const QString& messageId)
+{
+    Message msg = m_repository->getMessageById(messageId);
+
+    if (msg.id.isEmpty() || msg.parentId.isEmpty())
+        return false;
+
+    QList<Message> siblings =
+        m_repository->getMessagesByParent(msg.parentId);
+
+    int index = -1;
+
+    for (int i = 0; i < siblings.size(); ++i) {
+        if (siblings[i].id == messageId) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index < 0 || index >= siblings.size() - 1)
+        return false;
+
+    const QString newActiveId = siblings[index + 1].id;
+
+    // 🔥 ВАЖНО: меняем activeChildId у parent
+    return m_repository->setActiveChild(msg.parentId, newActiveId);
+}
+
+bool MessageService::hasPreviousSibling(const QString& messageId)
+{
+    Message msg = m_repository->getMessageById(messageId);
+    if (msg.id.isEmpty() || msg.parentId.isEmpty())
+        return false;
+
+    QList<Message> siblings = m_repository->getMessagesByParent(msg.parentId);
+
+    for (int i = 0; i < siblings.size(); ++i) {
+        if (siblings[i].id == messageId) {
+            return i > 0;
+        }
+    }
+
+    return false;
+}
+
+bool MessageService::hasNextSibling(const QString& messageId)
+{
+    Message msg = m_repository->getMessageById(messageId);
+    if (msg.id.isEmpty() || msg.parentId.isEmpty())
+        return false;
+
+    QList<Message> siblings = m_repository->getMessagesByParent(msg.parentId);
+
+    for (int i = 0; i < siblings.size(); ++i) {
+        if (siblings[i].id == messageId) {
+            return i < siblings.size() - 1;
+        }
+    }
+
+    return false;
+}

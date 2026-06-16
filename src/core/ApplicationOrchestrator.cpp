@@ -151,7 +151,9 @@ ApplicationOrchestrator::ApplicationOrchestrator(QObject* parent)
 
     //---------- View Models ---------
     m_messagesVM =
-        std::make_unique<MessageModel>();
+        std::make_unique<MessageModel>(
+            m_messageService.get()
+        );
 
     m_chatVM =
         std::make_unique<ChatViewModel>(
