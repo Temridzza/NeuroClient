@@ -209,7 +209,7 @@ bool DatabaseManager::seed() {
         insertProvider.addBindValue(openrouterId);
         insertProvider.addBindValue("openrouter");
         insertProvider.addBindValue("https://openrouter.ai/api/v1/chat/completions");
-        insertProvider.addBindValue("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");
+        insertProvider.addBindValue("");
         insertProvider.addBindValue(now);
         insertProvider.addBindValue(now);
 
